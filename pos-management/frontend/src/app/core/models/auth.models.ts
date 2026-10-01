@@ -8,6 +8,7 @@ export interface UserInfo {
   permissions: string[];
   businessUnitId: string | null;
   businessUnitName: string | null;
+  branchCode?: string | null;
 }
 
 /** Response từ login / refresh token API */

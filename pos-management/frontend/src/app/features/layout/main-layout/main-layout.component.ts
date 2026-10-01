@@ -159,7 +159,8 @@ export class MainLayoutComponent {
     this.authService.logout();
   }
 
-  isActive(route: string): boolean {
+  isActive(route?: string): boolean {
+    if (!route) return false;
     return this.activeRoute().startsWith(route);
   }
 }
