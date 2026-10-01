@@ -768,3 +768,175 @@ Response: Paginated AuditLogResponse
 | `fromDate` | string | ISO 8601 date: `2026-01-01` |
 | `toDate` | string | ISO 8601 date: `2026-12-31` |
 
+---
+
+## 15. Excel Export API
+
+> **Thư viện Backend:** Apache POI (`poi-ooxml:5.3.0`)
+> **Content-Type:** `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+
+### Quy Tắc Chung
+
+```
+URL pattern: GET /api/v1/{resource}/export
+Query params: giống hệt filter của endpoint list tương ứng + format=xlsx (default)
+
+Nếu tổng bản ghi ≤ 10,000:
+  → Response 200: binary .xlsx download (sync)
+  → Header: Content-Disposition: attachment; filename="{entity}_{date}.xlsx"
+
+Nếu tổng bản ghi > 10,000:
+  → Response 202: JSON có jobId (async)
+  → Angular poll: GET /api/v1/jobs/{jobId}
+  → Khi done: download URL trong response
+
+Nếu tổng bản ghi > 50,000:
+  → Response 400 POS-7004: "Quá nhiều dữ liệu. Hãy thu hẹp bộ lọc (tối đa 50,000 bản ghi)"
+
+Nếu tổng bản ghi = 0:
+  → Response 400 POS-7005: "Không có dữ liệu để xuất"
+```
+
+### Error Codes Bổ Sung (Export-specific)
+
+| Code | HTTP | Tên | Mô Tả |
+|---|---|---|---|
+| **POS-7004** | 400 | `EXPORT_TOO_LARGE` | Vượt quá 50,000 bản ghi, cần thu hẹp filter |
+| **POS-7005** | 400 | `EXPORT_EMPTY` | Không có dữ liệu phù hợp để xuất |
+| **POS-7006** | 202 | `EXPORT_JOB_STARTED` | Job xuất async đã bắt đầu |
+
+---
+
+### GET /api/v1/devices/export
+```
+Query params (giống GET /api/v1/devices):
+  status, warehouseId, modelCode, vendorCode, merchantCode,
+  serialNumber, fromDate, toDate, businessUnitId
+
+File: devices_{YYYY-MM-DD}_{HH-mm}.xlsx
+Columns:
+  Serial Number | Model | Vendor | Danh mục | Loại | Trạng thái
+  Kho hiện tại | Merchant đang cấp phát | TID | Ngày nhập | Hạn bảo hành | Firmware
+  Ngườ kiểm kê | Ghi chú
+
+Permission: DEVICE_EXPORT
+```
+
+### GET /api/v1/assignments/export
+```
+Query params (giống GET /api/v1/assignments):
+  status, merchantCode, serialNumber, fromDate, toDate, businessUnitId
+
+File: assignments_{YYYY-MM-DD}_{HH-mm}.xlsx
+Columns:
+  Mã cấp phát | Serial Number | Model | Merchant | TID | Business Unit
+  Người cấp phát | Ngày cấp phát | Ngày thu hồi | Trạng thái | Lý do thu hồi
+
+Permission: ASSIGNMENT_EXPORT
+```
+
+### GET /api/v1/inventory/stock-transactions/export
+```
+Query params:
+  warehouseId, transactionType (IMPORT|EXPORT|TRANSFER|RETURN|ADJUSTMENT|ASSIGN),
+  fromDate, toDate
+
+File: stock_transactions_{YYYY-MM-DD}_{HH-mm}.xlsx
+Columns:
+  Thời gian | Serial Number | Loại giao dịch | Kho nguồn | Kho đích
+  Người thực hiện | Tài liệu tham chiếu | Ghi chú
+
+Permission: INVENTORY_EXPORT
+```
+
+### GET /api/v1/inventory/exports/export
+```
+Query params: status, warehouseId, fromDate, toDate
+
+File: stock_export_requests_{YYYY-MM-DD}.xlsx
+Columns:
+  Số phiếu | Kho xuất | Đối tượng nhận | Mục đích | Số thiết bị
+  Trạng thái | Người tạo | Ngày tạo | Người duyệt | Ngày duyệt
+
+Permission: INVENTORY_EXPORT
+```
+
+### GET /api/v1/merchants/export
+```
+Query params: status, businessUnitId, mccCode, search
+
+File: merchants_{YYYY-MM-DD}.xlsx
+Columns:
+  Mã Merchant | Tên | Mã số thuế | MCC | Tên ngành | Business Unit
+  Địa chỉ | Liên hệ | Số TID | Số thiết bị đang dùng | Trạng thái | Ngày tạo
+
+Permission: MERCHANT_EXPORT
+```
+
+### GET /api/v1/approvals/export
+```
+Query params: requestType, status, createdBy, fromDate, toDate, businessUnitId
+
+File: approvals_{YYYY-MM-DD}.xlsx
+Columns:
+  Số phiếu | Loại phiếu | Người tạo | Business Unit
+  Ngày tạo | Cấp duyệt hiện tại | Trạng thái
+  Người duyệt cấp 1 | Ngày duyệt cấp 1
+  Người duyệt cấp 2 | Ngày duyệt cấp 2
+  Lý do từ chối (nếu có)
+
+Permission: APPROVAL_EXPORT
+```
+
+### GET /api/v1/audit-logs/export
+```
+Query params: userId, action, resourceType, fromDate, toDate
+
+File: audit_logs_{YYYY-MM-DD}.xlsx  (hoặc .csv)
+Columns:
+  Thời gian | User | Hành động | Loại Resource | Resource ID | IP | Kết quả
+  Giá trị cũ (JSON) | Giá trị mới (JSON)
+
+Permission: AUDIT_EXPORT (chỉ AUDITOR + SUPER_ADMIN)
+```
+
+### GET /api/v1/jobs/{jobId} (Async Export Polling)
+```json
+// Response khi đang xử lý
+{
+  "jobId": "uuid-job",
+  "status": "PROCESSING",
+  "progress": 45,
+  "totalItems": 25000,
+  "processedItems": 11250,
+  "message": "Đang xuất 11,250/25,000 bản ghi...",
+  "startedAt": "2026-10-01T14:00:00Z"
+}
+
+// Response khi hoàn thành
+{
+  "jobId": "uuid-job",
+  "status": "COMPLETED",
+  "progress": 100,
+  "totalItems": 25000,
+  "downloadUrl": "/api/v1/jobs/uuid-job/download",
+  "filename": "devices_2026-10-01_14-30.xlsx",
+  "fileSizeBytes": 3145728,
+  "completedAt": "2026-10-01T14:02:30Z"
+}
+
+// Response khi thất bại
+{
+  "jobId": "uuid-job",
+  "status": "FAILED",
+  "error": "Không đủ bộ nhớ để xử lý 25,000 bản ghi"
+}
+```
+
+### GET /api/v1/jobs/{jobId}/download
+```
+Response: binary .xlsx file
+Header: Content-Disposition: attachment; filename="{filename}"
+Tất cả download được thực hiện qua endpoint này (có JWT auth)
+```
+

@@ -17,7 +17,7 @@
 | Phase 6 | Approval Workflow | Sprint 10–11 | `[ ]` Chưa bắt đầu |
 | Phase 7 | Kafka & Event-Driven | Sprint 12 | `[ ]` Chưa bắt đầu |
 | Phase 8 | Monitoring & Hardening | Sprint 13–15 | `[ ]` Chưa bắt đầu |
-| Phase 9 | Kiểm Kê & Supplement | Sprint 14 | `[ ]` Chưa bắt đầu |
+| Phase 9 | Kiểm Kê & Excel Export | Sprint 14 | `[ ]` Chưa bắt đầu |
 
 ---
 
@@ -398,3 +398,81 @@
 - `[ ]` API: `POST /api/v1/inventory/counts`, `GET /api/v1/inventory/counts`, `GET /api/v1/inventory/counts/{id}`, `POST /api/v1/inventory/counts/{id}/start`, `POST /api/v1/inventory/counts/{id}/submit-item`, `POST /api/v1/inventory/counts/{id}/complete`
 - `[ ]` **Angular — Kiểm kê định kỳ:** Danh sách phiếu kiểm kê, form tạo phiếu, giao diện nhập kết quả từng serial (có barcode scanner support), báo cáo sai lệch
 - `[ ]` Test: Tạo kiểm kê, phát hiện sai lệch, ghi ADJUSTMENT vào stock ledger, verify bất biến
+
+---
+
+### [POS-028] Excel Export Across Modules
+**Priority:** P2 | **Sprint:** 14 | **Effort:** M
+
+> **Mục đích:** Cho phép xuất dữ liệu ra file Excel (.xlsx) tại các màn hình danh sách chính, phục vụ báo cáo và kiểm toán nội bộ.
+
+**Tech:** Apache POI `poi-ooxml:5.3.0` (backend), FileSaver.js / native `<a download>` (Angular)
+
+**Backend Checklist:**
+- `[ ]` Thêm dependency `poi-ooxml:5.3.0` vào `pos-core/pom.xml`
+- `[ ]` Tạo `ExportService` chung với method `createWorkbook(List<T> data, ExportConfig<T> config)`
+  ```java
+  // ExportConfig khai báo columns và cách lấy value
+  ExportConfig<DeviceResponse> config = ExportConfig.<DeviceResponse>builder()
+      .sheetName("Thiết bị")
+      .column("Serial Number", DeviceResponse::getSerialNumber)
+      .column("Trạng thái", r -> translate(r.getStatus()))
+      .column("Kho", r -> r.getWarehouse().getName())
+      .build();
+  ```
+- `[ ]` Implement `ExportJobService` cho async export (> 10,000 bản ghi)
+  - Background job với Spring `@Async` + ThreadPoolExecutor
+  - Lưu kết quả tạm vào `/tmp/exports/{jobId}.xlsx`
+  - API polling: `GET /api/v1/jobs/{jobId}`
+- `[ ]` Export endpoints (xem `09_API_Contract.md` Section 15):
+  - `GET /api/v1/devices/export` (`@PreAuthorize("hasAuthority('DEVICE_EXPORT')")`)
+  - `GET /api/v1/assignments/export` (`ASSIGNMENT_EXPORT`)
+  - `GET /api/v1/inventory/stock-transactions/export` (`INVENTORY_EXPORT`)
+  - `GET /api/v1/inventory/exports/export` (`INVENTORY_EXPORT`)
+  - `GET /api/v1/merchants/export` (`MERCHANT_EXPORT`)
+  - `GET /api/v1/approvals/export` (`APPROVAL_EXPORT`)
+  - `GET /api/v1/audit-logs/export` (`AUDIT_EXPORT` — chỉ AUDITOR + SUPER_ADMIN)
+  - `GET /api/v1/jobs/{jobId}` (polling)
+  - `GET /api/v1/jobs/{jobId}/download` (download kết quả)
+- `[ ]` Excel format chuẩn:
+  - Header row: bold, background `#1E3A5F`, text white
+  - Zebra striping: white / `#F5F5F5`
+  - Freeze panes row 1
+  - Auto-fit column width (max 50 chars)
+  - Sheet 2: "Thông tin xuất" (thời gian, người xuất, bộ lọc, số bản ghi)
+- `[ ]` Giới hạn: < 10,000 → sync; 10,001–50,000 → async job; > 50,000 → từ chối
+- `[ ]` Thêm permission seeds: `DEVICE_EXPORT`, `ASSIGNMENT_EXPORT`, `INVENTORY_EXPORT`, `MERCHANT_EXPORT`, `APPROVAL_EXPORT`, `AUDIT_EXPORT`
+
+**Angular Checklist:**
+- `[ ]` Tạo `ExportService` Angular:
+  ```typescript
+  export class ExportService {
+    export(url: string, filters: any, filename: string): Observable<void> {
+      return this.http.get(url, { params: filters, responseType: 'blob', observe: 'response' })
+        .pipe(tap(response => {
+          if (response.status === 200) {
+            // Sync: download blob ngay
+            saveAs(response.body!, filename);
+          } else if (response.status === 202) {
+            // Async: bắt đầu polling jobId
+            const job = JSON.parse(await response.body!.text());
+            this.pollJob(job.jobId, filename);
+          }
+        }));
+    }
+  }
+  ```
+- `[ ]` Nút `Export Excel` xuất hiện trên toolbar của các màn hình: Device List, Assignment List, Stock Ledger, Export Requests List, Merchant List, Approval History, Audit Log
+- `[ ]` Button state: loading (`Đang tạo file...`) → disabled khi đang export
+- `[ ]` Validation trước khi export:
+  - `totalElements === 0` → snackbar "Đ NỔng CÓ DỮ LIỆU ĐỂ XUẤT"
+  - `totalElements > 50000` → snackbar "QUÁ NHIỀU DỮ LIỆU"
+- `[ ]` Async progress dialog: progress bar + "Đang xuất {processed}/{total} bản ghi..."
+- `[ ]` Snackbar sau khi xuất xong: "✅ Đã xuất {count} bản ghi ra file Excel"
+
+**Test:**
+- `[ ]` Export 0 bản ghi → thông báo lỗi rõ ràng
+- `[ ]` Export < 10,000 bản ghi → download ngay
+- `[ ]` Export > 10,000 bản ghi → async job + polling + download khi xong
+- `[ ]` Kiểm tra file Excel có format đúng (header bold, zebra, freeze row 1)
+- `[ ]` Kiểm tra permission: user không có `DEVICE_EXPORT` không thấy nút Export
