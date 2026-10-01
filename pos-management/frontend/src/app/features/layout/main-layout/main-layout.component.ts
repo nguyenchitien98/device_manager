@@ -117,10 +117,11 @@ export class MainLayoutComponent {
   }
 
   toggleGroup(title: string): void {
-    this.expandedGroups.update(prev => ({
-      ...prev,
-      [title]: !prev[title]
-    }));
+    this.expandedGroups.update(prev => {
+      const isCurrentlyExpanded = !!prev[title];
+      // Accordion Mode: Nếu đã mở thì đóng lại. Nếu chưa mở thì chỉ mở nhóm được chọn và tự động đóng tất cả nhóm khác.
+      return isCurrentlyExpanded ? {} : { [title]: true };
+    });
   }
 
   isGroupExpanded(title: string): boolean {
