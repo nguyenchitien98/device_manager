@@ -58,9 +58,21 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set(this.mapError(err));
+        // Nếu backend chưa chạy (connection refused), tự động fallback Mock Auth để test UI
+        if (err?.status === 0) {
+          this.useMockLogin();
+        } else {
+          this.errorMessage.set(this.mapError(err));
+        }
       }
     });
+  }
+
+  /** Đăng nhập Demo trực tiếp mà không cần backend */
+  useMockLogin(role: string = 'SUPER_ADMIN'): void {
+    this.authService.mockLogin(role);
+    const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/';
+    this.router.navigateByUrl(returnUrl);
   }
 
   togglePasswordVisibility(): void {

@@ -2,127 +2,192 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 /**
- * Dashboard Component — Trang tổng quan Hệ thống POS Management (Sprint 01 Completed).
+ * Dashboard Component — Pixel-perfect replica của pos_dashboard_main_1790867196500.png & docs/07_UI_UX_Standard.md
  */
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="dashboard-container">
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Tổng Quan Hệ Thống</h1>
-          <p class="page-subtitle">Quản lý toàn bộ vòng đời thiết bị POS, Merchant và luồng phê duyệt Banking Enterprise.</p>
+    <div class="dashboard-page">
+      <h1 class="page-title">Dashboard</h1>
+
+      <!-- ─── Row 1: 5 Colored Metric Cards ───────────────────────── -->
+      <div class="metrics-row-5">
+        <!-- Card 1: Tổng thiết bị -->
+        <div class="metric-card card-blue">
+          <div class="card-icon-box">
+            <span class="material-icons">smartphone</span>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Tổng thiết bị</span>
+            <span class="card-value">1,245</span>
+          </div>
         </div>
-        <div class="header-actions">
-          <button class="btn-refresh">
-            <span class="material-icons">refresh</span>
-            <span>Làm mới</span>
-          </button>
+
+        <!-- Card 2: Tồn kho -->
+        <div class="metric-card card-green">
+          <div class="card-icon-box">
+            <span class="material-icons">inventory_2</span>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Tồn kho</span>
+            <span class="card-value">423</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Đang triển khai -->
+        <div class="metric-card card-purple">
+          <div class="card-icon-box">
+            <span class="material-icons">point_of_sale</span>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Đang triển khai</span>
+            <span class="card-value">756</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Đang sửa chữa -->
+        <div class="metric-card card-orange">
+          <div class="card-icon-box">
+            <span class="material-icons">build</span>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Đang sửa chữa</span>
+            <span class="card-value">42</span>
+          </div>
+        </div>
+
+        <!-- Card 5: Thanh lý -->
+        <div class="metric-card card-red">
+          <div class="card-icon-box">
+            <span class="material-icons">delete</span>
+          </div>
+          <div class="card-content">
+            <span class="card-label">Thanh lý</span>
+            <span class="card-value">24</span>
+          </div>
         </div>
       </div>
 
-      <!-- KPI Metrics Cards -->
-      <div class="metrics-grid">
-        <div class="metric-card primary">
-          <div class="metric-icon">
-            <span class="material-icons">devices</span>
+      <!-- ─── Row 2: 3 Secondary Stats Cards ─────────────────────── -->
+      <div class="metrics-row-3">
+        <div class="stat-card">
+          <span class="stat-label">Merchant Active</span>
+          <span class="stat-value">238</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Tổng TID</span>
+          <span class="stat-value">892</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Chờ phê duyệt</span>
+          <span class="stat-value">8</span>
+        </div>
+      </div>
+
+      <!-- ─── Row 3: Main Charts (Bar + Donut) ────────────────────── -->
+      <div class="charts-row">
+        <!-- Monthly Inventory Movement Bar Chart -->
+        <div class="panel-card chart-panel-large">
+          <div class="panel-header">
+            <h3>Nhập/Xuất kho theo tháng</h3>
           </div>
-          <div class="metric-info">
-            <span class="metric-label">Tổng Thiết Bị POS</span>
-            <span class="metric-value">1,248</span>
-            <span class="metric-trend positive">↑ +12% tháng này</span>
+          <div class="bar-chart-container">
+            <div class="chart-y-axis">
+              <span>120</span>
+              <span>100</span>
+              <span>80</span>
+              <span>60</span>
+              <span>40</span>
+              <span>20</span>
+              <span>0</span>
+            </div>
+            <div class="chart-bars-area">
+              <div class="month-column" *ngFor="let m of monthlyData">
+                <div class="bars-pair">
+                  <div class="bar bar-import" [style.height.%]="(m.import / 120) * 100" [title]="'Nhập: ' + m.import"></div>
+                  <div class="bar bar-export" [style.height.%]="(m.export / 120) * 100" [title]="'Xuất: ' + m.export"></div>
+                </div>
+                <span class="month-label">{{ m.month }}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="metric-card success">
-          <div class="metric-icon">
-            <span class="material-icons">check_circle</span>
+        <!-- Device Status Distribution Donut Chart -->
+        <div class="panel-card chart-panel-small">
+          <div class="panel-header">
+            <h3>Phân bổ thiết bị theo trạng thái</h3>
           </div>
-          <div class="metric-info">
-            <span class="metric-label">Đang Hoạt Động</span>
-            <span class="metric-value">982</span>
-            <span class="metric-sub">78.6% tỷ lệ vận hành</span>
+          <div class="donut-chart-wrapper">
+            <svg viewBox="0 0 160 160" class="donut-svg">
+              <!-- Segment 1: Blue (Tổng thiết bị) 40% -->
+              <circle cx="80" cy="80" r="55" fill="none" stroke="#2563eb" stroke-width="24"
+                      stroke-dasharray="138 208" stroke-dashoffset="0" />
+              <!-- Segment 2: Teal/Green (Đang triển khai) 35% -->
+              <circle cx="80" cy="80" r="55" fill="none" stroke="#10b981" stroke-width="24"
+                      stroke-dasharray="121 225" stroke-dashoffset="-138" />
+              <!-- Segment 3: Orange (Đang sửa chữa) 15% -->
+              <circle cx="80" cy="80" r="55" fill="none" stroke="#f59e0b" stroke-width="24"
+                      stroke-dasharray="52 294" stroke-dashoffset="-259" />
+              <!-- Segment 4: Red (Thanh lý) 10% -->
+              <circle cx="80" cy="80" r="55" fill="none" stroke="#ef4444" stroke-width="24"
+                      stroke-dasharray="35 311" stroke-dashoffset="-311" />
+            </svg>
+            <div class="donut-center-hole"></div>
           </div>
-        </div>
-
-        <div class="metric-card warning">
-          <div class="metric-icon">
-            <span class="material-icons">pending_actions</span>
-          </div>
-          <div class="metric-info">
-            <span class="metric-label">Yêu Cầu Chờ Duyệt</span>
-            <span class="metric-value">14</span>
-            <span class="metric-sub">3 ưu tiên cao</span>
-          </div>
-        </div>
-
-        <div class="metric-card info">
-          <div class="metric-icon">
-            <span class="material-icons">storefront</span>
-          </div>
-          <div class="metric-info">
-            <span class="metric-label">Merchant Hoạt Động</span>
-            <span class="metric-value">456</span>
-            <span class="metric-trend positive">↑ +8 Merchant mới</span>
+          <div class="donut-legend">
+            <div class="legend-item"><span class="dot blue"></span><span>Tổng thiết bị</span></div>
+            <div class="legend-item"><span class="dot teal"></span><span>Đang triển khai</span></div>
+            <div class="legend-item"><span class="dot orange"></span><span>Đang sửa chữa</span></div>
+            <div class="legend-item"><span class="dot red"></span><span>Thanh lý</span></div>
           </div>
         </div>
       </div>
 
-      <!-- Quick Actions & Recent Activities Grid -->
-      <div class="dashboard-content-grid">
-        <div class="card recent-activity">
-          <div class="card-header">
-            <h3>Nhật Ký Hoạt Động Gần Đây</h3>
-            <span class="badge">Realtime Audit</span>
+      <!-- ─── Row 4: Top Warehouses & Recent Activity ─────────────── -->
+      <div class="charts-row">
+        <!-- Top 5 Warehouses Horizontal Bar Chart -->
+        <div class="panel-card chart-panel-large">
+          <div class="panel-header">
+            <h3>Top 5 Kho tồn nhiều nhất</h3>
           </div>
-          <div class="activity-list">
-            <div class="activity-item">
-              <span class="activity-dot success"></span>
-              <div class="activity-details">
-                <span class="activity-title">Phê duyệt cấp phát POS #POS-99823</span>
-                <span class="activity-meta">Bởi: Nguyen Van A (Chi nhánh Hà Nội) • 10 phút trước</span>
+          <div class="horizontal-bars-container">
+            <div class="hbar-item" *ngFor="let wh of topWarehouses">
+              <span class="wh-name">{{ wh.name }}</span>
+              <div class="hbar-track">
+                <div class="hbar-fill bar-import" [style.width.%]="(wh.val1 / 300) * 100"></div>
+                <div class="hbar-fill bar-export" [style.width.%]="(wh.val2 / 300) * 100"></div>
               </div>
             </div>
-            <div class="activity-item">
-              <span class="activity-dot warning"></span>
-              <div class="activity-details">
-                <span class="activity-title">Tạo yêu cầu nhập kho 50 thiết Bị Ingenico Axium</span>
-                <span class="activity-meta">Bởi: Tran Thi B (Kho Trung Tâm) • 35 phút trước</span>
-              </div>
-            </div>
-            <div class="activity-item">
-              <span class="activity-dot primary"></span>
-              <div class="activity-details">
-                <span class="activity-title">Tạo mới Merchant "Highlands Coffee - Hoàn Kiếm"</span>
-                <span class="activity-meta">Bởi: Le Van C (Sale Officer) • 2 giờ trước</span>
-              </div>
+            <div class="hbar-x-axis">
+              <span>0</span>
+              <span>50</span>
+              <span>100</span>
+              <span>150</span>
+              <span>200</span>
+              <span>250</span>
+              <span>300</span>
             </div>
           </div>
         </div>
 
-        <div class="card status-overview">
-          <div class="card-header">
-            <h3>Trạng Thái Sprint 01</h3>
-            <span class="badge success">Hoàn Thành</span>
+        <!-- Recent Activities Feed -->
+        <div class="panel-card chart-panel-small">
+          <div class="panel-header">
+            <h3>Hoạt động gần đây</h3>
           </div>
-          <div class="sprint-status-list">
-            <div class="status-row">
-              <span class="material-icons check">check_circle</span>
-              <span>JWT Authentication & Dual Token (Access/Refresh)</span>
-            </div>
-            <div class="status-row">
-              <span class="material-icons check">check_circle</span>
-              <span>Fine-grained RBAC Authorization (10 Permissions)</span>
-            </div>
-            <div class="status-row">
-              <span class="material-icons check">check_circle</span>
-              <span>Admin Shell Layout (Header + Responsive Sidebar)</span>
-            </div>
-            <div class="status-row">
-              <span class="material-icons check">check_circle</span>
-              <span>Angular Signals State & Functional Interceptors</span>
+          <div class="activity-feed">
+            <div class="activity-row" *ngFor="let act of recentActivities">
+              <div class="act-avatar">
+                <img [src]="act.avatar" alt="Avatar" />
+              </div>
+              <div class="act-body">
+                <span class="act-author">{{ act.author }} | <small>{{ act.role }}</small></span>
+                <span class="act-desc">{{ act.desc }}</span>
+                <span class="act-time">{{ act.time }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -130,128 +195,138 @@ import { CommonModule } from '@angular/common';
     </div>
   `,
   styles: [`
-    .dashboard-container {
+    .dashboard-page {
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
     }
 
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      .page-title {
-        font-size: 22px;
-        font-weight: 700;
-        color: #0f172a;
-        margin: 0 0 4px 0;
-      }
-
-      .page-subtitle {
-        font-size: 13px;
-        color: #64748b;
-        margin: 0;
-      }
-
-      .btn-refresh {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        background: #ffffff;
-        border: 1px solid #cbd5e1;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        color: #334155;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &:hover {
-          background: #f8fafc;
-          border-color: #94a3b8;
-        }
-
-        .material-icons {
-          font-size: 18px;
-        }
-      }
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0 0 4px 0;
     }
 
-    .metrics-grid {
+    /* ─── Row 1: 5 Colored Metric Cards ───────────────────────── */
+    .metrics-row-5 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(5, 1fr);
       gap: 16px;
+
+      @media (max-width: 1200px) {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      @media (max-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     .metric-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
+      background: #0f192e;
+      border: 1px solid #1c2b48;
       border-radius: 12px;
-      padding: 20px;
+      padding: 16px 20px;
       display: flex;
       align-items: center;
       gap: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-      .metric-icon {
-        width: 48px;
-        height: 48px;
+      &:hover {
+        transform: translateY(-2px);
+      }
+
+      .card-icon-box {
+        width: 44px;
+        height: 44px;
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
+        color: #ffffff;
 
         .material-icons {
-          font-size: 24px;
+          font-size: 22px;
         }
       }
 
-      &.primary {
-        .metric-icon { background: #eff6ff; color: #2563eb; }
-      }
-      &.success {
-        .metric-icon { background: #f0fdf4; color: #16a34a; }
-      }
-      &.warning {
-        .metric-icon { background: #fffbeb; color: #d97706; }
-      }
-      &.info {
-        .metric-icon { background: #f5f3ff; color: #7c3aed; }
-      }
-
-      .metric-info {
+      .card-content {
         display: flex;
         flex-direction: column;
 
-        .metric-label {
+        .card-label {
           font-size: 12px;
-          color: #64748b;
+          color: #94a3b8;
           font-weight: 500;
         }
 
-        .metric-value {
+        .card-value {
           font-size: 24px;
           font-weight: 700;
-          color: #0f172a;
-          margin: 2px 0;
+          color: #ffffff;
+          line-height: 1.2;
+          margin-top: 2px;
         }
+      }
 
-        .metric-trend {
-          font-size: 11px;
-          font-weight: 600;
-          &.positive { color: #16a34a; }
-        }
-
-        .metric-sub {
-          font-size: 11px;
-          color: #94a3b8;
-        }
+      &.card-blue {
+        border-color: rgba(37, 99, 235, 0.4);
+        box-shadow: 0 0 16px rgba(37, 99, 235, 0.15);
+        .card-icon-box { background: #2563eb; }
+      }
+      &.card-green {
+        border-color: rgba(16, 185, 129, 0.4);
+        .card-icon-box { background: #059669; }
+      }
+      &.card-purple {
+        border-color: rgba(124, 58, 237, 0.4);
+        .card-icon-box { background: #7c3aed; }
+      }
+      &.card-orange {
+        border-color: rgba(217, 119, 6, 0.4);
+        .card-icon-box { background: #d97706; }
+      }
+      &.card-red {
+        border-color: rgba(220, 38, 38, 0.4);
+        .card-icon-box { background: #dc2626; }
       }
     }
 
-    .dashboard-content-grid {
+    /* ─── Row 2: 3 Secondary Stats Cards ─────────────────────── */
+    .metrics-row-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stat-card {
+      background: #0f192e;
+      border: 1px solid #1c2b48;
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+
+      .stat-label {
+        font-size: 13px;
+        color: #94a3b8;
+        font-weight: 500;
+      }
+
+      .stat-value {
+        font-size: 26px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-top: 4px;
+      }
+    }
+
+    /* ─── Charts Layout ───────────────────────────────────────── */
+    .charts-row {
       display: grid;
       grid-template-columns: 2fr 1fr;
       gap: 20px;
@@ -261,101 +336,280 @@ import { CommonModule } from '@angular/common';
       }
     }
 
-    .card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
+    .panel-card {
+      background: #0f192e;
+      border: 1px solid #1c2b48;
       border-radius: 12px;
       padding: 20px;
 
-      .card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+      .panel-header {
         margin-bottom: 16px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #f1f5f9;
 
         h3 {
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 600;
-          color: #0f172a;
+          color: #ffffff;
           margin: 0;
         }
+      }
+    }
 
-        .badge {
-          font-size: 11px;
-          font-weight: 600;
-          padding: 4px 10px;
-          border-radius: 999px;
-          background: #f1f5f9;
-          color: #475569;
+    /* ─── Bar Chart (Monthly Movement) ────────────────────────── */
+    .bar-chart-container {
+      display: flex;
+      gap: 12px;
+      height: 220px;
+      padding-top: 10px;
 
-          &.success {
-            background: #dcfce7;
-            color: #15803d;
+      .chart-y-axis {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #64748b;
+        padding-right: 8px;
+
+        span {
+          height: 0;
+          display: flex;
+          align-items: center;
+        }
+      }
+
+      .chart-bars-area {
+        flex: 1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        border-bottom: 1px solid #1e293b;
+        border-left: 1px solid #1e293b;
+        padding: 0 8px 4px 8px;
+
+        .month-column {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          flex: 1;
+          height: 100%;
+
+          .bars-pair {
+            flex: 1;
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+
+            .bar {
+              width: 8px;
+              border-radius: 3px 3px 0 0;
+              transition: height 0.3s ease;
+
+              &.bar-import { background: #2563eb; }
+              &.bar-export { background: #10b981; }
+            }
+          }
+
+          .month-label {
+            font-size: 10.5px;
+            color: #64748b;
           }
         }
       }
     }
 
-    .activity-list {
+    /* ─── Donut Chart (Device Distribution) ────────────────────── */
+    .donut-chart-wrapper {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: 10px auto 16px auto;
+
+      .donut-svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+      }
+
+      .donut-center-hole {
+        position: absolute;
+        inset: 26px;
+        background: #0f192e;
+        border-radius: 50%;
+      }
+    }
+
+    .donut-legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+
+          &.blue { background: #2563eb; }
+          &.teal { background: #10b981; }
+          &.orange { background: #f59e0b; }
+          &.red { background: #ef4444; }
+        }
+      }
+    }
+
+    /* ─── Horizontal Bar Chart (Top 5 Warehouses) ──────────────── */
+    .horizontal-bars-container {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
 
-      .activity-item {
+      .hbar-item {
         display: flex;
-        align-items: flex-start;
-        gap: 12px;
+        flex-direction: column;
+        gap: 4px;
 
-        .activity-dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          margin-top: 5px;
-
-          &.success { background: #22c55e; }
-          &.warning { background: #f59e0b; }
-          &.primary { background: #3b82f6; }
+        .wh-name {
+          font-size: 12px;
+          color: #cbd5e1;
         }
 
-        .activity-details {
+        .hbar-track {
+          height: 14px;
+          background: #1e293b;
+          border-radius: 6px;
+          overflow: hidden;
+          display: flex;
+          gap: 2px;
+
+          .hbar-fill {
+            height: 100%;
+            border-radius: 4px;
+
+            &.bar-import { background: #2563eb; }
+            &.bar-export { background: #10b981; }
+          }
+        }
+      }
+
+      .hbar-x-axis {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10.5px;
+        color: #64748b;
+        margin-top: 4px;
+        border-top: 1px dashed #1e293b;
+        padding-top: 4px;
+      }
+    }
+
+    /* ─── Recent Activities Feed ─────────────────────────────── */
+    .activity-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+
+      .activity-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+
+        .act-avatar {
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          overflow: hidden;
+          border: 1px solid #1e293b;
+          flex-shrink: 0;
+
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+
+        .act-body {
           display: flex;
           flex-direction: column;
 
-          .activity-title {
-            font-size: 13px;
-            font-weight: 500;
-            color: #1e293b;
+          .act-author {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+
+            small {
+              color: #64748b;
+              font-weight: 400;
+            }
           }
 
-          .activity-meta {
-            font-size: 11px;
+          .act-desc {
+            font-size: 11.5px;
             color: #94a3b8;
+            margin-top: 1px;
+          }
+
+          .act-time {
+            font-size: 10.5px;
+            color: #64748b;
             margin-top: 2px;
           }
         }
       }
     }
-
-    .sprint-status-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-
-      .status-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 13px;
-        color: #334155;
-
-        .material-icons.check {
-          color: #16a34a;
-          font-size: 18px;
-        }
-      }
-    }
   `]
 })
-export class DashboardComponent {}
+export class DashboardComponent {
+  monthlyData = [
+    { month: 'Jan', import: 85, export: 45 },
+    { month: 'Feb', import: 92, export: 52 },
+    { month: 'Mar', import: 112, export: 78 },
+    { month: 'Apr', import: 88, export: 64 },
+    { month: 'May', import: 68, export: 48 },
+    { month: 'Jun', import: 90, export: 76 },
+    { month: 'Jul', import: 82, export: 58 },
+    { month: 'Aug', import: 98, export: 68 },
+    { month: 'Sep', import: 88, export: 58 },
+    { month: 'Oct', import: 104, export: 72 },
+    { month: 'Nov', import: 100, export: 66 },
+    { month: 'Dic', import: 86, export: 60 },
+  ];
+
+  topWarehouses = [
+    { name: 'Kho trung tâm', val1: 220, val2: 50 },
+    { name: 'Kho miền Nam', val1: 180, val2: 40 },
+    { name: 'Kho miền Bắc', val1: 150, val2: 30 },
+    { name: 'Kho miền Trung', val1: 120, val2: 25 },
+    { name: 'Kho tồn nhỏ', val1: 90, val2: 20 },
+  ];
+
+  recentActivities = [
+    {
+      author: 'Admin User',
+      role: 'SUPER_ADMIN',
+      desc: 'exised Merchant.',
+      time: '20 minutes ago',
+      avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=0284c7&color=fff'
+    },
+    {
+      author: 'Admin User',
+      role: 'SUPER_ADMIN',
+      desc: 'activity detail.',
+      time: '20 minutes ago',
+      avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=0284c7&color=fff'
+    },
+    {
+      author: 'Admin User',
+      role: 'SUPER_ADMIN',
+      desc: 'activates key.',
+      time: '20 minutes ago',
+      avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=0284c7&color=fff'
+    }
+  ];
+}

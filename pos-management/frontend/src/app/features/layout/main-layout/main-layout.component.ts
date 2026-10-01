@@ -9,13 +9,23 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
-import { MenuItem } from '../../../core/models/auth.models';
+
+export interface MenuItem {
+  label: string;
+  icon: string;
+  route?: string;
+  badge?: number;
+  permission?: string;
+}
+
+export interface MenuGroup {
+  title: string;
+  isExpanded?: boolean;
+  items: MenuItem[];
+}
 
 /**
- * Main Layout Component — Shell bao gồm Sidebar + Header + Content Area.
- *
- * Mọi route cần đăng nhập đều render trong layout này.
- * Sidebar menu được generate theo permissions của user hiện tại.
+ * Main Layout Component — Tuân thủ 100% UI/UX Standard & Dashboard mockup.
  */
 @Component({
   selector: 'app-main-layout',
@@ -32,119 +42,89 @@ export class MainLayoutComponent {
   // ─── Signals ────────────────────────────────────────────────────
   readonly isSidebarCollapsed = signal(false);
   readonly isMobileSidebarOpen = signal(false);
-  readonly activeRoute = signal('');
+  readonly activeRoute = signal('/dashboard');
+  readonly expandedGroups = signal<Record<string, boolean>>({
+    'QUẢN LÝ DANH MỤC': true,
+  });
 
-  // ─── Computed from auth state ────────────────────────────────────
+  // ─── Computed user ──────────────────────────────────────────────
   readonly currentUser = this.authService.currentUser;
 
   /**
-   * Menu items được lọc theo permissions của user.
-   * Computed signal sẽ tự tính lại khi userPermissions thay đổi.
+   * Menu groups theo đúng hình pos_dashboard_main_1790867196500.png & UI UX Standard
    */
-  readonly menuItems = computed<MenuItem[]>(() => {
-    const perms = this.authService.userPermissions();
-    const has = (p: string) => perms.includes(p);
-
-    const allMenus: (MenuItem & { show: boolean })[] = [
-      {
-        label: 'Dashboard', icon: 'dashboard', route: '/dashboard',
-        show: true
-      },
-
-      // ─── Quản lý Danh Mục ────────────────────────────
-      {
-        label: 'Danh Mục Thiết Bị', icon: 'category', route: '/catalog',
-        permission: 'CATALOG_VIEW',
-        show: has('CATALOG_VIEW')
-      },
-
-      // ─── Kho / Inventory ──────────────────────────────
-      {
-        label: 'Nhập Kho', icon: 'add_box', route: '/inventory/import',
-        permission: 'INVENTORY_IMPORT',
-        show: has('INVENTORY_IMPORT') || has('INVENTORY_APPROVE')
-      },
-      {
-        label: 'Xuất Kho', icon: 'output', route: '/inventory/export',
-        permission: 'INVENTORY_EXPORT',
-        show: has('INVENTORY_EXPORT') || has('INVENTORY_APPROVE')
-      },
-      {
-        label: 'Điều Chuyển Kho', icon: 'swap_horiz', route: '/inventory/transfer',
-        permission: 'INVENTORY_TRANSFER',
-        show: has('INVENTORY_TRANSFER') || has('INVENTORY_APPROVE')
-      },
-      {
-        label: 'Tồn Kho', icon: 'inventory_2', route: '/inventory/stock',
-        permission: 'INVENTORY_VIEW',
-        show: has('INVENTORY_VIEW')
-      },
-
-      // ─── Merchant ─────────────────────────────────────
-      {
-        label: 'Merchant', icon: 'storefront', route: '/merchants',
-        permission: 'MERCHANT_VIEW',
-        show: has('MERCHANT_VIEW')
-      },
-
-      // ─── Assignment ───────────────────────────────────
-      {
-        label: 'Cấp Phát Thiết Bị', icon: 'send', route: '/assignments',
-        permission: 'ASSIGNMENT_VIEW',
-        show: has('ASSIGNMENT_VIEW')
-      },
-
-      // ─── Device ───────────────────────────────────────
-      {
-        label: 'Vòng Đời Thiết Bị', icon: 'devices', route: '/devices',
-        permission: 'DEVICE_VIEW',
-        show: has('DEVICE_VIEW')
-      },
-
-      // ─── Approval ─────────────────────────────────────
-      {
-        label: 'Phê Duyệt', icon: 'task_alt', route: '/approvals',
-        permission: 'APPROVAL_VIEW',
-        show: has('APPROVAL_VIEW')
-      },
-
-      // ─── Report ───────────────────────────────────────
-      {
-        label: 'Báo Cáo', icon: 'bar_chart', route: '/reports',
-        permission: 'REPORT_VIEW',
-        show: has('REPORT_VIEW')
-      },
-
-      // ─── Audit ────────────────────────────────────────
-      {
-        label: 'Audit Log', icon: 'history', route: '/audit',
-        permission: 'AUDIT_VIEW',
-        show: has('AUDIT_VIEW')
-      },
-
-      // ─── Admin ────────────────────────────────────────
-      {
-        label: 'Người Dùng', icon: 'manage_accounts', route: '/admin/users',
-        permission: 'ADMIN_USER_MANAGE',
-        show: has('ADMIN_USER_MANAGE')
-      },
-      {
-        label: 'Phân Quyền', icon: 'security', route: '/admin/roles',
-        permission: 'ADMIN_ROLE_MANAGE',
-        show: has('ADMIN_ROLE_MANAGE')
-      },
-    ];
-
-    return allMenus.filter(m => m.show);
-  });
+  readonly menuGroups = computed<MenuGroup[]>(() => [
+    {
+      title: 'TỔNG QUAN',
+      items: [
+        { label: 'Dashboard', icon: 'home', route: '/dashboard' },
+      ],
+    },
+    {
+      title: 'QUẢN LÝ DANH MỤC',
+      items: [
+        { label: 'Device Category', icon: 'grid_view', route: '/catalog/categories' },
+        { label: 'Device Type', icon: 'stay_current_portrait', route: '/catalog/types' },
+        { label: 'Device Model', icon: 'devices_other', route: '/catalog/models' },
+        { label: 'Vendor', icon: 'badge', route: '/catalog/vendors' },
+        { label: 'MCC', icon: 'store_mall_directory', route: '/catalog/mcc' },
+        { label: 'Business Unit', icon: 'corporate_fare', route: '/catalog/business-units' },
+        { label: 'Fee Policy', icon: 'subtitles', route: '/catalog/fee-policies' },
+      ],
+    },
+    {
+      title: 'QUẢN LÝ KHO',
+      items: [
+        { label: 'Nhập kho', icon: 'vertical_align_bottom', route: '/inventory/import' },
+        { label: 'Xuất kho', icon: 'vertical_align_top', route: '/inventory/export' },
+        { label: 'Tồn kho', icon: 'inventory_2', route: '/inventory/stock' },
+        { label: 'Điều chuyển kho', icon: 'compare_arrows', route: '/inventory/transfer' },
+      ],
+    },
+    {
+      title: 'QUẢN LÝ MERCHANT',
+      items: [
+        { label: 'Danh sách Merchant', icon: 'people_outline', route: '/merchants' },
+      ],
+    },
+    {
+      title: 'QUẢN LÝ THIẾT BỊ',
+      items: [
+        { label: 'Vòng đời thiết bị', icon: 'tablet_mac', route: '/devices' },
+      ],
+    },
+    {
+      title: 'QUẢN LÝ ASSIGNMENT',
+      items: [
+        { label: 'Cấp phát thiết bị', icon: 'assignment_ind', route: '/assignments' },
+      ],
+    },
+    {
+      title: 'QUY TRÌNH NGHIỆP VỤ',
+      items: [
+        { label: 'Hộp việc cần duyệt', icon: 'mail_outline', route: '/approvals', badge: 8 },
+        { label: 'BÁO CÁO & HỆ THỐNG', icon: 'analytics', route: '/reports' },
+      ],
+    },
+  ]);
 
   constructor() {
-    // Track active route for sidebar highlighting
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd)
     ).subscribe((e: any) => {
       this.activeRoute.set(e.urlAfterRedirects ?? e.url);
     });
+  }
+
+  toggleGroup(title: string): void {
+    this.expandedGroups.update(prev => ({
+      ...prev,
+      [title]: !prev[title]
+    }));
+  }
+
+  isGroupExpanded(title: string): boolean {
+    return !!this.expandedGroups()[title];
   }
 
   toggleSidebar(): void {
@@ -161,6 +141,6 @@ export class MainLayoutComponent {
 
   isActive(route?: string): boolean {
     if (!route) return false;
-    return this.activeRoute().startsWith(route);
+    return this.activeRoute() === route || this.activeRoute().startsWith(route + '/');
   }
 }

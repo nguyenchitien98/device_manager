@@ -6,88 +6,97 @@
     (click)="toggleMobileSidebar()">
   </div>
 
-  <!-- Sidebar -->
+  <!-- Sidebar (Width: 280px, bg: #0d1527 / #0b132b) -->
   <aside class="sidebar" [class.mobile-open]="isMobileSidebarOpen()">
+    <!-- Sidebar Header Logo -->
     <div class="sidebar-header">
       <div class="logo">
-        <span class="material-icons logo-icon">credit_card</span>
-        <span class="logo-text" *ngIf="!isSidebarCollapsed()">POS Manager</span>
+        <div class="logo-icon-box">
+          <span class="material-icons logo-icon">trending_up</span>
+        </div>
+        <span class="logo-text" *ngIf="!isSidebarCollapsed()">POS Management</span>
       </div>
-      <button class="btn-icon collapse-btn" (click)="toggleSidebar()" title="Toggle Sidebar">
-        <span class="material-icons">{{ isSidebarCollapsed() ? 'chevron_right' : 'chevron_left' }}</span>
-      </button>
     </div>
 
-    <!-- Navigation Menu -->
+    <!-- Navigation Menu Groups -->
     <nav class="sidebar-nav">
-      <ul>
-        <li *ngFor="let item of menuItems()">
-          <a 
-            [routerLink]="item.route" 
-            routerLinkActive="active"
-            [class.active]="isActive(item.route)"
-            [title]="item.label">
-            <span class="material-icons nav-icon">{{ item.icon }}</span>
-            <span class="nav-label" *ngIf="!isSidebarCollapsed()">{{ item.label }}</span>
-            <span class="badge" *ngIf="item.badge && !isSidebarCollapsed()">{{ item.badge }}</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
+      <div class="menu-group" *ngFor="let group of menuGroups()">
+        <!-- Group Title Label / Toggle Button -->
+        <div 
+          class="group-title" 
+          *ngIf="!isSidebarCollapsed() && group.title !== 'TỔNG QUAN'"
+          (click)="toggleGroup(group.title)">
+          <span>{{ group.title }}</span>
+          <span class="material-icons group-arrow">
+            {{ isGroupExpanded(group.title) ? 'expand_less' : 'expand_more' }}
+          </span>
+        </div>
 
-    <!-- Sidebar Footer / Current User Info -->
-    <div class="sidebar-footer" *ngIf="currentUser() as user">
-      <div class="user-avatar">
-        {{ user.fullName.charAt(0).toUpperCase() }}
+        <div class="group-title static" *ngIf="!isSidebarCollapsed() && group.title === 'TỔNG QUAN'">
+          <span>{{ group.title }}</span>
+        </div>
+
+        <!-- Group Items -->
+        <ul *ngIf="isSidebarCollapsed() || group.title === 'TỔNG QUAN' || isGroupExpanded(group.title)">
+          <li *ngFor="let item of group.items">
+            <a 
+              [routerLink]="item.route" 
+              [class.active]="isActive(item.route)"
+              [title]="item.label">
+              <span class="material-icons nav-icon">{{ item.icon }}</span>
+              <span class="nav-label" *ngIf="!isSidebarCollapsed()">{{ item.label }}</span>
+              <span class="badge" *ngIf="item.badge && !isSidebarCollapsed()">{{ item.badge }}</span>
+            </a>
+          </li>
+        </ul>
       </div>
-      <div class="user-details" *ngIf="!isSidebarCollapsed()">
-        <span class="user-name">{{ user.fullName }}</span>
-        <span class="user-role">{{ user.roles.join(', ') }}</span>
-      </div>
-    </div>
+    </nav>
   </aside>
 
-  <!-- Main Content Area -->
+  <!-- Main Wrapper -->
   <div class="main-wrapper">
-    <!-- Header Navbar -->
+    <!-- Top Header Bar (Height: 64px) -->
     <header class="top-header">
       <div class="header-left">
-        <button class="btn-icon mobile-toggle" (click)="toggleMobileSidebar()">
+        <button class="btn-icon hamburger-btn" (click)="toggleSidebar()" title="Toggle Sidebar">
           <span class="material-icons">menu</span>
         </button>
-        <div class="search-bar">
-          <span class="material-icons search-icon">search</span>
-          <input type="text" placeholder="Tìm kiếm Serial POS, Merchant, Mã giao dịch..." />
-        </div>
+        <h2 class="header-page-title">Dashboard</h2>
       </div>
 
       <div class="header-right">
-        <!-- Branch Indicator -->
-        <div class="branch-pill" *ngIf="currentUser() as user">
-          <span class="material-icons">account_tree</span>
-          <span>{{ user.branchCode || 'HO' }}</span>
-        </div>
-
-        <!-- Notifications -->
-        <button class="btn-icon notification-btn" title="Thông báo">
-          <span class="material-icons">notifications</span>
-          <span class="notification-badge">3</span>
+        <!-- Dark Mode Toggle -->
+        <button class="header-action-btn" title="Chế độ tối/sáng">
+          <span class="material-icons">dark_mode</span>
         </button>
 
-        <!-- User Dropdown & Logout -->
-        <div class="user-profile-menu">
-          <div class="profile-info">
-            <span class="profile-name">{{ currentUser()?.username }}</span>
+        <!-- Language Selector -->
+        <button class="language-pill" title="Ngôn ngữ">
+          <span class="material-icons glob-icon">language</span>
+          <span>VIE</span>
+        </button>
+
+        <!-- Notification Bell -->
+        <button class="header-action-btn notification-btn" title="Thông báo">
+          <span class="material-icons">notifications</span>
+          <span class="notification-badge">8</span>
+        </button>
+
+        <!-- User Profile Dropdown -->
+        <div class="user-profile-dropdown" *ngIf="currentUser() as user">
+          <div class="avatar-circle">
+            <img src="https://ui-avatars.com/api/?name=Admin+User&background=0284c7&color=fff&bold=true" alt="Avatar" />
           </div>
-          <button class="btn-logout" (click)="logout()" title="Đăng xuất">
-            <span class="material-icons">logout</span>
-            <span>Đăng xuất</span>
-          </button>
+          <div class="user-info-text">
+            <span class="user-name">Admin User</span>
+            <span class="user-role">SUPER_ADMIN</span>
+          </div>
+          <span class="material-icons dropdown-arrow" (click)="logout()" title="Đăng xuất">expand_more</span>
         </div>
       </div>
     </header>
 
-    <!-- Router Outlet Page Content -->
+    <!-- Main Router Content -->
     <main class="content-body">
       <router-outlet></router-outlet>
     </main>

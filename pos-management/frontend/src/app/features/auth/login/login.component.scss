@@ -356,6 +356,26 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
   }
+
+  .btn-demo-login {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+
+    &:hover {
+      background: linear-gradient(135deg, #15803d, #166534);
+      transform: translateY(-1px);
+    }
+  }
 }
 
 .copyright {
