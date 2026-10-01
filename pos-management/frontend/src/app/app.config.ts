@@ -7,6 +7,7 @@ import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 
 import { routes } from './app.routes';
+import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 
 /**
  * Cấu hình Application-level providers cho POS Management Angular App.
@@ -23,8 +24,8 @@ export const appConfig: ApplicationConfig = {
     // Router với lazy-loaded routes
     provideRouter(routes),
 
-    // HTTP client — interceptors sẽ được thêm vào đây ở Sprint 01
-    provideHttpClient(),
+    // HTTP client — với jwtInterceptor inject JWT Bearer Token
+    provideHttpClient(withInterceptors([jwtInterceptor])),
 
     // Angular Material animations (async để không block first paint)
     provideAnimationsAsync(),

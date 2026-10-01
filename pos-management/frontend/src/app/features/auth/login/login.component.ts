@@ -1,47 +1,90 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 
 /**
- * Placeholder Login Component — Sprint 00.
+ * Login Page Component — Sprint 01.
  *
- * Sẽ được thay thế bằng Login form đầy đủ ở Sprint 01
- * với Reactive Forms, validation, JWT integration.
+ * Sử dụng OnPush Change Detection để tối ưu performance.
+ * Signals reactive state: loading, error message.
+ * Reactive Forms với validation.
  */
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="login-page">
-      <div class="login-card">
-        <div class="logo">🏦</div>
-        <h1>POS Management</h1>
-        <p>Trang đăng nhập — Sẽ hoàn chỉnh ở Sprint 01</p>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .login-page {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--color-bg-primary);
-    }
-
-    .login-card {
-      text-align: center;
-      background: var(--color-bg-card);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-lg);
-      padding: 48px;
-      max-width: 400px;
-      width: 90%;
-    }
-
-    .logo { font-size: 48px; margin-bottom: 16px; }
-    h1 { color: var(--color-text-primary); margin-bottom: 8px; }
-    p { color: var(--color-text-muted); font-size: 13px; }
-  `],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.scss',
 })
-export class LoginComponent {}
+export class LoginComponent {
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  // ─── Signals ────────────────────────────────────────────────────
+  readonly isLoading = signal(false);
+  readonly errorMessage = signal<string | null>(null);
+  readonly showPassword = signal(false);
+
+  // ─── Form ────────────────────────────────────────────────────────
+  readonly loginForm = this.fb.group({
+    username: ['', [
+      Validators.required,
+      Validators.maxLength(100)
+    ]],
+    password: ['', [
+      Validators.required,
+      Validators.minLength(6)
+    ]],
+  });
+
+  /** Submit form đăng nhập */
+  onSubmit(): void {
+    if (this.loginForm.invalid || this.isLoading()) return;
+
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+
+    const { username, password } = this.loginForm.getRawValue();
+
+    this.authService.login({ username: username!, password: password! }).subscribe({
+      next: () => {
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/';
+        this.router.navigateByUrl(returnUrl);
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.errorMessage.set(this.mapError(err));
+      }
+    });
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword.update(v => !v);
+  }
+
+  // ─── Form helpers ────────────────────────────────────────────────
+  get usernameControl() { return this.loginForm.get('username')!; }
+  get passwordControl() { return this.loginForm.get('password')!; }
+
+  isFieldInvalid(field: 'username' | 'password'): boolean {
+    const control = this.loginForm.get(field)!;
+    return control.invalid && (control.dirty || control.touched);
+  }
+
+  private mapError(err: any): string {
+    const code = err?.error?.errorCode;
+    switch (code) {
+      case 'POS-1002': return 'Tài khoản bị khóa. Vui lòng thử lại sau 30 phút.';
+      case 'POS-1001': return 'Tên đăng nhập hoặc mật khẩu không đúng.';
+      case 'POS-1006': return 'Quá nhiều lần đăng nhập sai. Tài khoản tạm thời bị khóa.';
+      default:
+        if (err?.status === 0) return 'Không thể kết nối máy chủ. Vui lòng thử lại.';
+        return err?.error?.message ?? 'Đăng nhập thất bại. Vui lòng thử lại.';
+    }
+  }
+}

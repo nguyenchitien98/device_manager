@@ -1,36 +1,43 @@
 import { Routes } from '@angular/router';
+import { authGuard, noAuthGuard } from './core/guards/auth.guard';
 
 /**
  * Routing chính của POS Management Application.
  *
- * Tất cả routes dùng lazy loading để giảm bundle size ban đầu.
- * AuthGuard (Sprint 01) sẽ bảo vệ các routes cần đăng nhập.
+ * Tất cả routes sử dụng Standalone Components và lazy loading.
  *
- * Cấu trúc routes:
- * - /login      → AuthLoginComponent (public)
- * - /           → MainLayoutComponent (protected, lazy)
- *   - /dashboard → DashboardComponent
- *   - /inventory → InventoryModule (lazy)
- *   - /merchants → MerchantModule (lazy)
- *   - /devices   → DeviceModule (lazy)
- *   - /assignments → AssignmentModule (lazy)
- *   - /approvals → ApprovalModule (lazy)
- *   - /admin     → AdminModule (lazy, SUPER_ADMIN only)
+ * Route tree:
+ * - /login       → LoginComponent (public, noAuthGuard)
+ * - /            → MainLayoutComponent (protected, authGuard)
+ *    - /dashboard → DashboardComponent
+ * - /**          → Wildcard redirect to /
  */
 export const routes: Routes = [
   {
     path: 'login',
+    canActivate: [noAuthGuard],
     loadComponent: () =>
       import('./features/auth/login/login.component').then(m => m.LoginComponent),
     title: 'Đăng Nhập — POS Management',
   },
   {
     path: '',
-    // MainLayoutComponent sẽ được tạo ở Sprint 01
+    canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
-    title: 'Dashboard — POS Management',
-    // canActivate: [authGuard], // Sẽ thêm ở Sprint 01
+      import('./features/layout/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
+    children: [
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+        title: 'Dashboard — POS Management',
+      },
+    ],
   },
   {
     path: '**',

@@ -43,6 +43,20 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- Spring Security Core (cho AccessDeniedException, AuthenticationException) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Spring TX / Data (cho DataIntegrityViolationException) -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

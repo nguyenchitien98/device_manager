@@ -1,0 +1,95 @@
+<div class="layout-container" [class.sidebar-collapsed]="isSidebarCollapsed()">
+  <!-- Mobile Overlay -->
+  <div 
+    class="mobile-backdrop" 
+    *ngIf="isMobileSidebarOpen()" 
+    (click)="toggleMobileSidebar()">
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.mobile-open]="isMobileSidebarOpen()">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="material-icons logo-icon">credit_card</span>
+        <span class="logo-text" *ngIf="!isSidebarCollapsed()">POS Manager</span>
+      </div>
+      <button class="btn-icon collapse-btn" (click)="toggleSidebar()" title="Toggle Sidebar">
+        <span class="material-icons">{{ isSidebarCollapsed() ? 'chevron_right' : 'chevron_left' }}</span>
+      </button>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
+      <ul>
+        <li *ngFor="let item of menuItems()">
+          <a 
+            [routerLink]="item.route" 
+            routerLinkActive="active"
+            [class.active]="isActive(item.route)"
+            [title]="item.label">
+            <span class="material-icons nav-icon">{{ item.icon }}</span>
+            <span class="nav-label" *ngIf="!isSidebarCollapsed()">{{ item.label }}</span>
+            <span class="badge" *ngIf="item.badge && !isSidebarCollapsed()">{{ item.badge }}</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Sidebar Footer / Current User Info -->
+    <div class="sidebar-footer" *ngIf="currentUser() as user">
+      <div class="user-avatar">
+        {{ user.fullName.charAt(0).toUpperCase() }}
+      </div>
+      <div class="user-details" *ngIf="!isSidebarCollapsed()">
+        <span class="user-name">{{ user.fullName }}</span>
+        <span class="user-role">{{ user.roles.join(', ') }}</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-wrapper">
+    <!-- Header Navbar -->
+    <header class="top-header">
+      <div class="header-left">
+        <button class="btn-icon mobile-toggle" (click)="toggleMobileSidebar()">
+          <span class="material-icons">menu</span>
+        </button>
+        <div class="search-bar">
+          <span class="material-icons search-icon">search</span>
+          <input type="text" placeholder="Tìm kiếm Serial POS, Merchant, Mã giao dịch..." />
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Branch Indicator -->
+        <div class="branch-pill" *ngIf="currentUser() as user">
+          <span class="material-icons">account_tree</span>
+          <span>{{ user.branchCode || 'HO' }}</span>
+        </div>
+
+        <!-- Notifications -->
+        <button class="btn-icon notification-btn" title="Thông báo">
+          <span class="material-icons">notifications</span>
+          <span class="notification-badge">3</span>
+        </button>
+
+        <!-- User Dropdown & Logout -->
+        <div class="user-profile-menu">
+          <div class="profile-info">
+            <span class="profile-name">{{ currentUser()?.username }}</span>
+          </div>
+          <button class="btn-logout" (click)="logout()" title="Đăng xuất">
+            <span class="material-icons">logout</span>
+            <span>Đăng xuất</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Router Outlet Page Content -->
+    <main class="content-body">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
