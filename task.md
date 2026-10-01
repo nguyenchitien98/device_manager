@@ -6,15 +6,15 @@
 
 ## 📦 Sprint 00 — Infrastructure Foundation
 
-- `[ ]` Tạo cấu trúc thư mục monorepo `pos-management/`
-- `[ ]` Docker Compose với PostgreSQL 16 + Redis 7 + Kafka + Kafka UI
-- `[ ]` Docker Compose với Prometheus + Grafana + Jaeger
-- `[ ]` Maven multi-module `pom.xml` (pos-gateway, pos-core, pos-common)
-- `[ ]` `pos-common`: ApiResponse<T>, ApiErrorResponse, GlobalExceptionHandler
-- `[ ]` Angular 22 project với Standalone Components + SCSS (compile sạch)
-- `[ ]` Health check endpoint `GET /api/v1/health`
-- `[ ]` Flyway V1: `V1__init_base_schema.sql` (uuid extension)
-- `[ ]` Đọc và review tất cả docs trong `POS_Managermant/docs/`
+- `[x]` Tạo cấu trúc thư mục monorepo `pos-management/`
+- `[x]` Docker Compose với PostgreSQL 16 + Redis 7 + Kafka + Kafka UI
+- `[x]` Docker Compose với Prometheus + Grafana + Jaeger
+- `[x]` Maven multi-module `pom.xml` (pos-common, pos-core)
+- `[x]` `pos-common`: ApiResponse<T>, ApiErrorResponse, GlobalExceptionHandler
+- `[x]` Angular 22 project với Standalone Components + SCSS (compile sạch)
+- `[ ]` Health check endpoint `GET /api/v1/health` ← Backend cần chạy
+- `[x]` Flyway V1: `V1__init_base_schema.sql` (uuid extension, ENUM types, trigger)
+- `[x]` Đọc và review tất cả docs trong `POS_Manager/docs/`
 
 ---
 
@@ -271,7 +271,7 @@
 ## 📊 Progress Summary
 
 ```
-Phase 0 (Sprint 00):    0/9   tasks  [  0%]
+Phase 0 (Sprint 00):    8/9   tasks  [ 89%]
 Phase 1 (Sprint 01):    0/23  tasks  [  0%]
 Phase 2 (Sprint 02):    0/19  tasks  [  0%]
 Phase 3 (Sprint 03):    0/15  tasks  [  0%]
@@ -288,7 +288,7 @@ Phase 13 (Sprint 13):   0/6   tasks  [  0%]
 Phase 14 (Sprint 14):   0/7   tasks  [  0%]
 Phase 15 (Sprint 15):   0/12  tasks  [  0%]
 
-OVERALL: 0/195 tasks completed (0% — Ready to start!)
+OVERALL: 8/195 tasks completed (4% — Sprint 00 infrastructure done!)
 ```
 
 ---
