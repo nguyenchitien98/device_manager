@@ -62,7 +62,7 @@ Tài liệu này là chỉ mục lộ trình 15 Sprint của dự án POS Manage
 - `[ ]` `pos-gateway`: Spring Boot App với `@SpringBootApplication`
 - `[ ]` `pos-core`: Spring Boot App với Flyway enabled
 - `[ ]` Health check: `GET /api/v1/health`
-- `[ ]` Flyway V1: `V1__init_schema.sql` — tạo extension uuid-ossp
+- `[ ]` Flyway V1: `V1__init_base_schema.sql` — tạo extension `uuid-ossp`, function `gen_random_uuid()`
 
 **Frontend Checklist:**
 - `[ ]` Khởi tạo Angular 22 project (Standalone Components, SCSS)
@@ -87,7 +87,7 @@ GET http://localhost:8080/api/v1/health → 200 OK ✅
 **Kỹ thuật học:** Spring Security 6, JWT, Refresh Token Rotation, RBAC, Data Scope, Angular Material Sidebar
 
 **Checklist Backend:**
-- `[ ]` Flyway V1: `users`, `roles`, `permissions`, `user_roles`, `role_permissions`, `auth_audit_logs`, `refresh_tokens`
+- `[ ]` Flyway V2: `users`, `roles`, `permissions`, `user_roles`, `role_permissions`, `refresh_tokens`
 - `[ ]` Seed data: 9 roles mặc định + user `admin@pos.vn` / `Admin@123` (SUPER_ADMIN)
 - `[ ]` Domain: `User`, `Role`, `Permission` với Spring Security UserDetails
 - `[ ]` JWT generation: Access Token 15m (RS256/HS256), Refresh Token 7d
@@ -154,9 +154,8 @@ Maven & Angular Build 100% SUCCESS ✅
 **Kỹ thuật học:** Master Data management, Hierarchical relationships, Server-side Pagination, Flyway seeding
 
 **Checklist Backend:**
-- `[ ]` Flyway V2: `device_categories`, `device_types`, `device_models`, `vendors`
-- `[ ]` Flyway V2: `mcc_codes`, `fee_policies`
-- `[ ]` Flyway V2: `business_units`, `warehouses`
+- `[ ]` Flyway V3: `device_categories`, `device_types`, `device_models`, `vendors`, `mcc_codes`, `fee_policies`
+- `[ ]` Flyway V4: `business_units`, `warehouses`
 - `[ ]` Flyway V2 seed: Dữ liệu mẫu đầy đủ
 - `[ ]` CRUD APIs với server-side pagination: Device Category, Device Type, Device Model, Vendor
 - `[ ]` CRUD APIs: MCC (search by code/name), Fee Policy (với effective dating)
@@ -193,7 +192,8 @@ Angular Build 100% SUCCESS ✅
 **Kỹ thuật học:** Purchase Order lifecycle, Stock Ledger (append-only), Transactional Outbox (lần đầu), Flyway migration cho large schema
 
 **Checklist Backend:**
-- `[ ]` Flyway V3: `purchase_orders`, `purchase_order_items`, `devices`, `stock_transactions`, `outbox_events`
+- `[ ]` Flyway V5: `purchase_orders`, `purchase_order_items`, `devices`, `stock_transactions`, `stock_export_requests`, `stock_export_items`, `stock_transfer_requests`, `stock_transfer_items`
+- `[ ]` (V10 sẽ được tạo ở Sprint 11: `outbox_events`)
 - `[ ]` Purchase Order Lifecycle: DRAFT → SUBMITTED → APPROVED → RECEIVED → CLOSED
 - `[ ]` Stock Ledger: `stock_transactions` table — IMPORT type, không xóa/sửa
 - `[ ]` Nhập kho: tạo Device record mỗi serial + ghi IMPORT vào stock_transactions + ghi Outbox
@@ -232,7 +232,8 @@ Maven & Angular Build 100% SUCCESS ✅
 **Kỹ thuật học:** Approval Workflow basic, Device State Machine lần đầu (INSTOCK → OUT_OF_WAREHOUSE)
 
 **Checklist Backend:**
-- `[ ]` Flyway V4: `stock_export_requests`, `stock_transfer_requests`, `approval_requests`
+> 📌 **Lưu ý Flyway:** `stock_export_requests` và `stock_transfer_requests` đã được định nghĩa trong `V5__create_inventory_tables.sql` từ Sprint 03. Sprint 04 implement business logic sử dụng các bảng này.
+- `[ ]` Flyway V9 (partial, toàn bộ sẽ hoàn thành Sprint 10): `approval_requests` (basic structure)
 - `[ ]` Approval basic: DRAFT → PENDING_APPROVAL → APPROVED/REJECTED → EXECUTING → COMPLETED
 - `[ ]` Xuất kho flow: Tạo phiếu → Submit → Chờ duyệt → Thực hiện xuất (Device → OUT_OF_WAREHOUSE)
 - `[ ]` Điều chuyển flow: Tạo phiếu → Submit → Chờ duyệt → Thực hiện chuyển (Device vẫn INSTOCK nhưng đổi warehouse)
@@ -264,7 +265,8 @@ Maven & Angular Build 100% SUCCESS ✅
 **Kỹ thuật học:** Merchant lifecycle, Effective Dating cho Fee Policy, Multi-TID
 
 **Checklist Backend:**
-- `[ ]` Flyway V5: `merchants`, `terminals`, `merchant_status_history`, `merchant_fee_assignments`
+- `[ ]` Flyway V6: `merchants`, `terminals`, `merchant_status_history`, `terminal_status_history`
+- `[ ]` Flyway V11: `merchant_fee_assignments`
 - `[ ]` Merchant Lifecycle: PENDING → ACTIVE → INACTIVE → SUSPENDED
 - `[ ]` Auto-generate MerchantCode: M + 6 digits (unique)
 - `[ ]` Auto-generate TID: T + 6 digits (unique)
@@ -296,7 +298,7 @@ Maven & Angular Build 100% SUCCESS ✅
 **Kỹ thuật học:** Device FSM full, Device History, 8-tab Detail Page, Redis cache device status
 
 **Checklist Backend:**
-- `[ ]` Flyway V6: `device_lifecycle_history` (append-only)
+- `[ ]` Flyway V7: `device_lifecycle_history` (append-only)
 - `[ ]` Device Status State Machine: 6 states + validate transitions via enum
 - `[ ]` `DeviceLifecycleHistoryService`: ghi lịch sử mỗi khi status thay đổi
 - `[ ]` Redis cache: `device:status:{serial}` (TTL 60s) — evict khi status change
@@ -331,7 +333,7 @@ Maven & Angular Build 100% SUCCESS ✅
 **Kỹ thuật học:** Repair Order lifecycle, Disposition process, Integration với Device FSM
 
 **Checklist Backend:**
-- `[ ]` Flyway V7: `repair_orders`
+- `[ ]` Flyway V7 (bổ sung): `repair_orders` (thêm vào cùng migration với device_lifecycle_history)
 - `[ ]` Repair Order Lifecycle: CREATED → IN_PROGRESS → COMPLETED/FAILED
 - `[ ]` Repair complete → Device REPAIRING → INSTOCK (success) hoặc DISPOSED (fail + duyệt thanh lý)
 - `[ ]` Thanh lý: INSTOCK → DISPOSED (qua Approval Workflow)
@@ -417,7 +419,7 @@ Maven & Angular Build 100% SUCCESS ✅
 **Kỹ thuật học:** Maker-Checker Pattern, Saga cơ bản, Kafka Notification trigger
 
 **Checklist Backend:**
-- `[ ]` Flyway V9: `approval_requests`, `approval_steps`, `approval_configs`
+- `[ ]` Flyway V9 (hoàn chỉnh): `approval_requests` (full schema), `approval_steps`, `approval_configs`
 - `[ ]` Approval States: DRAFT → PENDING_APPROVAL → PENDING_LEVEL_2 → APPROVED → EXECUTING → COMPLETED (và REJECTED, RETURNED_FOR_EDIT, CANCELLED)
 - `[ ]` Configurable: 1 cấp hoặc 2 cấp tùy loại request
 - `[ ]` Business rule: Người tạo KHÔNG thể duyệt yêu cầu của chính mình
@@ -457,7 +459,7 @@ Maven & Angular Build 100% SUCCESS ✅
 **Trạng thái:** `[ ]` Chưa bắt đầu
 
 **Checklist Backend:**
-- `[ ]` Flyway V9: `notifications`
+- `[ ]` Flyway V10: `notifications`
 - `[ ]` Kafka Consumer: `@KafkaListener` trên `approval.submitted`, `approval.approved`, `approval.rejected`
 - `[ ]` Idempotent Consumer: Redis key `consumed_event:{eventId}` (TTL 1 giờ)
 - `[ ]` Mock Email sender, Mock Push sender
@@ -516,7 +518,7 @@ Maven & Angular Build 100% SUCCESS ✅
 **Trạng thái:** `[ ]` Chưa bắt đầu
 
 **Checklist:**
-- `[ ]` Flyway V11: `audit_logs` (append-only)
+> 📌 **Lưu ý Flyway:** `audit_logs` và `outbox_events` đã được định nghĩa trong `V10__create_notification_tables.sql` (Sprint 11). Sprint 14 chỉ implement AOP `@Audit` annotation và bật ghi audit log.
 - `[ ]` `@Audit` AOP annotation tự động ghi log
 - `[ ]` Report APIs: tồn kho, thiết bị, assignment, merchant
 - `[ ]` **Audit Log Page:** Bảng + filter: user, action, resource, date range

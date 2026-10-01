@@ -1,6 +1,6 @@
 # POS Management System — UI/UX Standard & Screen Inventory
 
-Tài liệu này mô tả tiêu chuẩn thiết kế giao diện, bộ màu sắc, typography, component guidelines và danh sách đầy đủ 37 màn hình cần xây dựng cho hệ thống POS Management.
+Tài liệu này mô tả tiêu chuẩn thiết kế giao diện, bộ màu sắc, typography, component guidelines và danh sách đầy đủ **38 màn hình** cần xây dựng cho hệ thống POS Management.
 
 ---
 
@@ -422,7 +422,7 @@ export class DataTableComponent<T> {
 
 ---
 
-## 4. Danh Sách Đầy Đủ 37 Màn Hình
+## 4. Danh Sách Đầy Đủ 38 Màn Hình
 
 ### 4.1 Authentication & Layout (Sprint 01)
 
@@ -839,6 +839,26 @@ Sidebar chọn loại báo cáo:
   - Báo cáo merchant
 Date picker: From → To
 Chart + Table + Export (PDF / Excel) buttons
+```
+
+#### 38 — Notification Center ⭐ (Sprint 11)
+```
+URL: /notifications
+Layout:
+  - Header: "Thông báo" + [Mark all as read] button
+  - Filter tabs: Tất cả | Chưa đọc | Đã đọc
+Mỗi thông báo hiển thị:
+  - Icon theo loại (APPROVAL_REQUIRED / APPROVAL_RESULT / SYSTEM)
+  - Tiêu đề + Nội dung tóm tắt
+  - Thời gian ("vừa xong", "2 phút trước", "09:32 hôm nay")
+  - Dấu chưa đọc (dot xanh trái)
+Click thông báo → navigate tới phiếu/tài nguyên liên quan:
+  - APPROVAL_REQUIRED → /approval/inbox (chi tiết phiếu)
+  - APPROVAL_RESULT   → /approval/my-requests
+  - SYSTEM            → /dashboard
+Pagination: Load more (20 items/page)
+Empty state: "Đã đọc hết thông báo" với icon
+Design: Unread items có background nhạt hơn (rgba(25, 118, 210, 0.08))
 ```
 
 ---

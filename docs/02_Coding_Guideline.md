@@ -468,31 +468,40 @@ spring.flyway.locations=classpath:db/migration
 ### 5.2 Naming Convention Migration Files
 
 ```
-V1__init_identity_schema.sql
-V2__create_catalog_tables.sql
-V3__create_organization_tables.sql
-V4__create_inventory_tables.sql
-V5__create_merchant_terminal_tables.sql
-V6__create_device_tables.sql
-V7__create_assignment_tables.sql
-V8__create_approval_tables.sql
-V9__create_outbox_audit_tables.sql
-V10__seed_catalog_data.sql
+V1__init_base_schema.sql              -- Sprint 00: UUID extension, gen_random_uuid()
+V2__create_identity_tables.sql        -- Sprint 01: users, roles, permissions, user_roles, role_permissions, refresh_tokens
+V3__create_catalog_tables.sql         -- Sprint 02: device_categories, device_types, device_models, vendors, mcc_codes, fee_policies
+V4__create_organization_tables.sql    -- Sprint 02: business_units, warehouses
+V5__create_inventory_tables.sql       -- Sprint 03-04: purchase_orders, purchase_order_items, devices, stock_transactions, stock_export_requests, stock_export_items, stock_transfer_requests, stock_transfer_items
+V6__create_merchant_tables.sql        -- Sprint 05: merchants, terminals, merchant_status_history, terminal_status_history
+V7__create_device_history_tables.sql  -- Sprint 06-07: device_lifecycle_history, repair_orders
+V8__create_assignment_tables.sql      -- Sprint 08-09: assignments, assignment_history
+V9__create_approval_tables.sql        -- Sprint 10: approval_requests, approval_steps, approval_configs
+V10__create_notification_tables.sql   -- Sprint 11-12-14: notifications, outbox_events, audit_logs
+V11__create_fee_policy_tables.sql     -- Sprint 02/05: merchant_fee_assignments
+V12__seed_catalog_data.sql            -- Seed: Device categories, types, models, vendors
+V13__seed_organization_data.sql       -- Seed: Business Unit, Warehouse mẫu
+V14__seed_identity_data.sql           -- Seed: Roles, permissions, admin user
+V15__seed_mcc_data.sql                -- Seed: Top 50 MCC codes ISO 18245
 ```
 
 ### 5.3 Quy Tắc Bất Biến (Immutability)
 
 ```sql
--- Các bảng KHÔNG được UPDATE/DELETE:
+-- Các bảng KHÔNG được UPDATE/DELETE (Immutable / Append-Only):
 -- device_lifecycle_history     → Lịch sử vòng đời thiết bị
 -- stock_transactions           → Lịch sử biến động kho
 -- assignment_history           → Lịch sử cấp phát
--- audit_logs                   → Nhật ký hệ thống
+-- merchant_status_history      → Lịch sử trạng thái Merchant
+-- terminal_status_history      → Lịch sử trạng thái Terminal
+-- approval_steps               → Lịch sử hành động phê duyệt (append-only)
+-- audit_logs                   → Nhật ký hệ thống bất biến
 -- outbox_events                → Chỉ update status PENDING → SENT/FAILED
 
 -- Các bảng dùng Soft Delete (chỉ cập nhật status):
 -- assignments                  → status: ACTIVE → RETURNED/TRANSFERRED
 -- approvals                    → status flow theo workflow
+-- merchants                    → status: ACTIVE → INACTIVE/SUSPENDED
 ```
 
 ### 5.4 Optimistic Lock Bắt Buộc

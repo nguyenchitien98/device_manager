@@ -17,6 +17,7 @@
 | Phase 6 | Approval Workflow | Sprint 10–11 | `[ ]` Chưa bắt đầu |
 | Phase 7 | Kafka & Event-Driven | Sprint 12 | `[ ]` Chưa bắt đầu |
 | Phase 8 | Monitoring & Hardening | Sprint 13–15 | `[ ]` Chưa bắt đầu |
+| Phase 9 | Kiểm Kê & Supplement | Sprint 14 | `[ ]` Chưa bắt đầu |
 
 ---
 
@@ -354,3 +355,46 @@
 - `[ ]` Custom metrics: device assignments/hour, approval processing time, stock in/out
 - `[ ]` Grafana dashboard cho POS Management
 - `[ ]` Alert rules: approval queue > 10, device assignment failures spike
+
+---
+
+## 📦 Epic 12: Kiểm Kê & Supplement
+
+### [POS-027] Physical Inventory Count (Kiểm Kê Định Kỳ)
+**Priority:** P2 | **Sprint:** 14 | **Effort:** M
+
+> **Mục đích:** Đối chiếu số lượng thiết bị thực tế tại kho với số lượng trong hệ thống, phát hiện sai lệch và ghi điều chỉnh (ADJUSTMENT) vào Stock Ledger.
+
+- `[ ]` Flyway V5 (bổ sung): `inventory_counts`, `inventory_count_items`
+  ```sql
+  CREATE TABLE inventory_counts (
+      id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+      count_number    VARCHAR(50) NOT NULL UNIQUE,  -- IC-2026-0001
+      warehouse_id    UUID        NOT NULL REFERENCES warehouses(id),
+      status          VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+      -- DRAFT, IN_PROGRESS, COMPLETED, CANCELLED
+      count_date      DATE        NOT NULL,
+      notes           TEXT,
+      created_by      UUID        NOT NULL REFERENCES users(id),
+      version         BIGINT      NOT NULL DEFAULT 0,
+      created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE inventory_count_items (
+      id                  UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+      inventory_count_id  UUID    NOT NULL REFERENCES inventory_counts(id),
+      device_id           UUID    NOT NULL REFERENCES devices(id),
+      expected_status     VARCHAR(30),   -- Trạng thái hệ thống dự kiến
+      actual_status       VARCHAR(30),   -- Trạng thái kiểm kê thực tế
+      discrepancy         BOOLEAN NOT NULL DEFAULT FALSE,
+      notes               TEXT,
+      counted_by          UUID    REFERENCES users(id),
+      created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+  ```
+- `[ ]` Kiểm kê flow: Tạo phiếu kiểm kê → Xuất danh sách dự kiến theo kho → Nhập kết quả thực tế → Hệ thống tự đối chiếu → Ghi ADJUSTMENT vào Stock Ledger cho các serial sai lệch
+- `[ ]` Tố cáo số lượng: số có trong hệ thống vs số kiểm thực tế, sai lệch (%)
+- `[ ]` API: `POST /api/v1/inventory/counts`, `GET /api/v1/inventory/counts`, `GET /api/v1/inventory/counts/{id}`, `POST /api/v1/inventory/counts/{id}/start`, `POST /api/v1/inventory/counts/{id}/submit-item`, `POST /api/v1/inventory/counts/{id}/complete`
+- `[ ]` **Angular — Kiểm kê định kỳ:** Danh sách phiếu kiểm kê, form tạo phiếu, giao diện nhập kết quả từng serial (có barcode scanner support), báo cáo sai lệch
+- `[ ]` Test: Tạo kiểm kê, phát hiện sai lệch, ghi ADJUSTMENT vào stock ledger, verify bất biến

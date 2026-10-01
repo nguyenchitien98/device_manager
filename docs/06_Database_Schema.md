@@ -12,7 +12,7 @@ Tài liệu này mô tả toàn bộ schema database cho hệ thống POS Manage
 | **UUID Primary Key** | Tất cả bảng dùng `UUID` làm PK (`DEFAULT gen_random_uuid()`) |
 | **Timestamps** | Mọi bảng có `created_at`, `updated_at` |
 | **Soft Delete** | Dùng `status` hoặc `is_active` — KHÔNG xóa cứng Master Data |
-| **Immutable Tables** | `device_lifecycle_history`, `stock_transactions`, `assignment_history`, `audit_logs` — KHÔNG UPDATE/DELETE |
+| **Immutable Tables** | `device_lifecycle_history`, `stock_transactions`, `assignment_history`, `audit_logs`, `merchant_status_history`, `terminal_status_history`, `approval_steps` — KHÔNG UPDATE/DELETE |
 | **Optimistic Lock** | Mọi bảng concurrent-prone phải có `version BIGINT DEFAULT 0` |
 | **Naming** | snake_case, số nhiều cho table name, snake_case cho column |
 
@@ -21,21 +21,21 @@ Tài liệu này mô tả toàn bộ schema database cho hệ thống POS Manage
 ## 2. Flyway Migration Files
 
 ```
-V1__init_base_schema.sql           # UUID extension, common functions
-V2__create_identity_tables.sql     # users, roles, permissions, auth
-V3__create_catalog_tables.sql      # device categories, types, models, vendors
-V4__create_organization_tables.sql # business_units, warehouses
-V5__create_inventory_tables.sql    # purchase_orders, devices, stock_transactions
-V6__create_merchant_tables.sql     # merchants, terminals, mcc_codes
-V7__create_device_history_table.sql # device_lifecycle_history
-V8__create_assignment_tables.sql   # assignments, assignment_history
-V9__create_approval_tables.sql     # approval_requests, approval_steps
-V10__create_notification_tables.sql # notifications, outbox_events, audit_logs
-V11__create_fee_policy_tables.sql  # fee_policies, merchant_fee_assignments
-V12__seed_catalog_data.sql         # Dữ liệu mẫu cho catalog
-V13__seed_organization_data.sql    # Business Unit, Warehouse mẫu
-V14__seed_identity_data.sql        # Roles, permissions, admin user
-V15__seed_mcc_data.sql             # Top 50 MCC codes
+V1__init_base_schema.sql              # Sprint 00: UUID extension, gen_random_uuid()
+V2__create_identity_tables.sql        # Sprint 01: users, roles, permissions, user_roles, role_permissions, refresh_tokens
+V3__create_catalog_tables.sql         # Sprint 02: device_categories, device_types, device_models, vendors, mcc_codes, fee_policies
+V4__create_organization_tables.sql    # Sprint 02: business_units, warehouses
+V5__create_inventory_tables.sql       # Sprint 03-04: purchase_orders, purchase_order_items, devices, stock_transactions, stock_export_requests, stock_export_items, stock_transfer_requests, stock_transfer_items
+V6__create_merchant_tables.sql        # Sprint 05: merchants, terminals, merchant_status_history, terminal_status_history
+V7__create_device_history_tables.sql  # Sprint 06-07: device_lifecycle_history, repair_orders
+V8__create_assignment_tables.sql      # Sprint 08-09: assignments, assignment_history
+V9__create_approval_tables.sql        # Sprint 10: approval_requests, approval_steps, approval_configs
+V10__create_notification_tables.sql   # Sprint 11-12-14: notifications, outbox_events, audit_logs
+V11__create_fee_policy_tables.sql     # Sprint 02/05: merchant_fee_assignments
+V12__seed_catalog_data.sql            # Seed: Device categories, types, models, vendors
+V13__seed_organization_data.sql       # Seed: Business Unit, Warehouse mẫu
+V14__seed_identity_data.sql           # Seed: Roles, permissions, admin user
+V15__seed_mcc_data.sql                # Seed: Top 50 MCC codes ISO 18245
 ```
 
 ---
@@ -319,6 +319,75 @@ CREATE INDEX idx_stock_tx_warehouse ON stock_transactions(to_warehouse_id, occur
 CREATE INDEX idx_stock_tx_type ON stock_transactions(transaction_type, occurred_at DESC);
 ```
 
+### Bảng: `stock_export_requests` (Phiếu Xuất Kho)
+```sql
+CREATE TABLE stock_export_requests (
+    id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    request_number      VARCHAR(50) NOT NULL UNIQUE,  -- EX-2026-0001
+    warehouse_id        UUID        NOT NULL REFERENCES warehouses(id),
+    destination         VARCHAR(500),                  -- Đơn vị/đối tượng nhận
+    purpose             VARCHAR(500),                  -- Mục đích xuất
+    status              VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+    -- DRAFT, PENDING_APPROVAL, APPROVED, EXECUTING, COMPLETED, REJECTED
+    notes               TEXT,
+    created_by          UUID        NOT NULL REFERENCES users(id),
+    approval_request_id UUID        REFERENCES approval_requests(id),
+    version             BIGINT      NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_stock_export_status ON stock_export_requests(status, created_at DESC);
+CREATE INDEX idx_stock_export_warehouse ON stock_export_requests(warehouse_id, status);
+```
+
+### Bảng: `stock_export_items` (Danh Sách Thiết Bị Xuất — Append-Only)
+```sql
+CREATE TABLE stock_export_items (
+    id                       UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+    stock_export_request_id  UUID    NOT NULL REFERENCES stock_export_requests(id),
+    device_id                UUID    NOT NULL REFERENCES devices(id),
+    created_at               TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_stock_export_items_request ON stock_export_items(stock_export_request_id);
+CREATE INDEX idx_stock_export_items_device ON stock_export_items(device_id);
+```
+
+### Bảng: `stock_transfer_requests` (Phiếu Điều Chuyển Kho)
+```sql
+CREATE TABLE stock_transfer_requests (
+    id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    request_number      VARCHAR(50) NOT NULL UNIQUE,  -- TR-2026-0001
+    from_warehouse_id   UUID        NOT NULL REFERENCES warehouses(id),
+    to_warehouse_id     UUID        NOT NULL REFERENCES warehouses(id),
+    status              VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+    -- DRAFT, PENDING_APPROVAL, APPROVED, EXECUTING, COMPLETED, REJECTED
+    notes               TEXT,
+    created_by          UUID        NOT NULL REFERENCES users(id),
+    approval_request_id UUID        REFERENCES approval_requests(id),
+    version             BIGINT      NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_stock_transfer_status ON stock_transfer_requests(status, created_at DESC);
+CREATE INDEX idx_stock_transfer_warehouses ON stock_transfer_requests(from_warehouse_id, to_warehouse_id);
+```
+
+### Bảng: `stock_transfer_items` (Danh Sách Thiết Bị Điều Chuyển — Append-Only)
+```sql
+CREATE TABLE stock_transfer_items (
+    id                         UUID    PRIMARY KEY DEFAULT gen_random_uuid(),
+    stock_transfer_request_id  UUID    NOT NULL REFERENCES stock_transfer_requests(id),
+    device_id                  UUID    NOT NULL REFERENCES devices(id),
+    created_at                 TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_stock_transfer_items_request ON stock_transfer_items(stock_transfer_request_id);
+CREATE INDEX idx_stock_transfer_items_device ON stock_transfer_items(device_id);
+```
+
 ---
 
 ## 7. Domain: Merchant & Terminal
@@ -366,6 +435,38 @@ CREATE TABLE terminals (
 
 CREATE INDEX idx_terminals_merchant ON terminals(merchant_id);
 CREATE INDEX idx_terminals_status ON terminals(status);
+```
+
+### Bảng: `merchant_status_history` ⭐ (Append-Only)
+```sql
+CREATE TABLE merchant_status_history (
+    id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    merchant_id  UUID        NOT NULL REFERENCES merchants(id),
+    from_status  VARCHAR(30),                -- NULL khi Merchant mới được tạo
+    to_status    VARCHAR(30) NOT NULL,       -- PENDING, ACTIVE, INACTIVE, SUSPENDED
+    reason       TEXT,
+    performed_by UUID        NOT NULL REFERENCES users(id),
+    occurred_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    -- KHÔNG CÓ updated_at — APPEND-ONLY: KHÔNG UPDATE, KHÔNG DELETE
+);
+
+CREATE INDEX idx_merchant_status_hist ON merchant_status_history(merchant_id, occurred_at DESC);
+```
+
+### Bảng: `terminal_status_history` ⭐ (Append-Only)
+```sql
+CREATE TABLE terminal_status_history (
+    id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    terminal_id  UUID        NOT NULL REFERENCES terminals(id),
+    from_status  VARCHAR(20),
+    to_status    VARCHAR(20) NOT NULL,       -- PENDING, ACTIVE, INACTIVE
+    reason       TEXT,
+    performed_by UUID        NOT NULL REFERENCES users(id),
+    occurred_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    -- APPEND-ONLY
+);
+
+CREATE INDEX idx_terminal_status_hist ON terminal_status_history(terminal_id, occurred_at DESC);
 ```
 
 ### Bảng: `merchant_fee_assignments` (Effective Dating)
@@ -463,6 +564,28 @@ CREATE INDEX idx_assignments_merchant ON assignments(merchant_id, status);
 CREATE INDEX idx_assignments_device ON assignments(device_id, status);
 ```
 
+### Bảng: `assignment_history` ⭐ (Append-Only)
+```sql
+CREATE TABLE assignment_history (
+    id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    assignment_id    UUID        NOT NULL REFERENCES assignments(id),
+    device_id        UUID        NOT NULL REFERENCES devices(id),
+    action           VARCHAR(30) NOT NULL,
+    -- ASSIGNED, RETURNED, TRANSFERRED_OUT, TRANSFERRED_IN
+    from_merchant_id UUID        REFERENCES merchants(id),
+    to_merchant_id   UUID        REFERENCES merchants(id),
+    from_terminal_id UUID        REFERENCES terminals(id),
+    to_terminal_id   UUID        REFERENCES terminals(id),
+    reason           TEXT,
+    performed_by     UUID        NOT NULL REFERENCES users(id),
+    occurred_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+    -- KHÔNG CÓ updated_at — APPEND-ONLY: KHÔNG UPDATE, KHÔNG DELETE
+);
+
+CREATE INDEX idx_assignment_history_assignment ON assignment_history(assignment_id, occurred_at DESC);
+CREATE INDEX idx_assignment_history_device ON assignment_history(device_id, occurred_at DESC);
+```
+
 ---
 
 ## 10. Domain: Approval Workflow
@@ -510,6 +633,30 @@ CREATE TABLE approval_steps (
 );
 
 CREATE INDEX idx_approval_steps_request ON approval_steps(approval_request_id, occurred_at DESC);
+```
+
+### Bảng: `approval_configs` (Cấu Hình Quy Trình Phê Duyệt)
+```sql
+CREATE TABLE approval_configs (
+    id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    request_type  VARCHAR(50) NOT NULL UNIQUE,
+    -- STOCK_EXPORT, STOCK_TRANSFER, DEVICE_RETURN, DEVICE_DISPOSE, MERCHANT_CHANGE
+    max_level     INT         NOT NULL DEFAULT 2,
+    level1_role   VARCHAR(50) NOT NULL,        -- Role được phép duyệt cấp 1 (vd: INVENTORY_MANAGER)
+    level2_role   VARCHAR(50),                 -- Role được phép duyệt cấp 2 (null nếu chỉ 1 cấp)
+    is_active     BOOLEAN     NOT NULL DEFAULT TRUE,
+    description   VARCHAR(500),
+    created_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seed data mặc định cho các loại phê duyệt
+INSERT INTO approval_configs (request_type, max_level, level1_role, level2_role, description) VALUES
+    ('STOCK_EXPORT',    2, 'INVENTORY_MANAGER', 'SUPER_ADMIN',       'Phê duyệt xuất kho 2 cấp'),
+    ('STOCK_TRANSFER',  2, 'INVENTORY_MANAGER', 'SUPER_ADMIN',       'Phê duyệt điều chuyển kho 2 cấp'),
+    ('DEVICE_RETURN',   2, 'DEVICE_OPERATOR',   'INVENTORY_MANAGER', 'Phê duyệt thu hồi thiết bị 2 cấp'),
+    ('DEVICE_DISPOSE',  2, 'INVENTORY_MANAGER', 'SUPER_ADMIN',       'Phê duyệt thanh lý thiết bị 2 cấp'),
+    ('MERCHANT_CHANGE', 1, 'MERCHANT_MANAGER',  NULL,                'Phê duyệt thay đổi Merchant 1 cấp');
 ```
 
 ---
@@ -602,8 +749,17 @@ merchants (1) ──→ (N) merchant_fee_assignments
 mcc_codes (1) ──→ (N) merchants
 fee_policies (1) ──→ (N) merchant_fee_assignments
 
-assignments (1) ──→ (N) assignment_history (implicit via lifecycle)
+assignments (1) ──→ (N) assignment_history
 approval_requests (1) ──→ (N) approval_steps
+approval_configs — configures → approval_requests (theo request_type)
+
+merchants (1) ──→ (N) merchant_status_history
+terminals (1) ──→ (N) terminal_status_history
+
+stock_export_requests (1) ──→ (N) stock_export_items ──→ (N) devices
+stock_transfer_requests (1) ──→ (N) stock_transfer_items ──→ (N) devices
+warehouses (1) ──→ (N) stock_export_requests
+warehouses (1) ──→ (N) stock_transfer_requests
 
 users (1) ──→ (N) user_roles ──→ (N) roles ──→ (N) role_permissions ──→ (N) permissions
 ```

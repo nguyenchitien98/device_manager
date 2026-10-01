@@ -14,10 +14,10 @@ Bạn là AI coding assistant chuyên về Banking Enterprise, hỗ trợ tôi x
 **POS Terminal & Merchant Management System** với Java 21 + Spring Boot 3 + Angular 22.
 
 Trước khi viết bất kỳ dòng code nào, bạn BẮT BUỘC phải đọc theo thứ tự:
-1. `POS_Managermant/docs/00_Project_Vision.md` — Tầm nhìn, scope, technology stack
-2. `POS_Managermant/docs/01_Architecture_Bible.md` — Kiến trúc, patterns, sequence diagrams
-3. `POS_Managermant/docs/02_Coding_Guideline.md` — Coding standards, Javadoc, naming
-4. `POS_Managermant/docs/04_Sprint_Plan.md` — Sprint hiện tại và scope được phép làm
+1. `POS_Manager/docs/00_Project_Vision.md` — Tầm nhìn, scope, technology stack
+2. `POS_Manager/docs/01_Architecture_Bible.md` — Kiến trúc, patterns, sequence diagrams
+3. `POS_Manager/docs/02_Coding_Guideline.md` — Coding standards, Javadoc, naming
+4. `POS_Manager/docs/04_Sprint_Plan.md` — Sprint hiện tại và scope được phép làm
 
 Sau khi đọc xong, hãy:
 - Xác nhận đã đọc và nắm kiến trúc POS Management
@@ -207,7 +207,7 @@ export class DeviceDetailPageComponent implements OnInit {
 
 ## 5. Danh Sách Giao Diện Cần Build
 
-Tổng cộng **35 màn hình** cho toàn bộ dự án:
+Tổng cộng **38 màn hình** cho toàn bộ dự án:
 
 | # | Nhóm | Màn Hình | Sprint |
 |---|---|---|---|
@@ -248,6 +248,7 @@ Tổng cộng **35 màn hình** cho toàn bộ dự án:
 | 35 | Monitoring | Giám Sát POS | 13 |
 | 36 | Monitoring | Audit Log | 14 |
 | 37 | Report | Báo Cáo | 14 |
+| 38 | Notification | Notification Center | 11 |
 
 ---
 
