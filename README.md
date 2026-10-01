@@ -18,9 +18,9 @@
 
 | Phân Hệ | Công Nghệ / Thư Viện | Mô Tả |
 | :--- | :--- | :--- |
-| **Backend** | **Java 17 / Spring Boot 3.2** | Core API Services, Spring Security, JPA/Hibernate |
+| **Backend** | **Java 21+ / Spring Boot 3.2** | Core API Services, Spring Security, JPA/Hibernate |
 | **Database** | **PostgreSQL 16** | Cơ sở dữ liệu quan hệ, Flyway migration |
-| **Frontend** | **Angular 17** | Single Page Application, RxJS, Reactive Forms, Control Flow |
+| **Frontend** | **Angular 22** | Single Page Application, RxJS, Reactive Forms, Control Flow |
 | **Security** | **JWT / Spring Security** | Stateless Authentication, RBAC + Scope-based Authorization |
 | **Excel Core** | **Apache POI 5.2** | Stream-based Excel Export (`SXSSFWorkbook`) |
 | **DevOps** | **Docker & Docker Compose** | Containerization môi trường Dev & Production |
@@ -43,7 +43,7 @@ Toàn bộ thiết kế chi tiết của dự án được lưu trữ trong thư
 | [`07_UI_UX_Standard.md`](file:///c:/Users/Admin/Desktop/POS_Manager/docs/07_UI_UX_Standard.md) | UI/UX & Layout Spec | Design system, màu sắc, layout, Angular Message Library |
 | [`08_Interview_QA.md`](file:///c:/Users/Admin/Desktop/POS_Manager/docs/08_Interview_QA.md) | Q&A Nghiệp Vụ | Bộ câu hỏi kỹ thuật & nghiệp vụ phục vụ phỏng vấn |
 | [`09_API_Contract.md`](file:///c:/Users/Admin/Desktop/POS_Manager/docs/09_API_Contract.md) | API Contract (RESTful) | 40+ REST API endpoints, DTO schema, Excel Export API |
-| [`10_Environment_Setup.md`](file:///c:/Users/Admin/Desktop/POS_Manager/docs/10_Environment_Setup.md) | Hướng Dẫn Cài Đặt | Cấu hình Java 17, Node 20, Docker, Postgres, Flyway |
+| [`10_Environment_Setup.md`](file:///c:/Users/Admin/Desktop/POS_Manager/docs/10_Environment_Setup.md) | Hướng Dẫn Cài Đặt | Cấu hình Java 21+, Node 20, Docker, Postgres, Flyway |
 | [`11_Business_Flow.md`](file:///c:/Users/Admin/Desktop/POS_Manager/docs/11_Business_Flow.md) | Luồng Nghiệp Vụ | Master Data, 6 Flow End-to-End, UI Messages & Excel UX |
 | [`architecture_diagrams.md`](file:///c:/Users/Admin/Desktop/POS_Manager/architecture_diagrams.md) | Sơ Đồ Mermaid | PlantUML / Mermaid diagrams trực quan hóa kiến trúc |
 | [`prompt.md`](file:///c:/Users/Admin/Desktop/POS_Manager/prompt.md) | Remote Control Prompt | Prompt dán vào AI Agent khi bắt đầu phiên làm việc |
@@ -53,7 +53,7 @@ Toàn bộ thiết kế chi tiết của dự án được lưu trữ trong thư
 ## ⚡ 4. Khởi Động Nhanh (Quick Start)
 
 ### 4.1. Yêu Cầu Môi Trường
-- **JDK**: Java 17 (OpenJDK / Temurin)
+- **JDK**: Java 21+ (OpenJDK / Temurin)
 - **Node.js**: Node 20 LTS (npm 10+)
 - **Database**: PostgreSQL 16+ (hoặc Docker Compose)
 - **IDE Khuyên dùng**: IntelliJ IDEA / VS Code / Antigravity IDE
@@ -70,7 +70,7 @@ cd backend
 ```
 > Database sẽ tự động khởi tạo và nạp dữ liệu mẫu qua **Flyway Migration**.
 
-### 4.4. Khởi Chạy Frontend (Angular 17)
+### 4.4. Khởi Chạy Frontend (Angular 22)
 ```bash
 cd frontend
 npm install
