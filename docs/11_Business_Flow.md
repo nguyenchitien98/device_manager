@@ -37,20 +37,30 @@
 
 ### 1.3 Quan Hệ Cốt Lõi
 
+> **Mô hình chuẩn banking: 1 Merchant → Nhiều MID → Nhiều TID → 1 Device**
+
 ```
 Ngân hàng (Bank)
 ├── Chi nhánh Hà Nội (Business Unit)
 │   ├── Kho HN-01 (Warehouse) ← máy POS tồn kho
 │   ├── Kho HN-02 (Warehouse)
 │   └── Merchant Siêu thị A (Merchant)
-│         ├── TID: T100001 (Terminal) ← điểm đặt máy POS
-│         │    └── Device: SN-POS-000001 (PAX A920) ← thiết bị vật lý
-│         └── TID: T100002 (Terminal)
-│              └── Device: SN-POS-000002 (Ingenico iCT220)
+│         ├── MID: M000001 (Hội sở)            ← Merchant ID (MID)
+│         │     ├── TID: T100001 (Tại cử́a chính) ← Terminal ID gắn TID
+│         │     │     └── Device: SN-PAX-000001 (PAX A920)  ← thiết bị vật lý
+│         │     └── TID: T100002 (Tại cử́a phụ)
+│         │           └── Device: SN-ING-000002 (Ingenico iCT220)
+│         └── MID: M000002 (Chi nhánh Đống Đa)    ← MID thứ 2 của cùng Merchant
+│               └── TID: T100003
+│                     └── Device: SN-VFN-000003 (Verifone VX520)
 └── Chi nhánh HCM (Business Unit)
     ├── Kho HCM-01 (Warehouse)
     └── Merchant Cửa hàng B (Merchant)
 ```
+
+> **Lưu ý tích hợp ngoài:**
+> - **WAY4** Card Management đồng bộ MID/TID khi kích hoạt — cột `way4_mid`, `way4_tid`
+> - **T24** Core Banking liên kết Merchant với tài khoản quyết toán — cột `t24_customer_id`, `t24_account_id`
 
 ---
 
@@ -123,13 +133,18 @@ Khi deploy hệ thống lần đầu, thực hiện theo thứ tự sau:
 
 #### Bước 1 — Seed Tự Động (Flyway chạy khi khởi động)
 ```
+✅ Flyway V1: Base schema (UUID, Trigger hàm update_updated_at_column)
 ✅ Flyway V2: Roles + Permissions (9 roles, ~50 permissions)
+             RefreshTokens, AuthAuditLogs
 ✅ Flyway V3: Device Categories, Device Types, Device Models mẫu
              Vendors mẫu (PAX, Ingenico, Verifone, VinaLab)
              MCC Codes (Top 50 ngành phổ biến)
              Fee Policies mẫu
-✅ Flyway V4: Business Units mẫu (HN, HCM)
+             Business Units mẫu (HN, HCM)
              Warehouses mẫu (KHO-HN-01, KHO-HCM-01)
+             Logistics Trackings table
+✅ Flyway V4: merchants, merchant_ids (MID), terminal_ids (TID)
+             Mô hình: 1 Merchant → N MID → N TID → 1 Device
 ✅ Flyway V9: Approval Configs mặc định (5 loại phiếu)
 ✅ Flyway V14: SUPER_ADMIN user (admin@pos.vn / Admin@123)
 ```
@@ -169,23 +184,20 @@ Sau bước 1+2, system sẵn sàng cho:
 | **Tạo Merchant** | Business Unit | `GET /api/v1/organizations/business-units` | theo scope user |
 | **Tạo Merchant** | MCC Code | `GET /api/v1/catalog/mcc-codes?search={keyword}` | search by code hoặc name |
 | **Tạo Merchant** | Fee Policy | `GET /api/v1/catalog/fee-policies` | `status=ACTIVE` |
-| **Tạo Terminal** | Merchant | (từ context màn hình Merchant detail) | — |
-| **Tạo User** | Business Unit | `GET /api/v1/organizations/business-units` | — |
-| **Tạo User** | Role (multi-select) | `GET /api/v1/admin/roles` | — |
-| **Tạo Phiếu Xuất Kho** | Kho xuất | `GET /api/v1/organizations/warehouses` | theo Business Unit user |
-| **Tạo Phiếu Xuất Kho** | Thiết bị (multi-select) | `GET /api/v1/devices?status=INSTOCK&warehouseId={id}` | chỉ INSTOCK trong kho chọn |
-| **Tạo Phiếu Điều Chuyển** | Kho xuất | `GET /api/v1/organizations/warehouses` | theo Business Unit user |
-| **Tạo Phiếu Điều Chuyển** | Kho nhận | `GET /api/v1/organizations/warehouses` | loại trừ kho xuất đã chọn |
-| **Tạo Phiếu Điều Chuyển** | Thiết bị | `GET /api/v1/devices?status=INSTOCK&warehouseId={fromId}` | — |
-| **Cấp phát thiết bị** | Merchant | `GET /api/v1/merchants?status=ACTIVE` | chỉ Merchant ACTIVE |
-| **Cấp phát thiết bị** | TID (Terminal) | `GET /api/v1/terminals?merchantId={id}&status=ACTIVE` | load sau khi chọn Merchant |
+| **Tạo MID** | Merchant | `GET /api/v1/merchants?status=ACTIVE` | chọn Merchant trước |
+| **Tạo TID** | MID | `GET /api/v1/merchants/{id}/mids?status=ACTIVE` | load sau khi chọn Merchant |
+| **Cấp phát thiết bị (Bước 1)** | Merchant | `GET /api/v1/merchants?status=ACTIVE` | chỉ Merchant ACTIVE |
+| **Cấp phát thiết bị (Bước 1)** | MID | `GET /api/v1/merchants/{id}/mids?status=ACTIVE` | load sau khi chọn Merchant |
+| **Cấp phát thiết bị (Bước 2)** | TID | `GET /api/v1/mids/{midId}/tids?status=UNASSIGNED` | chỉ TID chưa có device |
+| **Cấp phát thiết bị (Bước 2)** | Serial (Device) | `GET /api/v1/devices?status=INSTOCK` | chỉ INSTOCK |
 | **Tạo Repair Order** | Thiết bị | (từ context device đang xem) | — |
 | **Tạo Repair Order** | Vendor sửa chữa | `GET /api/v1/catalog/vendors` | `status=ACTIVE` |
-| **Filter Danh sách Device** | Trạng thái | (hardcoded: INSTOCK/OUT_OF_WAREHOUSE/DEPLOYED/RETURNED/REPAIRING/DISPOSED) | — |
+| **Filter Danh sách Device** | Trạng thái | (hardcoded: INSTOCK/OUT\_OF\_WAREHOUSE/DEPLOYED/RETURNED/REPAIRING/DISPOSED) | — |
 | **Filter Danh sách Device** | Kho | `GET /api/v1/organizations/warehouses` | theo scope user |
 | **Filter Danh sách Device** | Vendor | `GET /api/v1/catalog/vendors` | — |
 | **Filter Danh sách Device** | Model | `GET /api/v1/catalog/device-models` | — |
-| **Filter Approval Inbox** | Loại phiếu | (hardcoded: STOCK_EXPORT/STOCK_TRANSFER/DEVICE_RETURN/...) | — |
+| **Filter Approval Inbox** | Loại phiếu | (hardcoded: STOCK\_EXPORT/STOCK\_TRANSFER/DEVICE\_RETURN/...) | — |
+| **Logistics Tracking** | Trạng thái | (hardcoded: PREPARING/IN\_TRANSIT/DELIVERED/FAILED/RETURNED) | — |
 | **Báo cáo** | Business Unit | `GET /api/v1/organizations/business-units` | theo scope user |
 | **Báo cáo** | Kho | `GET /api/v1/organizations/warehouses` | theo Business Unit chọn |
 
@@ -907,4 +919,188 @@ public ResponseEntity<Resource> exportDevices(
     return ResponseEntity.ok().build();
 }
 ```
+
+---
+
+## 7. Flow G: Tạo Merchant + MID + TID (Wizard Multi-Step)
+
+**Mô hình:** 1 Merchant → N MID → N TID → 1 Device
+
+**Điều kiện tiên quyết:** Business Unit, MCC Code, Fee Policy đã tồn tại.
+
+**Ai thực hiện:** `MERCHANT_MANAGER` (tạo Merchant + MID), `ASSIGNMENT_OPERATOR` (tạo TID và cấp phát device)
+
+### 7.1 Luồng End-to-End
+
+```
+[Bước 1: Tạo Merchant]
+  MERCHANT_MANAGER điền thông tin Merchant:
+    - Tên merchant, tên pháp nhân, mã số thuế
+    - Business Unit, MCC Code, Fee Policy
+    - Thông tin liên hệ, địa chỉ
+  → POST /api/v1/merchants
+  → Status: PENDING (chờ kích hoạt)
+
+[Bước 2: Tạo MID cho Merchant]
+  1 Merchant → Nhiều MID (mỗi MID đại diện 1 chi nhánh/điểm kinh doanh)
+  → POST /api/v1/merchants/{merchantId}/mids
+  Body: { mid, label, way4Mid, t24AccountId, isPrimary }
+  → MID được đồng bộ sang WAY4 (nếu enabled)
+  → T24 account được verify (nếu enabled)
+
+[Bước 3: Tạo TID cho MID]
+  1 MID → Nhiều TID (mỗi TID đại diện 1 terminal POS vật lý)
+  → POST /api/v1/mids/{midId}/tids
+  Body: { tid, installationAddress, way4Tid }
+  → TID được đồng bộ sang WAY4
+
+[Bước 4: Cấp phát Device cho TID]
+  → ASSIGNMENT_OPERATOR chọn TID (status=UNASSIGNED) + Device (status=INSTOCK)
+  → POST /api/v1/assignments
+    Header: X-Idempotency-Key: <UUID>
+    Body: { serialNumber, tidId, reason }
+  → Device status: INSTOCK → DEPLOYED
+  → TID status: UNASSIGNED → ASSIGNED
+  → Outbox Event → Kafka → WAY4 Device Sync
+
+[Kích hoạt Merchant]
+  → PATCH /api/v1/merchants/{id}/activate
+  → Merchant status: PENDING → ACTIVE
+  → WAY4 Merchant được kích hoạt (nếu enabled)
+```
+
+### 7.2 Ràng Buộc Nghiệp Vụ (Business Rules)
+
+```
+✅ 1 Merchant có thể có nhiều MID (theo chi nhánh, loại hình)
+✅ 1 MID có thể có nhiều TID (theo số lượng terminal tại điểm đó)
+✅ 1 TID chỉ gắn với 1 Device tại một thời điểm
+✅ Khi thu hồi device: TID trở về UNASSIGNED
+✅ Không thể tạo TID cho MID đã DECOMMISSIONED
+✅ WAY4 mid phải unique trong hệ thống POS
+✅ T24 account được verify realtime trước khi save MID
+```
+
+### 7.3 Wizard UI Flow (Angular Multi-Step)
+
+Theo chuẩn `docs/07_UI_UX_Standard.md § 8` (Wizard Multi-Step):
+
+```
+[1] Thông Tin MID → [2] Thông Tin TID → [3] Tài Khoản → [4] Tài Liệu → [5] Xác Nhận
+        ↓                   ↓                  ↓                ↓             ↓
+   Chọn Merchant       Danh sách TID     Verify T24       Upload files    Review tất cả
+   Chọn/tạo MID       Thêm TID mới      account          đính kèm        → Gửi yêu cầu
+   (isPrimary?)        VALIDATE          realtime
+                       per-row
+```
+
+**Validate động (section 7.2 trong UI/UX Standard):**
+- Dòng TID thứ 2 trở đi: button "Thêm dòng" disabled cho đến khi dòng hiện tại valid
+- Button "Tiếp theo" disabled nếu bất kỳ TID nào chưa điền đủ
+
+---
+
+## 8. Flow H: Logistics Tracking — Vận Chuyển Thiết Bị
+
+Khi thiết bị được vận chuyển giữa các kho hoặc đến Merchant, hệ thống tạo Logistics Tracking để theo dõi.
+
+### 8.1 Khi Nào Tạo Logistics Tracking?
+
+```
+1. Xuất kho → Kho khác (Điều chuyển)
+   → Tạo logistics_tracking khi phiếu điều chuyển được APPROVED
+
+2. Xuất kho → Merchant (Cấp phát vật lý)
+   → Tạo logistics_tracking khi phiếu xuất kho được APPROVED
+
+3. Thu hồi thiết bị → Kho
+   → Tạo logistics_tracking khi phiếu thu hồi được APPROVED
+```
+
+### 8.2 Vòng Đời Logistics
+
+```
+PREPARING (đang đóng gói/chuẩn bị)
+    │
+    ▼
+IN_TRANSIT (đang vận chuyển — có tracking number)
+    │
+    ├── DELIVERED (giao thành công → trigger cập nhật Device/Warehouse)
+    │
+    └── FAILED (giao thất bại → cần xử lý thủ công)
+              │
+              └── RETURNED (trả lại kho xuất phát)
+```
+
+### 8.3 Thông Tin Logistics Tracking
+
+```
+Bảng logistics_trackings:
+  - tracking_number: Mã vận đơn (từ đơn vị vận chuyển)
+  - carrier: Tên đơn vị vận chuyển (VTP, GHTK, Nội bộ...)
+  - status: PREPARING → IN_TRANSIT → DELIVERED/FAILED/RETURNED
+  - sender_warehouse_id: Kho xuất phát
+  - receiver_warehouse_id / receiver_merchant_id: Đích đến
+  - estimated_delivery: Ngày dự kiến giao
+  - actual_delivery: Ngày giao thực tế (fill khi DELIVERED)
+  - notes: Ghi chú (lý do failed nếu có)
+  - version + metadata JSONB (chuẩn toàn hệ thống)
+```
+
+---
+
+## 9. Tích Hợp Ngoài — WAY4 & T24
+
+### 9.1 Khi Nào Gọi WAY4?
+
+| Sự Kiện | Action WAY4 | Phương thức |
+|---|---|---|
+| TID được tạo | Register Terminal | Async (Kafka Outbox) |
+| MID được tạo | Register Merchant Contract | Async |
+| Device DEPLOYED (gắn TID) | Update Terminal Status → ACTIVE | Async |
+| Device RETURNED (tháo TID) | Update Terminal Status → INACTIVE | Async |
+| Merchant ACTIVE | Activate Merchant | Async |
+| Merchant SUSPENDED | Suspend Merchant | Async |
+
+### 9.2 Khi Nào Gọi T24?
+
+| Sự Kiện | Action T24 | Phương thức |
+|---|---|---|
+| Tạo MID (nhập t24_account_id) | Verify Account Number | Sync (realtime verify) |
+| Merchant onboard | Lookup Customer by t24_customer_id | Sync |
+| Fee settlement (định kỳ) | Post Fee Entry to Account | Async (Batch) |
+
+### 9.3 Error Handling Integration
+
+```
+WAY4/T24 call thất bại:
+  → Log lỗi vào integration_errors table
+  → Set retry_count, next_retry_at
+  → Alert nếu retry_count > 3
+  → Operator xử lý thủ công qua màn Monitoring
+
+ErrorCode:
+  POS-9001: WAY4 connection error
+  POS-9002: WAY4 rejected request
+  POS-9003: T24 connection error
+  POS-9004: T24 customer not found
+  POS-9005: T24 fee settlement failed
+```
+
+---
+
+## 10. Business Rules Tổng Hợp — Quick Reference
+
+| Rule | Áp dụng cho | Enforce tại |
+|---|---|---|
+| KHÔNG deactivate Device Model nếu còn device tham chiếu | Device Model | Service layer + ErrorCode POS-2008 |
+| 1 TID chỉ gắn 1 Device tại một thời điểm | TID, Device | DB unique index + Optimistic Lock |
+| Serial Number theo format của Model | Device | Service layer sinh serial từ `model.serial_prefix` |
+| `version` BIGINT bắt buộc mọi bảng | Toàn hệ thống | DB schema + `@Version` JPA |
+| `metadata JSONB` bắt buộc mọi bảng nghiệp vụ | Toàn hệ thống | DB schema |
+| Maker không được tự Checker | Approval | ApprovalService.validate() |
+| Idempotency key bắt buộc cho write quan trọng | Assignment, Approval | X-Idempotency-Key header |
+| Data Scope: user chỉ thấy dữ liệu Business Unit mình | Mọi màn hình | Repository layer filter |
+| WAY4 sync bất đồng bộ (không block user) | TID/MID/Device | Outbox Pattern → Kafka |
+| T24 account verify đồng bộ (block khi tạo MID) | MID | RestClient sync call |
 

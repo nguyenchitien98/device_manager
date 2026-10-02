@@ -876,3 +876,428 @@ Design: Unread items có background nhạt hơn (rgba(25, 118, 210, 0.08))
 | Pipe | `device-status.pipe.ts` | `deviceStatus` |
 | Guard | `auth.guard.ts` | - |
 | Interceptor | `jwt.interceptor.ts` | - |
+
+---
+
+## 6. Chuẩn Layout 2 Khung — BẮT BUỘC Trên MỌI Màn Danh Sách
+
+> **Nguyên tắc áp dụng cho TẤT CẢ màn có danh sách:** Catalog, Inventory, Merchant, Device, Assignment, Approval, Report...
+
+### 6.1 Cấu Trúc Khung Chuẩn (Standard 2-Zone Layout)
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  KHUNG TRÊN — TRA CỨU / FILTER (Search Zone)                           │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  [Input text]  [Dropdown 1]  [Dropdown 2]  [Date From] [Date To]│   │
+│  │  [Input text]  [Dropdown 3]  [Dropdown 4]  [Date From] [Date To]│   │
+│  │                                              [🔍 Tìm kiếm] [✕ Clear] [📥 Xuất Excel] │
+│  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                          │
+│  [Tuỳ chọn — CHỈ KHI MÀN CÓ TRẠNG THÁI] STATUS TABS:                  │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │  Tất cả(120)  |  Chờ Duyệt(8)  |  Đã Duyệt(45)  |  Từ chối(3) │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
+├─────────────────────────────────────────────────────────────────────────┤
+│  KHUNG DƯỚI — DANH SÁCH KẾT QUẢ (List Zone)                           │
+│  ┌─────────────────────────────────────────────────────────────────┐   │
+│  │  [+ Thêm mới]  hoặc  [+ Tạo yêu cầu]    [⚙ Chọn cột hiển thị] │   │
+│  │  ─────────────────────────────────────────────────────────────  │   │
+│  │  BẢNG DỮ LIỆU (sau khi click Tìm kiếm)                        │   │
+│  │  □  STT | Col1 | Col2 | Col3 | Trạng thái | Hành động          │   │
+│  │  □   1  | ...  | ...  | ...  |  [badge]   | [Xem][Sửa][...]    │   │
+│  │  ─────────────────────────────────────────────────────────────  │   │
+│  │  Hiển thị 1-20 của 120 kết quả  [< 1 2 3 ... 6 >]             │   │
+│  └─────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 6.2 Khung Trên (Search Zone) — Quy Tắc Chi Tiết
+
+```
+BẮT BUỘC:
+✅ Input text: placeholder mô tả rõ "Nhập mã, tên, serial..."
+✅ Dropdown: có option "Tất cả" ở đầu
+✅ Date picker: cặp From/To, validate From ≤ To
+✅ Button layout (căn phải, cuối filter zone):
+   - [🔍 Tìm kiếm]  → PRIMARY button (blue)
+   - [✕ Clear]      → SECONDARY button (ghost/outline) — reset tất cả filter
+   - [📥 Xuất Excel] → OUTLINE button với icon
+✅ Grid layout filter: 3-4 cột, responsive xuống 2 cột trên tablet
+✅ Khi màn có trạng thái: Status tabs nằm GIỮA 2 khung (thêm vào ngay phía trên khung dưới)
+```
+
+### 6.3 Status Tabs (Tabs Trạng Thái) — Màn Có Workflow
+
+```scss
+// Chỉ hiển thị khi màn có trạng thái (workflow/lifecycle)
+
+.status-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid $border-color;
+  margin-bottom: 16px;
+}
+
+.status-tab {
+  padding: 6px 16px;
+  border-radius: $radius-full;
+  font-size: $text-sm;
+  font-weight: $fw-medium;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  // Count badge trong tab
+  .count {
+    margin-left: 6px;
+    padding: 2px 7px;
+    border-radius: $radius-full;
+    font-size: 11px;
+    background: rgba(255,255,255,0.15);
+  }
+}
+```
+
+**Màu sắc status tabs theo module:**
+
+| Module | Tabs | Màu sắc badge |
+|---|---|---|
+| Inventory (Xuất/Nhập kho) | Tất cả \| Chờ duyệt \| Đã duyệt \| Hoàn thành \| Từ chối \| Đã hủy | theo `$approval-*` |
+| Device | Tất cả \| Trong kho \| Xuất kho \| Đang hoạt động \| Điều chuyển \| Sửa chữa \| Thanh lý | theo `$status-*` |
+| Assignment | Tất cả \| Đang cấp phát \| Đã thu hồi \| Điều chuyển | |
+| Merchant | Tất cả \| Đang hoạt động \| Tạm dừng \| Chờ duyệt | |
+| Approval Inbox | Tất cả \| Cần duyệt \| Đã duyệt \| Đã từ chối | |
+
+### 6.4 Khung Dưới (List Zone) — Quy Tắc Chi Tiết
+
+```
+BẮT BUỘC:
+✅ Toolbar đầu bảng (trong card, trước table):
+   - Trái: [+ Thêm mới] hoặc [+ Tạo yêu cầu] (tuỳ theo nghiệp vụ màn)
+   - Phải: Dropdown [⚙ Chọn cột hiển thị] — cho phép ẩn/hiện từng cột
+
+✅ Table:
+   - Checkbox chọn nhiều (cột đầu tiên)
+   - STT cột thứ 2 (số thứ tự, bắt đầu từ 1)
+   - Cột Hành Động (Actions) nằm CUỐI cùng
+   - Actions tuỳ màn: [Xem] [Sửa] [Duyệt] [Từ chối] [...]
+   - Empty state: icon + "Không có dữ liệu. Vui lòng thay đổi điều kiện tìm kiếm"
+   - Loading state: skeleton rows trong khi đang fetch
+
+✅ Pagination:
+   - Hiển thị: "Hiển thị {from}-{to} của {total} kết quả"
+   - Page size selector: [10] [20] [50] [100]
+   - Previous / Next / page numbers
+   - Disabled prev khi trang 1, disabled next khi trang cuối
+
+✅ Dropdown Chọn Cột:
+   - Danh sách checkbox tất cả cột có thể hiện/ẩn
+   - Lưu preference vào localStorage theo route
+   - Tối thiểu 3 cột luôn visible (không ẩn được): STT, [main field], Hành Động
+```
+
+### 6.5 Angular Component Structure (theo chuẩn này)
+
+```typescript
+// Mỗi màn danh sách PHẢI có:
+interface ListPageState {
+  // Filter zone
+  filters: FilterForm;
+
+  // Status tabs (nếu có)
+  activeStatus: string;          // 'ALL' | 'PENDING' | ...
+  statusCounts: Record<string, number>;
+
+  // List zone
+  items: T[];
+  pagination: PaginationState;
+  visibleColumns: string[];      // Cột đang hiển thị (từ localStorage)
+  isLoading: boolean;
+  isEmpty: boolean;
+}
+
+// BẮT BUỘC 3 nút trong Search Zone:
+onSearch(): void    // Gọi API với filter hiện tại
+onClear(): void     // Reset tất cả filter → form.reset()
+onExportExcel(): void // Xuất Excel kết quả hiện tại
+```
+
+---
+
+## 7. Validation Nghiêm Ngặt — Áp Dụng MỌI Form/Danh Sách Nhập Liệu
+
+> **Nguyên tắc:** Không cho phép user sang bước tiếp / submit / Enter / bấm nút khi form chưa hợp lệ.
+
+### 7.1 Quy Tắc Validate Chung
+
+```
+✅ Real-time validation: Hiển thị lỗi ngay khi user blur khỏi field (không đợi submit)
+✅ Button "Tiếp theo" / "Gửi yêu cầu" / "Xác nhận":
+   - LUÔN disabled nếu form invalid
+   - Chỉ enable khi TẤT CẢ required fields hợp lệ
+✅ Phím Enter trong input: KHÔNG cho submit nếu form invalid
+✅ Error message: hiển thị ngay dưới field bị lỗi, màu $error (#F44336), font 12px
+✅ Field bị lỗi: border màu $error, highlight nhẹ
+```
+
+### 7.2 Validate Danh Sách Động (Dynamic List — VD: Danh sách TID)
+
+Khi form có danh sách dòng được thêm động (ví dụ: thêm nhiều TID, thêm nhiều thiết bị):
+
+```
+QUY TẮC:
+✅ Nếu đã nhập dòng thứ 2 (hoặc bất kỳ dòng mới nào):
+   - Tất cả trường required của dòng đó PHẢI được điền đầy đủ và hợp lệ
+   - Nếu có BẤT KỲ trường nào trống hoặc invalid → KHÔNG cho sang bước tiếp
+   - KHÔNG cho bấm Enter để thêm dòng mới
+   - Button "Thêm dòng" bị disabled khi dòng hiện tại chưa hợp lệ
+   - Button "Tiếp theo" bị disabled
+
+✅ Visual feedback:
+   - Dòng chưa hoàn thiện: highlight border đỏ
+   - Tooltip khi hover button disabled: "Vui lòng điền đầy đủ thông tin dòng hiện tại"
+
+✅ Angular implementation:
+   // FormArray với validation per-row
+   get isRowValid(): boolean {
+     return this.tidFormArray.controls.every(ctrl => ctrl.valid);
+   }
+   // [disabled]="!isRowValid" trên button Thêm dòng / Tiếp theo
+```
+
+### 7.3 Validate Theo Loại Dữ Liệu
+
+| Trường | Validate | Error message |
+|---|---|---|
+| TID | 8 ký tự số, unique trong danh sách | "TID phải là 8 ký tự số" / "TID đã tồn tại" |
+| MID | 15 ký tự, unique | "MID không hợp lệ" |
+| Serial Number | Theo format của Model | "Serial không đúng định dạng model" |
+| Số điện thoại | 10-11 số, bắt đầu 0 | "Số điện thoại không hợp lệ" |
+| Email | RFC format | "Email không đúng định dạng" |
+| Ngày | dd/MM/yyyy, không tương lai nếu historical | "Ngày không hợp lệ" |
+| Số tiền | Dương, tối đa 15 chữ số | "Số tiền phải lớn hơn 0" |
+| Code (các loại mã) | Không dấu, không space, uppercase | "Mã chỉ được chứa chữ hoa, số và dấu _" |
+
+---
+
+## 8. Luồng Nghiệp Vụ Gửi Yêu Cầu — Chuẩn Wizard Multi-Step
+
+> Áp dụng cho: Tạo yêu cầu cấp phát thiết bị, Tạo yêu cầu xuất kho, Tạo yêu cầu phê duyệt...
+
+### 8.1 Cấu Trúc Wizard Chuẩn (Multi-Step Form)
+
+```
+BƯỚC ĐI QUA:
+  [1] Thông Tin MID → [2] Thông Tin TID → [3] Tài Khoản → [4] Tài Liệu Đính Kèm → [5] Xác Nhận & Gửi
+
+Hiển thị:
+  ┌──────────────────────────────────────────────────────────────────┐
+  │  ● Thông Tin MID  ─── ● Thông Tin TID  ─── ○ Tài Khoản  ─── ... │
+  │  (completed)          (active)               (pending)            │
+  └──────────────────────────────────────────────────────────────────┘
+```
+
+### 8.2 Step 1 — Thông Tin MID
+
+```
+Content:
+  - Tìm/chọn Merchant (autocomplete)
+  - Hiển thị thông tin Merchant: Tên, MCC, Business Unit
+  - Chọn MID từ danh sách MID của Merchant (dropdown)
+  - Hoặc tạo MID mới (inline form nếu có quyền)
+
+Validate trước khi sang Step 2:
+  ✅ Đã chọn Merchant
+  ✅ Đã chọn MID
+```
+
+### 8.3 Step 2 — Thông Tin TID
+
+```
+Content:
+  - Danh sách TID của MID đã chọn (bảng)
+  - Chọn TID hoặc thêm TID mới
+  - VALIDATE NGHIÊM NGẶT (áp dụng section 7.2):
+    * Mỗi dòng TID phải điền đầy đủ trước khi thêm dòng mới
+    * Button "Thêm TID" disabled khi dòng hiện tại chưa valid
+
+Validate trước khi sang Step 3:
+  ✅ Ít nhất 1 TID được chọn/thêm
+  ✅ TẤT CẢ dòng TID hợp lệ
+```
+
+### 8.4 Step 3 — Tài Khoản
+
+```
+Content:
+  - Tài khoản thanh toán / tài khoản liên kết
+  - Số tài khoản, tên chủ tài khoản, ngân hàng
+  - Tích hợp T24: verify tài khoản realtime (có indicator loading)
+
+Validate trước khi sang Step 4:
+  ✅ Tài khoản được điền đầy đủ và verified
+```
+
+### 8.5 Step 4 — Tài Liệu Đính Kèm
+
+```
+Content:
+  - Upload file (PDF, JPG, PNG — tối đa 10MB/file)
+  - Danh sách loại tài liệu bắt buộc (nếu có)
+  - Preview thumbnail cho ảnh, icon PDF cho file
+
+Validate trước khi sang Step 5:
+  ✅ Tất cả tài liệu bắt buộc đã upload
+  ✅ Không có file lỗi (size/type)
+```
+
+### 8.6 Step 5 — Xác Nhận & Gửi Yêu Cầu
+
+```
+Content:
+  - Tóm tắt đầy đủ tất cả thông tin đã nhập (read-only)
+  - Accordion: MID Info | TID Info | Tài Khoản | Tài Liệu
+  - Checkbox "Tôi xác nhận thông tin trên là chính xác"
+  - [← Quay lại]   [Gửi Yêu Cầu →] (disabled cho đến khi tick checkbox)
+
+Sau khi Gửi:
+  - Loading spinner trên button
+  - Success: Toast "Yêu cầu #REQ-001 đã được gửi thành công"
+  - Navigate → /approvals/my-requests
+  - Error: Toast error + giữ nguyên form để sửa
+```
+
+### 8.7 Navigation Controls (Wizard Navigation)
+
+```
+[← Quay Lại]  (ghost button — quay bước trước, KHÔNG xóa data đã nhập)
+               ↔
+[Tiếp Theo →] (primary button — sang bước sau — DISABLED nếu step invalid)
+
+KHI Ở BƯỚC CUỐI:
+[← Quay Lại]  ↔  [Gửi Yêu Cầu]  (primary, loading state khi đang submit)
+```
+
+---
+
+## 9. Cấu Trúc Folder Backend — I18N & OpenAPI
+
+> Áp dụng cho backend Spring Boot (`pos-core/src/main/resources/`)
+
+### 9.1 Cấu Trúc Resources
+
+```
+pos-core/src/main/resources/
+├── application.yml                      # Main config
+├── application-dev.yml                  # Dev profile
+├── application-prod.yml                 # Prod profile
+│
+├── db/migration/                        # Flyway migrations
+│   ├── V1__init_base_schema.sql
+│   ├── V2__create_identity_tables.sql
+│   ├── V3__add_metadata_version_and_catalog_schema.sql
+│   └── V4__merchant_tid_mid_schema.sql
+│
+├── i18n/                                # Internationalization messages
+│   ├── messages.properties              # Default (Vietnamese)
+│   ├── messages_vi.properties           # Vietnamese explicit
+│   └── messages_en.properties           # English
+│
+└── openapi/                             # OpenAPI/Swagger specs
+    ├── api-1.yml                        # Main API spec (v1)
+    ├── components/                      # Reusable schemas
+    │   ├── auth-schemas.yml
+    │   ├── catalog-schemas.yml
+    │   ├── device-schemas.yml
+    │   └── merchant-schemas.yml
+    └── paths/                           # API paths by module
+        ├── auth-paths.yml
+        ├── catalog-paths.yml
+        └── device-paths.yml
+```
+
+### 9.2 I18N — Cấu Trúc Messages
+
+```properties
+# messages.properties (Vietnamese default)
+
+# ─── Validation messages ───────────────────────────────
+validation.required=Trường này không được để trống
+validation.min-length={0} phải có ít nhất {1} ký tự
+validation.max-length={0} không được vượt quá {1} ký tự
+validation.pattern={0} không đúng định dạng
+validation.unique={0} đã tồn tại trong hệ thống
+
+# ─── Error messages ────────────────────────────────────
+error.pos-1001=Tên đăng nhập hoặc mật khẩu không đúng
+error.pos-1002=Tài khoản bị tạm khóa. Vui lòng thử lại sau 30 phút
+error.pos-2008=Không thể vô hiệu hóa Model — còn thiết bị đang hoạt động
+
+# ─── Business labels ───────────────────────────────────
+label.device-status.instock=Trong kho
+label.device-status.deployed=Đang hoạt động
+label.device-status.returned=Đã thu hồi
+label.device-status.repairing=Đang sửa chữa
+label.device-status.disposed=Đã thanh lý
+label.device-status.out_of_warehouse=Xuất kho
+```
+
+### 9.3 OpenAPI — api-1.yml (Template)
+
+```yaml
+# openapi/api-1.yml
+openapi: "3.1.0"
+info:
+  title: POS Management System API
+  version: "1.0.0"
+  description: |
+    API cho hệ thống quản lý vòng đời thiết bị POS và Merchant.
+    Tích hợp WAY4 Card Management và Temenos T24 Core Banking.
+  contact:
+    name: POS Management Team
+    email: pos-team@bank.vn
+
+servers:
+  - url: http://localhost:8080
+    description: Local Development
+  - url: https://pos-api.bank.vn
+    description: Production
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Dữ liệu đầu vào không hợp lệ
+    Unauthorized:
+      description: Chưa xác thực / Token hết hạn
+    Forbidden:
+      description: Không có quyền thực hiện thao tác
+    NotFound:
+      description: Không tìm thấy tài nguyên
+
+paths:
+  # Auth
+  /api/v1/auth/login:
+    $ref: './paths/auth-paths.yml#/login'
+  /api/v1/auth/refresh:
+    $ref: './paths/auth-paths.yml#/refresh'
+  /api/v1/auth/logout:
+    $ref: './paths/auth-paths.yml#/logout'
+
+  # Catalog
+  /api/v1/catalog/device-categories:
+    $ref: './paths/catalog-paths.yml#/deviceCategories'
+```
+
+---
+
+*Tài liệu cập nhật lần cuối: 2026-10-02. Áp dụng cho tất cả 38 màn hình.*

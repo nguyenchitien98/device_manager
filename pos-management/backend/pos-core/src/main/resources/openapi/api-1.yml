@@ -1,0 +1,542 @@
+openapi: "3.1.0"
+
+info:
+  title: POS Management System API
+  version: "1.0.0"
+  description: |
+    API cho hệ thống quản lý vòng đời thiết bị POS và Merchant trong môi trường Banking Enterprise.
+    
+    ## Tích hợp ngoài
+    - **WAY4** Card Management Platform — đồng bộ TID/MID, routing giao dịch
+    - **Temenos T24** Core Banking — xác thực khách hàng, quyết toán phí
+    
+    ## Phân quyền
+    Tất cả API yêu cầu JWT Bearer Token (trừ /auth/login).
+    Phân quyền theo Role (RBAC) + Business Unit data scope.
+    
+    ## Idempotency
+    Các write API quan trọng (assignment, approval) yêu cầu header:
+    `X-Idempotency-Key: <UUID>` để đảm bảo an toàn khi retry.
+    
+    ## Versioning
+    API version hiện tại: **v1** (`/api/v1/`)
+  contact:
+    name: POS Management Team
+    email: pos-team@bank.vn
+  license:
+    name: Internal Use Only
+
+servers:
+  - url: http://localhost:8080
+    description: Local Development
+  - url: https://pos-api-dev.bank.vn
+    description: Development Environment
+  - url: https://pos-api.bank.vn
+    description: Production
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Authentication
+    description: Đăng nhập, refresh token, đăng xuất
+  - name: Catalog - Device Categories
+    description: Quản lý danh mục thiết bị
+  - name: Catalog - Device Types
+    description: Quản lý loại thiết bị
+  - name: Catalog - Device Models
+    description: Quản lý model thiết bị
+  - name: Catalog - Vendors
+    description: Quản lý nhà cung cấp
+  - name: Catalog - MCC
+    description: Merchant Category Code
+  - name: Catalog - Fee Policies
+    description: Chính sách phí
+  - name: Organization - Business Units
+    description: Quản lý đơn vị kinh doanh
+  - name: Organization - Warehouses
+    description: Quản lý kho
+  - name: Inventory
+    description: Quản lý kho — nhập/xuất/điều chuyển
+  - name: Merchant
+    description: Quản lý Merchant, MID, TID
+  - name: Device
+    description: Quản lý thiết bị POS và vòng đời
+  - name: Assignment
+    description: Cấp phát thiết bị cho Merchant/TID
+  - name: Approval
+    description: Quy trình phê duyệt đa cấp
+  - name: Logistics
+    description: Theo dõi vận chuyển thiết bị
+  - name: Monitoring
+    description: Giám sát hệ thống, Audit Log, Dashboard
+  - name: Administration
+    description: Quản trị: Users, Roles, Permissions
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Access Token (15 phút). Lấy qua POST /api/v1/auth/login
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Số trang (bắt đầu từ 0)
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    SizeParam:
+      name: size
+      in: query
+      description: Số lượng bản ghi mỗi trang
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+    SortParam:
+      name: sort
+      in: query
+      description: Sắp xếp (ví dụ&#58; createdAt,desc)
+      schema:
+        type: string
+        example: createdAt,desc
+    IdempotencyKeyHeader:
+      name: X-Idempotency-Key
+      in: header
+      description: UUID duy nhất để đảm bảo idempotency cho write operations
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    200OK:
+      description: Thành công
+    201Created:
+      description: Tạo mới thành công
+    204NoContent:
+      description: Thành công, không có dữ liệu trả về
+    400BadRequest:
+      description: Dữ liệu đầu vào không hợp lệ (POS-6002)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    401Unauthorized:
+      description: Chưa xác thực hoặc token hết hạn (POS-1003)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    403Forbidden:
+      description: Không có quyền thực hiện thao tác (POS-1005)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    404NotFound:
+      description: Không tìm thấy tài nguyên (POS-6001)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    409Conflict:
+      description: Xung đột dữ liệu hoặc duplicate request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    422UnprocessableEntity:
+      description: Vi phạm business rule
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    # ─── Common ──────────────────────────────────────────────
+    ApiResponse:
+      type: object
+      description: Wrapper chuẩn cho mọi response thành công
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          description: Payload dữ liệu (generic)
+        message:
+          type: string
+          example: "Thao tác thành công"
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      description: Response chuẩn khi có lỗi (RFC 7807)
+      properties:
+        success:
+          type: boolean
+          example: false
+        errorCode:
+          type: string
+          example: "POS-2001"
+        message:
+          type: string
+          example: "Không tìm thấy thiết bị"
+        details:
+          type: array
+          items:
+            type: string
+          description: Chi tiết lỗi validation (nếu có)
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+          example: "/api/v1/devices/SN-001"
+
+    PageResponse:
+      type: object
+      description: Wrapper cho response có phân trang
+      properties:
+        content:
+          type: array
+          items: {}
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 20
+        totalElements:
+          type: integer
+          example: 120
+        totalPages:
+          type: integer
+          example: 6
+        first:
+          type: boolean
+        last:
+          type: boolean
+
+    # ─── Auth ─────────────────────────────────────────────────
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          example: "admin"
+        password:
+          type: string
+          format: password
+        mfaCode:
+          type: string
+          description: MFA code (nếu bật)
+
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT Access Token (15 phút)
+        refreshToken:
+          type: string
+          description: Refresh Token (7 ngày)
+        tokenType:
+          type: string
+          example: "Bearer"
+        expiresIn:
+          type: integer
+          example: 900
+          description: Thời gian hết hạn access token (giây)
+        user:
+          $ref: '#/components/schemas/UserProfile'
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        businessUnitId:
+          type: string
+          format: uuid
+
+paths:
+  # ─── Authentication ────────────────────────────────────────────
+  /api/v1/auth/login:
+    post:
+      tags: [Authentication]
+      summary: Đăng nhập hệ thống
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: Đăng nhập thành công
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+        "401":
+          $ref: '#/components/responses/401Unauthorized'
+        "423":
+          description: Tài khoản bị khóa (POS-1002)
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Làm mới Access Token
+      operationId: refreshToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        "200":
+          description: Token mới được cấp
+        "401":
+          $ref: '#/components/responses/401Unauthorized'
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Đăng xuất (vô hiệu hóa Refresh Token)
+      operationId: logout
+      responses:
+        "204":
+          $ref: '#/components/responses/204NoContent'
+
+  # ─── Catalog ─────────────────────────────────────────────────
+  /api/v1/catalog/device-categories:
+    get:
+      tags: [Catalog - Device Categories]
+      summary: Danh sách danh mục thiết bị
+      operationId: listDeviceCategories
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: isActive
+          in: query
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: Thành công
+    post:
+      tags: [Catalog - Device Categories]
+      summary: Tạo danh mục thiết bị mới
+      operationId: createDeviceCategory
+      responses:
+        "201":
+          $ref: '#/components/responses/201Created'
+        "400":
+          $ref: '#/components/responses/400BadRequest'
+
+  /api/v1/catalog/device-categories/{id}:
+    get:
+      tags: [Catalog - Device Categories]
+      summary: Chi tiết danh mục thiết bị
+      operationId: getDeviceCategory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Thành công
+        "404":
+          $ref: '#/components/responses/404NotFound'
+    put:
+      tags: [Catalog - Device Categories]
+      summary: Cập nhật danh mục thiết bị
+      operationId: updateDeviceCategory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Cập nhật thành công
+    delete:
+      tags: [Catalog - Device Categories]
+      summary: Xóa danh mục thiết bị (soft delete)
+      operationId: deleteDeviceCategory
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204":
+          $ref: '#/components/responses/204NoContent'
+
+  /api/v1/catalog/device-models/{id}/deactivate:
+    patch:
+      tags: [Catalog - Device Models]
+      summary: Vô hiệu hóa Device Model
+      description: |
+        **BUSINESS RULE:** Không cho phép vô hiệu hóa nếu còn thiết bị đang tham chiếu
+        model này với status IN (INSTOCK, OUT_OF_WAREHOUSE, DEPLOYED, REPAIRING).
+      operationId: deactivateDeviceModel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Vô hiệu hóa thành công
+        "422":
+          description: Còn thiết bị đang sử dụng model này (POS-2008)
+          $ref: '#/components/responses/422UnprocessableEntity'
+
+  # ─── Merchant ─────────────────────────────────────────────────
+  /api/v1/merchants:
+    get:
+      tags: [Merchant]
+      summary: Danh sách Merchant
+      operationId: listMerchants
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - name: search
+          in: query
+          schema: { type: string }
+          description: Tìm theo tên, mã merchant
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, ACTIVE, INACTIVE, SUSPENDED]
+        - name: businessUnitId
+          in: query
+          schema: { type: string, format: uuid }
+        - name: mccId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Danh sách Merchant
+    post:
+      tags: [Merchant]
+      summary: Tạo Merchant mới
+      operationId: createMerchant
+      responses:
+        "201":
+          $ref: '#/components/responses/201Created'
+
+  /api/v1/merchants/{id}/mids:
+    get:
+      tags: [Merchant]
+      summary: Danh sách MID của Merchant
+      description: 1 Merchant → Nhiều MID
+      operationId: listMerchantMids
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Danh sách MID
+    post:
+      tags: [Merchant]
+      summary: Tạo MID mới cho Merchant
+      operationId: createMid
+      responses:
+        "201":
+          $ref: '#/components/responses/201Created'
+
+  /api/v1/mids/{midId}/tids:
+    get:
+      tags: [Merchant]
+      summary: Danh sách TID của MID
+      description: 1 MID → Nhiều TID
+      operationId: listMidTids
+      parameters:
+        - name: midId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Danh sách TID
+
+  # ─── Assignment ───────────────────────────────────────────────
+  /api/v1/assignments:
+    post:
+      tags: [Assignment]
+      summary: Cấp phát thiết bị cho TID
+      operationId: createAssignment
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [serialNumber, tidId]
+              properties:
+                serialNumber:
+                  type: string
+                  example: "PAX-A920-000001"
+                tidId:
+                  type: string
+                  format: uuid
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: Cấp phát thành công
+        "409":
+          description: Thiết bị đã được cấp phát hoặc duplicate request
+
+  # ─── Monitoring ───────────────────────────────────────────────
+  /api/v1/monitoring/dashboard:
+    get:
+      tags: [Monitoring]
+      summary: Dashboard tổng quan KPIs
+      operationId: getDashboard
+      responses:
+        "200":
+          description: Dashboard data
