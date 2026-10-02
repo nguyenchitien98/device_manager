@@ -468,3 +468,166 @@ Login → Access Token (15 phút) + Refresh Token (7 ngày, lưu Redis)
 → Access Token expired → Gửi Refresh Token → Nhận cặp token mới
 → Refresh Token Rotation: Token cũ bị vô hiệu hóa ngay sau khi đổi
 ```
+
+---
+
+## 14. External System Integrations
+
+### 14.1 WAY4 — Card Management Platform
+
+WAY4 là platform quản lý thẻ của OpenWay Group, sử dụng trong nhiều ngân hàng Việt Nam.
+POS Management tích hợp với WAY4 để đồng bộ TID/MID và trạng thái thiết bị.
+
+```
+Integration Points:
+├── TID Registration: Khi TID được kích hoạt, đồng bộ sang WAY4
+├── MID Mapping: Ánh xạ POS MID với WAY4 Merchant Contract
+├── Device Status Sync: Khi thiết bị DEPLOYED/RETURNED, cập nhật WAY4
+├── Transaction Routing: WAY4 routing giao dịch theo TID → về đúng MID (1 MID → N TID)
+└── Settlement Data: Nhận dữ liệu quyết toán từ WAY4
+
+Integration Pattern: REST Client (Spring RestClient — không dùng RestTemplate)
+Error Handling: Circuit Breaker (Resilience4j) + Retry với Exponential Backoff
+Data Mapping:
+  device_models.way4_model_code  ↔  WAY4 Terminal Profile Code
+  terminal_ids.way4_tid          ↔  WAY4 Terminal ID
+  merchant_ids.way4_mid          ↔  WAY4 Merchant Contract ID (MID gắn N TID)
+  merchants.way4_merchant_id     ↔  WAY4 Merchant ID (parent của MID)
+```
+
+### 14.2 T24 — Temenos Core Banking
+
+T24 là hệ thống Core Banking phổ biến nhất Việt Nam (Techcombank, MB Bank...).
+POS Management tích hợp để liên kết Merchant với tài khoản ngân hàng.
+
+```
+Integration Points:
+├── Customer Lookup: Lấy thông tin khách hàng từ T24 khi onboard Merchant
+├── Account Validation: Xác thực tài khoản thanh toán của Merchant
+├── Fee Settlement: Ghi phí dịch vụ vào tài khoản qua T24
+└── Merchant Credit: Cập nhật hạn mức cho Merchant từ T24
+
+Integration Pattern: REST Client + Async via Kafka (for non-blocking fee settlement)
+Data Mapping:
+  merchants.t24_customer_id      ↔  T24 Customer ID
+  merchant_ids.t24_account_id    ↔  T24 Account Number
+  device_models.t24_product_code ↔  T24 Product Code
+```
+
+### 14.3 Nguyên Tắc Integration
+
+```java
+// ĐÚNG: Dùng Spring RestClient (Spring 6+) — KHÔNG dùng RestTemplate
+@Service
+public class Way4IntegrationService {
+    private final RestClient restClient;
+
+    public Way4IntegrationService(RestClient.Builder builder,
+                                   @Value("${pos.way4.base-url}") String baseUrl) {
+        this.restClient = builder.baseUrl(baseUrl).build();
+    }
+
+    @CircuitBreaker(name = "way4")
+    @Retry(name = "way4")
+    public void registerTid(String tid, String modelCode) {
+        restClient.post()
+            .uri("/terminals/register")
+            .body(new Way4TidRegistrationRequest(tid, modelCode))
+            .retrieve()
+            .toBodilessEntity();
+    }
+}
+```
+
+---
+
+## 15. Frontend Architecture (BOF — Back Office Frontend)
+
+Hệ thống có 2 loại frontend:
+
+```
+pos-management/
+├── frontend/           # BOF (Back Office Frontend) — Angular 22
+│   ├── src/app/
+│   │   ├── core/       # Auth, Guards, Interceptors, Models
+│   │   ├── shared/     # Reusable components, pipes, directives
+│   │   └── features/   # Feature modules (catalog, inventory, merchant...)
+│   └── package.json
+```
+
+### Angular Folder Convention (mỗi feature):
+```
+features/catalog/
+├── components/         # Presentation components
+│   ├── category-list/
+│   ├── category-form/
+│   └── category-detail/
+├── services/           # Feature-specific API calls
+│   └── catalog.service.ts
+├── models/             # Feature DTOs/interfaces
+│   └── catalog.model.ts
+└── catalog.routes.ts   # Lazy-loaded routes
+```
+
+---
+
+## 16. Database Conventions — BẮTT BUỘC
+
+### 16.1 Cột bắt buộc trên MỌI bảng nghiệp vụ:
+
+```sql
+-- Mỗi bảng nghiệp vụ PHẢI có:
+version     BIGINT NOT NULL DEFAULT 0,   -- Optimistic Lock
+metadata    JSONB,                        -- Thuộc tính mở rộng chưa chuẩn hóa
+created_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+created_by  UUID REFERENCES users(id),   -- Ai tạo
+updated_by  UUID REFERENCES users(id)    -- Ai cập nhật cuối
+```
+
+Lý do:
+- `version`: Optimistic Locking — phát hiện concurrent modification không cần SELECT FOR UPDATE
+- `metadata JSONB`: Lưu thuộc tính mở rộng tạm thời, không cần thêm cột ngay
+- `created_by/updated_by`: Audit trail ai làm gì, khi nào
+
+### 16.2 Serial Number áp dụng theo Device Model:
+
+```
+ĐÚNG:
+  device_models.serial_prefix = 'PAX-A920'
+  → Thiết bị của model PAX A920: PAX-A920-000001, PAX-A920-000002, ...
+
+SAI:
+  Mỗi device tự define serial format riêng
+```
+
+### 16.3 Quy tắc Active/Inactive Device Model:
+
+```
+KHÔNG được phép thay đổi is_active = FALSE nếu:
+  - Còn device nào có model_id = device_model.id
+    VÀ device.status IN ('INSTOCK', 'DEPLOYED', 'REPAIRING', 'OUT_OF_WAREHOUSE')
+
+Enforce bằng:
+  1. Application logic (Service layer validation)
+  2. Database trigger (safety net)
+```
+
+---
+
+## 17. Tech Stack — Phiên Bản Mục Tiêu
+
+| Thành phần | Hiện tại (Stable) | Mục tiêu |
+|---|---|---|
+| Java | 21 LTS | Java 25 (khi GA) |
+| Spring Boot | 3.4.x | Spring Boot 4.1 (khi GA) |
+| Spring Framework | 6.x | Spring Framework 7 (khi GA) |
+| HTTP Client | RestClient (Spring 6.1+) | RestClient (Spring 7) |
+| Angular | 22 | 22+ |
+| PostgreSQL | 16 | 16+ |
+| Kafka | 3.x | 3.x+ |
+| Redis | 7 | 7+ |
+
+> **Lưu ý:** Spring Boot 4.1 và Java 25 chưa được phát hành tại thời điểm viết tài liệu này.
+> Dùng Spring Boot 3.4.x + Java 21 LTS cho môi trường production.
+> Code design đảm bảo có thể upgrade lên khi các phiên bản đó GA.

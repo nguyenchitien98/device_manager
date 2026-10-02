@@ -119,6 +119,23 @@ server:
 app:
   version: 1.0.0
 
+# ─── External Integrations ───────────────────────────────────────
+# WAY4 Card Management Platform
+pos:
+  integration:
+    way4:
+      enabled: false                              # Tắt khi chưa có WAY4 endpoint thực
+      base-url: ${WAY4_BASE_URL:http://localhost:9001/way4-mock}
+      api-key: ${WAY4_API_KEY:dev-api-key}
+      timeout-ms: 5000
+      retry-max-attempts: 3
+    t24:
+      enabled: false                              # Tắt khi chưa có T24 endpoint thực
+      base-url: ${T24_BASE_URL:http://localhost:9002/t24-mock}
+      api-key: ${T24_API_KEY:dev-api-key}
+      timeout-ms: 5000
+      retry-max-attempts: 3
+
 # ─── Logging ─────────────────────────────────────────────────────
 logging:
   level:

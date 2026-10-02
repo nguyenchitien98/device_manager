@@ -15,6 +15,8 @@ package com.banking.pos.common.exception;
  *   <li>POS-5xxx: Approval Workflow errors</li>
  *   <li>POS-6xxx: General Business Rule errors</li>
  *   <li>POS-7xxx: Export & Report errors</li>
+ *   <li>POS-8xxx: Catalog & Organization errors</li>
+ *   <li>POS-9xxx: External Integration errors (WAY4, T24)</li>
  * </ul>
  *
  * @author POS Management Team
@@ -49,6 +51,13 @@ public enum ErrorCode {
     PURCHASE_ORDER_NOT_FOUND("POS-2005", "Không tìm thấy đơn đặt hàng"),
     /** Kho không đủ tồn kho */
     INSUFFICIENT_STOCK("POS-2006", "Số lượng tồn kho không đủ để thực hiện yêu cầu"),
+    /** Không tìm thấy Device Model */
+    DEVICE_MODEL_NOT_FOUND("POS-2007", "Không tìm thấy Model thiết bị"),
+    /** Không thể vô hiệu hóa Device Model khi còn device đang sử dụng */
+    DEVICE_MODEL_HAS_ACTIVE_DEVICES("POS-2008",
+        "Không thể vô hiệu hóa Model — còn thiết bị đang trong trạng thái hoạt động (INSTOCK/DEPLOYED/REPAIRING)"),
+    /** Không tìm thấy Vendor */
+    VENDOR_NOT_FOUND("POS-2009", "Không tìm thấy Vendor với ID đã cung cấp"),
 
     // ─── Merchant & Terminal (3xxx) ──────────────────────────────────────
     /** Không tìm thấy Merchant */
@@ -102,7 +111,37 @@ public enum ErrorCode {
     /** Định dạng export không được hỗ trợ */
     EXPORT_FORMAT_UNSUPPORTED("POS-7005", "Định dạng xuất không được hỗ trợ"),
     /** Export job thất bại */
-    EXPORT_JOB_FAILED("POS-7006", "Quá trình xuất dữ liệu thất bại. Vui lòng thử lại");
+    EXPORT_JOB_FAILED("POS-7006", "Quá trình xuất dữ liệu thất bại. Vui lòng thử lại"),
+
+    // ─── Catalog & Organization (8xxx) ──────────────────────────────────
+    /** Không tìm thấy Device Category */
+    CATEGORY_NOT_FOUND("POS-8001", "Không tìm thấy danh mục thiết bị"),
+    /** Không tìm thấy Device Type */
+    DEVICE_TYPE_NOT_FOUND("POS-8002", "Không tìm thấy loại thiết bị"),
+    /** Không tìm thấy Business Unit */
+    BUSINESS_UNIT_NOT_FOUND("POS-8003", "Không tìm thấy đơn vị kinh doanh"),
+    /** Không tìm thấy Warehouse */
+    WAREHOUSE_NOT_FOUND("POS-8004", "Không tìm thấy kho"),
+    /** Không tìm thấy MCC Code */
+    MCC_NOT_FOUND("POS-8005", "Không tìm thấy MCC Code"),
+    /** Không tìm thấy Fee Policy */
+    FEE_POLICY_NOT_FOUND("POS-8006", "Không tìm thấy chính sách phí"),
+    /** Không tìm thấy Logistics Tracking */
+    LOGISTICS_NOT_FOUND("POS-8007", "Không tìm thấy thông tin theo dõi vận chuyển"),
+    /** Mã đã tồn tại (generic cho code unique constraint) */
+    CODE_ALREADY_EXISTS("POS-8008", "Mã này đã tồn tại trong hệ thống"),
+
+    // ─── External Integration (9xxx) ────────────────────────────────────
+    /** Lỗi kết nối với hệ thống WAY4 */
+    WAY4_INTEGRATION_ERROR("POS-9001", "Lỗi kết nối với hệ thống WAY4. Vui lòng thử lại sau"),
+    /** WAY4 từ chối yêu cầu */
+    WAY4_REQUEST_REJECTED("POS-9002", "WAY4 từ chối yêu cầu — kiểm tra cấu hình TID/MID"),
+    /** Lỗi kết nối với hệ thống T24 */
+    T24_INTEGRATION_ERROR("POS-9003", "Lỗi kết nối với hệ thống T24 Core Banking. Vui lòng thử lại sau"),
+    /** T24 không tìm thấy khách hàng */
+    T24_CUSTOMER_NOT_FOUND("POS-9004", "Không tìm thấy khách hàng trong hệ thống T24"),
+    /** Lỗi đồng bộ phí vào T24 */
+    T24_FEE_SETTLEMENT_FAILED("POS-9005", "Ghi phí vào T24 thất bại — yêu cầu xử lý thủ công");
 
     /** Mã lỗi chuẩn theo format POS-xxxx */
     private final String code;

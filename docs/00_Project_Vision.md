@@ -26,26 +26,30 @@ Tài liệu này xác định tầm nhìn, phạm vi nghiệp vụ, mục tiêu 
 
 ## 2. Hiểu Đúng Bài Toán Nghiệp Vụ
 
-### 2.1 Quan Hệ Cốt Lõi: Merchant → TID → Device
+### 2.1 Quan Hệ Cốt Lõi: Merchant → MID → TID → Device
+
+> **Mô Hình Chuẩn Banking:** 1 Merchant → Nhiều MID → Nhiều TID → 1 Device
 
 ```
-Merchant ABC (MID: M000001)
-  ├── TID: T100001 (Terminal A)
-  │     └── Device POS: SN-POS-000001 (PAX A920)
-  └── TID: T100002 (Terminal B)
-        └── Device POS: SN-POS-000002 (Ingenico iCT220)
+Merchant ABC
+  ├── MID: M000001 (Hội sở HCM)
+  │     ├── TID: T100001 → Device: PAX A920 (SN-PAX-000001)
+  │     └── TID: T100002 → Device: Ingenico iCT220 (SN-ING-000002)
+  └── MID: M000002 (Chi nhánh Hà Nội)
+        └── TID: T100003 → Device: Verifone VX520 (SN-VFN-000003)
 ```
 
-| Khái Niệm | Ý Nghĩa |
-|---|---|
-| Merchant | Đơn vị kinh doanh chấp nhận thanh toán |
-| MID | Merchant ID — mã định danh Merchant |
-| TID | Terminal ID — mã định danh điểm chấp nhận thanh toán |
-| Device | Thiết bị POS vật lý (máy quẹt thẻ) |
-| Serial Number | Số định danh duy nhất của một thiết bị vật lý |
-| Assignment | Quan hệ cấp phát thiết bị vào đối tượng sử dụng |
-| Vendor | Nhà cung cấp thiết bị (PAX, Ingenico, Verifone...) |
-| MCC | Merchant Category Code — mã phân loại ngành nghề Merchant |
+| Khái Niệm | Ý Nghĩa | Quan hệ |
+|---|---|---|
+| Merchant | Doanh nghiệp chấp nhận thanh toán | 1 Merchant → N MID |
+| MID | Merchant ID — định danh tài khoản merchant tại ngân hàng | 1 MID → N TID |
+| TID | Terminal ID — định danh điểm chấp nhận thanh toán | 1 TID → 1 Device |
+| Device | Thiết bị POS vật lý (máy quẹt thẻ) | 1 Device/TID tại 1 thời điểm |
+| Serial Number | Số định danh **theo Model** — prefix xác định bởi Device Model | |
+| Vendor | Nhà cung cấp thiết bị (PAX, Ingenico, Verifone...) | |
+| MCC | Merchant Category Code — mã phân loại ngành nghề Merchant | |
+| WAY4 | WAY4 Card Management Platform — hệ thống xử lý giao dịch thẻ | |
+| T24 | Temenos T24 Core Banking — hệ thống core banking | |
 
 ### 2.2 Vòng Đời Thiết Bị POS (Device Lifecycle State Machine)
 
@@ -97,6 +101,15 @@ DRAFT → CANCELLED (hủy bởi người tạo)
 | Phân quyền theo đơn vị kinh doanh | Data Scope: RBAC + Business Unit filter |
 | Đồng bộ trạng thái thiết bị đa module | Event-Driven via Kafka |
 | Thiết bị đã DISPOSED không được tái triển khai | State Machine với allowed transitions |
+| Đồng bộ giao dịch với WAY4 | REST Client integration với WAY4 Card Management |
+| Đồng bộ tài khoản với T24 | REST Client integration với Temenos T24 Core Banking |
+| Activate/Deactivate Device Model | KHÔNG cho phép nếu còn device đang tham chiếu (INSTOCK/DEPLOYED/REPAIRING) |
+| Vận chuyển thiết bị liên kho | Logistics Tracking với trạng thái và tracking number |
+| Serial number theo model | Serial prefix cấu hình ở level Device Model, không phải từng device |
+| Thuộc tính mở rộng chưa chuẩn hóa | `metadata JSONB` trên mọi bảng nghiệp vụ |
+| Race condition cập nhật dữ liệu | `version BIGINT` (Optimistic Lock) trên mọi bảng nghiệp vụ |
+| Quan hệ TID-MID chuẩn banking | **1 Merchant → N MID → N TID → 1 Device** (không phải 1 TID → N MID) |
+
 
 ---
 
@@ -122,12 +135,15 @@ DRAFT → CANCELLED (hủy bởi người tạo)
 - Tồn kho — tra cứu số lượng tồn theo kho, model, status
 - Kiểm kê định kỳ
 
-#### Module C — Quản Lý Merchant & TID
+#### Module C — Quản Lý Merchant, MID & TID
 - Merchant lifecycle (Tạo, cập nhật, Active/Inactive/Suspended)
-- Terminal ID (Tạo, gắn Merchant, quản lý trạng thái, lịch sử)
-- MCC gắn với Merchant
+- **Merchant ID (MID):** Mỗi Merchant có thể có nhiều MID (theo chi nhánh, loại hình)
+- **Terminal ID (TID):** Mỗi MID có thể có nhiều TID (terminal POS vật lý)
+- 1 TID gắn với đúng 1 Device tại một thời điểm
+- Gắn MCC với Merchant
 - Fee Policy gắn với Merchant (Effective Dating)
-- Multi-Merchant: một đơn vị quản lý nhiều Merchant, mỗi Merchant nhiều TID
+- WAY4 MID/TID mapping — đồng bộ với WAY4 Card Management
+- T24 Customer/Account mapping — đồng bộ với Temenos T24
 
 #### Module D — Quản Lý Thiết Bị (Device)
 - Tra cứu thiết bị theo Serial, Model, Vendor, Status, Warehouse

@@ -4,7 +4,7 @@ Tài liệu này quy định tiêu chuẩn lập trình, quy ước đặt tên,
 
 ---
 
-## 1. Tiêu Chuẩn Backend (Java 21 / Spring Boot 3)
+## 1. Tiêu Chuẩn Backend (Java 21 LTS / Spring Boot 3.4.x → Target: Spring Boot 4.1)
 
 ### 1.1 Cấu Trúc Package Tổng Thể
 
@@ -30,17 +30,68 @@ com.banking.pos
 │       ├── SecurityUtils.java
 │       └── MaskingUtils.java            # Mask Serial, TID trong logs
 │
+├── config/                              # Cấu hình Spring (toàn cục)
+│   ├── security/                        # SecurityConfig, JwtFilter, JwtTokenService
+│   ├── kafka/                           # Kafka producer/consumer config
+│   ├── redis/                           # RedisConfig, RedissonConfig
+│   ├── web/                             # CORS, RestClient beans
+│   └── OpenApiConfig.java               # SpringDoc/Swagger config
+│
 ├── identity/                            # Module xác thực & phân quyền
-├── catalog/                             # Module danh mục
+├── catalog/                             # Module danh mục (Category, Type, Model, Vendor, MCC)
 ├── organization/                        # Module đơn vị kinh doanh & kho
-├── inventory/                           # Module quản lý kho
-├── merchant/                            # Module Merchant & TID
-├── device/                              # Module thiết bị
-├── assignment/                          # Module cấp phát
-├── approval/                            # Module phê duyệt
+├── inventory/                           # Module quản lý kho & logistics
+├── merchant/                            # Module Merchant, TID & MID (1 TID → N MID)
+├── device/                              # Module thiết bị & lifecycle
+├── assignment/                          # Module cấp phát thiết bị
+├── approval/                            # Module phê duyệt đa cấp
 ├── monitoring/                          # Module giám sát & báo cáo
-└── config/                              # Cấu hình Spring, Security, Kafka, Redis
+│
+└── integration/                         # External system integrations
+    ├── way4/                            # WAY4 Card Management
+    │   ├── Way4IntegrationService.java
+    │   ├── dto/
+    │   └── config/                      # WAY4 RestClient config
+    └── t24/                             # Temenos T24 Core Banking
+        ├── T24IntegrationService.java
+        ├── dto/
+        └── config/
 ```
+
+### 1.1.1 Cấu Trúc Nội Module (Mỗi module PHẢI theo cấu trúc này)
+
+```
+{module}/
+├── domain/                          # Pure Java — KHÔNG Spring/JPA dependency
+│   ├── model/                       # Domain Model / Aggregate Root
+│   ├── valueobject/                 # Value Objects (immutable)
+│   ├── service/                     # Domain Services (business rules thuần)
+│   ├── repository/                  # Repository Interfaces (Ports)
+│   ├── event/                       # Domain Events
+│   └── exception/                   # Domain-specific Exceptions
+│
+├── application/                     # Use Cases / Orchestration Layer
+│   ├── service/                     # Application Services
+│   ├── dto/                         # Input/Output DTOs
+│   │   ├── request/
+│   │   └── response/
+│   └── port/                        # Output Port interfaces
+│
+└── infrastructure/                  # Adapters (implements domain ports)
+    ├── persistence/
+    │   ├── entity/                  # JPA Entities (*JpaEntity.java)
+    │   ├── repository/              # Spring Data JPA Repositories
+    │   ├── adapter/                 # Repository Adapters
+    │   └── mapper/                  # MapStruct Mappers (*Mapper.java)
+    ├── messaging/                   # Kafka Publishers & Consumers
+    ├── batch/                       # Spring Batch jobs (nếu cần xử lý bulk)
+    ├── export/                      # Excel/PDF export (Apache POI)
+    ├── integration/                 # Module-level external API calls
+    └── web/                         # REST Controllers (Presentation)
+        ├── {Module}Controller.java
+        └── dto/                     # Controller-level request/response
+```
+
 
 ### 1.2 Quy Tắc Đặt Tên (Naming Conventions)
 
@@ -526,10 +577,13 @@ Backend:
 ☐ Không return JPA Entity từ Controller
 ☐ Không publish Kafka trực tiếp trong @Transactional (dùng Outbox)
 ☐ Có @Version trên mọi JPA Entity được concurrent update
+☐ Có metadata JSONB column trên mọi bảng nghiệp vụ mới
 ☐ Có Idempotency check trên mọi write endpoint quan trọng
 ☐ Data Scope filter trong mọi query danh sách
 ☐ State Machine validate transition trước khi update Device status
 ☐ Unit Test cho business logic
+☐ Kiểm tra device references trước khi deactivate Device Model
+☐ Dùng RestClient (KHÔNG dùng RestTemplate) cho mọi HTTP client mới
 
 Frontend:
 ☐ Component tách thành .ts / .html / .scss riêng biệt
@@ -538,4 +592,85 @@ Frontend:
 ☐ Route Guard kiểm tra permission trước khi render
 ☐ Không hardcode API URL (dùng environment.ts)
 ☐ Loading state và error handling cho mọi HTTP call
+```
+
+---
+
+## 7. HTTP Client Convention — Spring RestClient (KHÔNG dùng RestTemplate)
+
+Spring Framework 6.1+ (Spring Boot 3.2+) giới thiệu `RestClient` — thay thế `RestTemplate`.
+
+```java
+// ❌ SAI — Đừng dùng RestTemplate trong code mới
+RestTemplate restTemplate = new RestTemplate();
+ResponseEntity<String> resp = restTemplate.getForEntity(url, String.class);
+
+// ✅ ĐÚNG — Dùng RestClient
+@Configuration
+public class RestClientConfig {
+    @Bean
+    public RestClient way4RestClient(RestClient.Builder builder,
+                                     @Value("${pos.way4.base-url}") String baseUrl) {
+        return builder
+            .baseUrl(baseUrl)
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .build();
+    }
+}
+
+@Service
+@RequiredArgsConstructor
+public class Way4IntegrationService {
+    private final RestClient way4RestClient;
+
+    public Way4RegisterResponse registerTerminal(Way4RegisterRequest req) {
+        return way4RestClient.post()
+            .uri("/api/terminals")
+            .body(req)
+            .retrieve()
+            .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                throw new PosBusinessException(ErrorCode.WAY4_INTEGRATION_ERROR);
+            })
+            .body(Way4RegisterResponse.class);
+    }
+}
+```
+
+---
+
+## 8. Business Rules Enforcement — Device Model
+
+### 8.1 Không được deactivate Device Model khi còn device đang sử dụng
+
+```java
+// Trong DeviceModelService.deactivate():
+@Transactional
+public void deactivate(UUID modelId) {
+    DeviceModelJpaEntity model = repository.findById(modelId)
+        .orElseThrow(() -> new PosBusinessException(ErrorCode.DEVICE_MODEL_NOT_FOUND));
+
+    // Business rule: kiểm tra còn device active không
+    long activeDeviceCount = deviceRepository.countActiveByModelId(modelId);
+    if (activeDeviceCount > 0) {
+        throw new PosBusinessException(
+            ErrorCode.DEVICE_MODEL_HAS_ACTIVE_DEVICES,
+            "Không thể vô hiệu hóa model — còn " + activeDeviceCount + " thiết bị đang hoạt động"
+        );
+    }
+
+    model.setActive(false);
+    model.setUpdatedBy(SecurityUtils.getCurrentUserId());
+    repository.save(model);
+}
+```
+
+### 8.2 Serial Number theo Model
+
+```java
+// Serial format: {serial_prefix}-{sequence_number:06d}
+// Ví dụ: PAX-A920-000001, PAX-A920-000002
+
+// DeviceModel.serial_prefix = "PAX-A920"
+// Khi nhập kho → sinh serial: PAX-A920-000001
+String serial = model.getSerialPrefix() + "-" + String.format("%06d", nextSequence);
 ```

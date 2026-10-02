@@ -20,20 +20,24 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <!-- Target: Spring Boot 4.1 + Java 25 (not yet released) -->
+        <!-- Using latest stable: Spring Boot 3.4.0 + Java 21 LTS  -->
+        <version>3.4.0</version>
         <relativePath/>
     </parent>
 
     <properties>
+        <!-- Java 21 LTS — upgrade to 25 when GA released -->
         <java.version>21</java.version>
-        <spring-boot.version>3.3.4</spring-boot.version>
-        <mapstruct.version>1.5.5.Final</mapstruct.version>
-        <redisson.version>3.27.2</redisson.version>
+        <spring-boot.version>3.4.0</spring-boot.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <redisson.version>3.37.0</redisson.version>
         <resilience4j.version>2.2.0</resilience4j.version>
-        <testcontainers.version>1.19.8</testcontainers.version>
-        <poi.version>5.2.5</poi.version>
-        <lombok.version>1.18.34</lombok.version>
+        <testcontainers.version>1.20.4</testcontainers.version>
+        <poi.version>5.3.0</poi.version>
+        <lombok.version>1.18.36</lombok.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <springdoc.version>2.6.0</springdoc.version>
     </properties>
 
     <dependencyManagement>
@@ -120,6 +124,7 @@
                     <configuration>
                         <source>21</source>
                         <target>21</target>
+                        <release>21</release>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.mapstruct</groupId>
