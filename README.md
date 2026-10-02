@@ -51,8 +51,10 @@ Toàn bộ thiết kế chi tiết của dự án được lưu trữ trong thư
 | [`09_API_Contract.md`](file:///c:/Users/Admin/Desktop/POS_Manager/docs/09_API_Contract.md) | API Contract (RESTful) | 40+ REST API endpoints, DTO schema, Excel Export API |
 | [`10_Environment_Setup.md`](file:///c:/Users/Admin/Desktop/POS_Manager/docs/10_Environment_Setup.md) | Hướng Dẫn Cài Đặt | Cấu hình Java 21+, Node 20, Docker, Postgres, Flyway |
 | [`11_Business_Flow.md`](file:///c:/Users/Admin/Desktop/POS_Manager/docs/11_Business_Flow.md) | Luồng Nghiệp Vụ | Master Data, 10 Flow End-to-End, WAY4/T24 integration, Business Rules ref |
+| [`12_Glossary.md`](file:///c:/Users/Admin/Desktop/POS_Manager/docs/12_Glossary.md) | Từ Vựng Chuyên Ngành | Giải thích chi tiết từ vựng POS, Banking Enterprise, Merchant, Hardware |
 | [`architecture_diagrams.md`](file:///c:/Users/Admin/Desktop/POS_Manager/architecture_diagrams.md) | Sơ Đồ Mermaid | PlantUML / Mermaid diagrams trực quan hóa kiến trúc |
 | [`prompt.md`](file:///c:/Users/Admin/Desktop/POS_Manager/prompt.md) | Remote Control Prompt | Prompt dán vào AI Agent khi bắt đầu phiên làm việc |
+
 
 ---
 
