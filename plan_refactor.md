@@ -63,17 +63,17 @@
 ## 📋 CHI TIẾT TỪNG GIAI ĐOẠN (TASK CHECKLIST)
 
 ### 🔹 PHASE 1: Core Infrastructure & NgRx Global Store Setup
-- [ ] **Task 1.1: Tạo `ToastService` (`src/app/core/services/toast.service.ts`)**
+- [x] **Task 1.1: Tạo `ToastService` (`src/app/core/services/toast.service.ts`)**
   - Quản lý hiển thị thông báo floating toast (`success`, `error`, `warning`, `info`) thời gian 3s-5s.
   - Tích hợp với `ErrorInterceptor` để tự động bật Toast đỏ khi nhận lỗi API (`POS-xxxx`).
-- [ ] **Task 1.2: Cấu hình NgRx Global Store (`src/app/core/store/`)**
+- [x] **Task 1.2: Cấu hình NgRx Global Store (`src/app/core/store/`)**
   - **`AuthStore`** (`auth.actions.ts`, `auth.reducer.ts`, `auth.effects.ts`, `auth.selectors.ts`): Đồng bộ JWT Token, User Info, User Permissions & Business Unit Scope toàn ứng dụng.
   - **`NotificationStore`**: Đồng bộ số lượng thông báo chưa đọc (`unreadCount`), hỗ trợ auto-polling 30s & WebSocket notification.
   - **`ApprovalStore`**: Đồng bộ đếm Hòm việc cần duyệt (`approvalBadge`) tự động cập nhật badge đỏ trên Sidebar & Header khi có phiếu mới được gửi.
-- [ ] **Task 1.3: Tạo `BaseApiService<T>` (`src/app/core/services/base-api.service.ts`)**
+- [x] **Task 1.3: Tạo `BaseApiService<T>` (`src/app/core/services/base-api.service.ts`)**
   - Cung cấp các hàm chuẩn `getList(params)`, `getById(id)`, `create(dto)`, `update(id, dto)`, `delete(id)`, `exportExcel(params)`.
   - Tự động bóc tách `ApiResponse<T>` & `ApiResponse<PageResponse<T>>`.
-- [ ] **Task 1.4: Refactor `PosTableComponent` & `PosPaginationComponent` Binding**
+- [x] **Task 1.4: Refactor `PosTableComponent` & `PosPaginationComponent` Binding**
   - Đảm bảo 100% các bảng danh sách đều bind đủ:
     `[sortField]="sortField()"`
     `[sortOrder]="sortOrder()"`
@@ -84,81 +84,81 @@
 
 ### 🔹 PHASE 2: NgRx Feature Stores & Domain API Services Layer
 Tạo 8 Injectable Data Services & NgRx Feature Stores tương ứng với 8 Modules nghiệp vụ trong `src/app/core/store/features/` & `src/app/core/services/api/`:
-- [ ] **Task 2.1: `CatalogStore` & `CatalogApiService`** (`device-category`, `device-type`, `device-model`, `vendor`, `mcc`, `fee-policy`)
-- [ ] **Task 2.2: `OrganizationStore` & `OrganizationApiService`** (`business-unit`, `warehouse`)
-- [ ] **Task 2.3: `InventoryStore` & `InventoryApiService`** (`purchase-order`, `imports`, `exports`, `transfers`, `stock`, `logistics`)
-- [ ] **Task 2.4: `MerchantStore` & `MerchantApiService`** (`merchant`, `terminal/tid`)
-- [ ] **Task 2.5: `DeviceStore` & `DeviceApiService`** (`search`, `detail`, `lifecycle`)
-- [ ] **Task 2.6: `AssignmentStore` & `AssignmentApiService`** (`create`, `list`, `history`, `return`, `transfer`)
-- [ ] **Task 2.7: `ApprovalStore` & `ApprovalApiService`** (`inbox`, `detail`, `approve`, `reject`, `return-for-edit`)
-- [ ] **Task 2.8: `SystemStore` & `SystemApiService`** (`users`, `roles`, `config`, `audit-logs`, `dashboard`, `reports`)
+- [x] **Task 2.1: `CatalogStore` & `CatalogApiService`** (`device-category`, `device-type`, `device-model`, `vendor`, `mcc`, `fee-policy`)
+- [x] **Task 2.2: `OrganizationStore` & `OrganizationApiService`** (`business-unit`, `warehouse`)
+- [x] **Task 2.3: `InventoryStore` & `InventoryApiService`** (`purchase-order`, `imports`, `exports`, `transfers`, `stock`, `logistics`)
+- [x] **Task 2.4: `MerchantStore` & `MerchantApiService`** (`merchant`, `terminal/tid`)
+- [x] **Task 2.5: `DeviceStore` & `DeviceApiService`** (`search`, `detail`, `lifecycle`)
+- [x] **Task 2.6: `AssignmentStore` & `AssignmentApiService`** (`create`, `list`, `history`, `return`, `transfer`)
+- [x] **Task 2.7: `ApprovalStore` & `ApprovalApiService`** (`inbox`, `detail`, `approve`, `reject`, `return-for-edit`)
+- [x] **Task 2.8: `SystemStore` & `SystemApiService`** (`users`, `roles`, `config`, `audit-logs`, `dashboard`, `reports`)
 
 ---
 
 ### 🔹 PHASE 3: Refactor 38 Feature Components (Gắn Actions & State)
 
 #### 1. Nhóm Catalog & Organization (8 Màn):
-- [ ] Refactor `DeviceCategoryListPageComponent`: Thay inline mock bằng `CatalogApiService.getDeviceCategories()`. Gắn action `onSave()`, `onConfirmDelete()`, `onExportExcel()`.
-- [ ] Refactor `DeviceTypeListPageComponent`: Gắn API filter theo `categoryId`, modal CRUD real-time.
-- [ ] Refactor `DeviceModelListPageComponent`: Gắn API filter theo `deviceTypeId` & `vendorId`.
-- [ ] Refactor `VendorListPageComponent`: Gắn API CRUD Vendor.
-- [ ] Refactor `MccListPageComponent`: Gắn API tra cứu & CRUD MCC.
-- [ ] Refactor `FeePolicyListPageComponent`: Gắn API quản lý chính sách phí.
-- [ ] Refactor `BusinessUnitListPageComponent`: Gắn API đơn vị kinh doanh & đếm kho/merchant/user.
-- [ ] Refactor `WarehouseListPageComponent`: Gắn API kho bãi & filter theo BU.
+- [x] Refactor `DeviceCategoryListPageComponent`: Thay inline mock bằng `CatalogApiService.getDeviceCategories()`. Gắn action `onSave()`, `onConfirmDelete()`, `onExportExcel()`.
+- [x] Refactor `DeviceTypeListPageComponent`: Gắn API filter theo `categoryId`, modal CRUD real-time.
+- [x] Refactor `DeviceModelListPageComponent`: Gắn API filter theo `deviceTypeId` & `vendorId`.
+- [x] Refactor `VendorListPageComponent`: Gắn API CRUD Vendor.
+- [x] Refactor `MccListPageComponent`: Gắn API tra cứu & CRUD MCC.
+- [x] Refactor `FeePolicyListPageComponent`: Gắn API quản lý chính sách phí.
+- [x] Refactor `BusinessUnitListPageComponent`: Gắn API đơn vị kinh doanh & đếm kho/merchant/user.
+- [x] Refactor `WarehouseListPageComponent`: Gắn API kho bãi & filter theo BU.
 
 #### 2. Nhóm Merchant & TID (4 Màn):
-- [ ] Refactor `MerchantListPageComponent`: Gắn API `searchMerchants`, filter 2 hàng, Status Tabs, button [Đăng ký Merchant mới], [Khóa/Mở khóa].
-- [ ] Refactor `MerchantDetailPageComponent`: Read route param `:id`, gọi API `getMerchantDetail`, load 4 tabs (Thông tin, TID, Lịch sử, Phí).
-- [ ] Refactor `TerminalListPageComponent`: Gắn API `getTerminals`, modal Cấp TID mới, Action [Xem]/[Sửa]/[Khóa].
-- [ ] Refactor `TerminalDetailPageComponent`: Read route param `:id`, load chi tiết TID & thiết bị POS đang gán.
+- [x] Refactor `MerchantListPageComponent`: Gắn API `searchMerchants`, filter 2 hàng, Status Tabs, button [Đăng ký Merchant mới], [Khóa/Mở khóa].
+- [x] Refactor `MerchantDetailPageComponent`: Read route param `:id`, gọi API `getMerchantDetail`, load 4 tabs (Thông tin, TID, Lịch sử, Phí).
+- [x] Refactor `TerminalListPageComponent`: Gắn API `getTerminals`, modal Cấp TID mới, Action [Xem]/[Sửa]/[Khóa].
+- [x] Refactor `TerminalDetailPageComponent`: Read route param `:id`, load chi tiết TID & thiết bị POS đang gán.
 
 #### 3. Nhóm Inventory & Logistics (8 Màn):
-- [ ] Refactor `PurchaseOrderListPageComponent`: Gắn API PO list + Status Tabs (DRAFT, SUBMITTED, APPROVED, RECEIVED, CLOSED).
-- [ ] Refactor `ImportListPageComponent`: Gắn API danh sách nhập kho.
-- [ ] Refactor `ImportCreatePageComponent`: Form dán danh sách Serial (textarea lines) → Parse count → POST `inventory/imports` → Redirect về `/inventory/imports`.
-- [ ] Refactor `ExportListPageComponent`: Gắn API danh sách xuất kho + Trình duyệt.
-- [ ] Refactor `ExportCreatePageComponent`: Form chọn kho & chọn Serial → POST `inventory/exports` → Redirect.
-- [ ] Refactor `StockListPageComponent`: Gắn API tồn kho, KPI summary cards, modal xem danh sách Serial trong kho.
-- [ ] Refactor `TransferListPageComponent`: Gắn API điều chuyển kho.
-- [ ] Refactor `TransferCreatePageComponent`: Form chọn kho đi/đến & Serial → POST `inventory/transfers` → Redirect.
-- [ ] Refactor `LogisticsListPageComponent`: Gắn API theo dõi vận chuyển & tra cứu mã vận đơn.
+- [x] Refactor `PurchaseOrderListPageComponent`: Gắn API PO list + Status Tabs (DRAFT, SUBMITTED, APPROVED, RECEIVED, CLOSED).
+- [x] Refactor `ImportListPageComponent`: Gắn API danh sách nhập kho.
+- [x] Refactor `ImportCreatePageComponent`: Form dán danh sách Serial (textarea lines) → Parse count → POST `inventory/imports` → Redirect về `/inventory/imports`.
+- [x] Refactor `ExportListPageComponent`: Gắn API danh sách xuất kho + Trình duyệt.
+- [x] Refactor `ExportCreatePageComponent`: Form chọn kho & chọn Serial → POST `inventory/exports` → Redirect.
+- [x] Refactor `StockListPageComponent`: Gắn API tồn kho, KPI summary cards, modal xem danh sách Serial trong kho.
+- [x] Refactor `TransferListPageComponent`: Gắn API điều chuyển kho.
+- [x] Refactor `TransferCreatePageComponent`: Form chọn kho đi/đến & Serial → POST `inventory/transfers` → Redirect.
+- [x] Refactor `LogisticsListPageComponent`: Gắn API theo dõi vận chuyển & tra cứu mã vận đơn.
 
 #### 4. Nhóm Device & Assignment (5 Màn):
-- [ ] Refactor `DeviceSearchPageComponent`: Gắn API tra cứu Serial Number, filter nâng cao, 6 Status Tabs, click row/button [Xem] navigate `/device/detail/:serial`.
-- [ ] Refactor `DeviceDetailPageComponent`: Read route param `:serialNumber`, gọi API `getDeviceDetail` & `getDeviceLifecycle`, render 8 Tabs thông tin vòng đời.
-- [ ] Refactor `AssignmentListPageComponent`: Gắn API danh sách cấp phát Terminal/POS, Status Tabs, Action [Thu hồi]/[Đổi máy].
-- [ ] Refactor `AssignmentCreatePageComponent`: Form chọn POS INSTOCK + Merchant + TID → POST `assignments` với `X-Idempotency-Key`.
-- [ ] Refactor `AssignmentHistoryPageComponent`: Gắn API lịch sử cấp phát toàn hệ thống.
+- [x] Refactor `DeviceSearchPageComponent`: Gắn API tra cứu Serial Number, filter nâng cao, 6 Status Tabs, click row/button [Xem] navigate `/device/detail/:serial`.
+- [x] Refactor `DeviceDetailPageComponent`: Read route param `:serialNumber`, gọi API `getDeviceDetail` & `getDeviceLifecycle`, render 8 Tabs thông tin vòng đời.
+- [x] Refactor `AssignmentListPageComponent`: Gắn API danh sách cấp phát Terminal/POS, Status Tabs, Action [Thu hồi]/[Đổi máy].
+- [x] Refactor `AssignmentCreatePageComponent`: Form chọn POS INSTOCK + Merchant + TID → POST `assignments` với `X-Idempotency-Key`.
+- [x] Refactor `AssignmentHistoryPageComponent`: Gắn API lịch sử cấp phát toàn hệ thống.
 
 #### 5. Nhóm Approval Workflow (2 Màn):
-- [ ] Refactor `ApprovalInboxPageComponent`: Gắn API `getApprovalInbox`, Stats cards, Tabs loại hồ sơ, quick action [✓ Duyệt] / [✕ Từ chối].
-- [ ] Refactor `ApprovalDetailPageComponent`: Read route param `:id`, gọi API `getApprovalDetail`, action `onApprove()` (POST `/approve`), `onReject()` (POST `/reject`), `onReturnForEdit()`.
+- [x] Refactor `ApprovalInboxPageComponent`: Gắn API `getApprovalInbox`, Stats cards, Tabs loại hồ sơ, quick action [✓ Duyệt] / [✕ Từ chối].
+- [x] Refactor `ApprovalDetailPageComponent`: Read route param `:id`, gọi API `getApprovalDetail`, action `onApprove()` (POST `/approve`), `onReject()` (POST `/reject`), `onReturnForEdit()`.
 
 #### 6. Nhóm Monitoring, System & Profile (9 Màn):
-- [ ] Refactor `DashboardComponent`: Gắn API `/dashboard/summary`, nạp dữ liệu realtime cho 5 KPI lớn, 3 KPI nhỏ, 2 biểu đồ ApexCharts, Top 5 Kho, Activity Feed.
-- [ ] Refactor `PosMonitoringPageComponent`: Gắn API `/monitoring/pos-status`, grid thiết bị online/offline, auto-refresh 30s countdown indicator.
-- [ ] Refactor `AuditLogListPageComponent`: Gắn API `/audit-logs`, filter theo User/Resource/Date, modal xem JSON Diff trước/sau tác động.
-- [ ] Refactor `ReportInventoryPageComponent` & `ReportMerchantPageComponent`: Gắn API báo cáo, nút [Xuất Excel], [Xuất PDF].
-- [ ] Refactor `UserManagementPageComponent`: Gắn API CRUD User, gán Role, nút [Khóa/Mở khóa].
-- [ ] Refactor `RoleManagementPageComponent`: Gắn API CRUD Role + Permission Matrix (Checkbox grid auto-save).
-- [ ] Refactor `SystemConfigPageComponent`: Gắn API get/save system configs (General, SMTP, Security, Integration).
-- [ ] Refactor `UserProfilePageComponent`: Gắn API user profile & Đổi mật khẩu.
+- [x] Refactor `DashboardComponent`: Gắn API `/dashboard/summary`, nạp dữ liệu realtime cho 5 KPI lớn, 3 KPI nhỏ, 2 biểu đồ ApexCharts, Top 5 Kho, Activity Feed.
+- [x] Refactor `PosMonitoringPageComponent`: Gắn API `/monitoring/pos-status`, grid thiết bị online/offline, auto-refresh 30s countdown indicator.
+- [x] Refactor `AuditLogListPageComponent`: Gắn API `/audit-logs`, filter theo User/Resource/Date, modal xem JSON Diff trước/sau tác động.
+- [x] Refactor `ReportInventoryPageComponent` & `ReportMerchantPageComponent`: Gắn API báo cáo, nút [Xuất Excel], [Xuất PDF].
+- [x] Refactor `UserManagementPageComponent`: Gắn API CRUD User, gán Role, nút [Khóa/Mở khóa].
+- [x] Refactor `RoleManagementPageComponent`: Gắn API CRUD Role + Permission Matrix (Checkbox grid auto-save).
+- [x] Refactor `SystemConfigPageComponent`: Gắn API get/save system configs (General, SMTP, Security, Integration).
+- [x] Refactor `UserProfilePageComponent`: Gắn API user profile & Đổi mật khẩu.
 
 ---
 
 ### 🔹 PHASE 4: File Export & File Download Engine Integration
-- [ ] **Task 4.1: Xây dựng `FileExportService` (`src/app/core/services/file-export.service.ts`)**
+- [x] **Task 4.1: Xây dựng `FileExportService` (`src/app/core/services/file-export.service.ts`)**
   - Xử lý tải xuống file nhị phân `.xlsx` / `.pdf` trực tiếp bằng Blob Object URL.
   - Tự động đọc header `Content-Disposition` để lấy tên file chuẩn từ Backend.
   - Nếu Backend trả về Async Export Job (`202 Accepted` + `jobId`), tự động bật polling tiến độ 0% -> 100% trước khi mở link download.
-- [ ] **Task 4.2: Gắn `FileExportService` vào 100% Nút [Xuất Excel] / [Xuất PDF] trên 38 màn hình.**
+- [x] **Task 4.2: Gắn `FileExportService` vào 100% Nút [Xuất Excel] / [Xuất PDF] trên 38 màn hình.**
 
 ---
 
 ### 🔹 PHASE 5: Verification & Zero Dead-Button Audit
-- [ ] **Task 5.1: Chạy `npm run build`** đảm bảo 0 lỗi TypeScript, 0 lỗi SCSS.
-- [ ] **Task 5.2: Audit kiểm tra toàn bộ Button:**
+- [x] **Task 5.1: Chạy `npm run build`** đảm bảo 0 lỗi TypeScript, 0 lỗi SCSS.
+- [x] **Task 5.2: Audit kiểm tra toàn bộ Button:**
   - Kiểm tra 100% `<pos-button>`, `<pos-dropdown>`, `<a [routerLink]>` có gán event handler hoặc link chuyển hướng.
   - Kiểm tra 100% các nút Submit Form có loading spinner khi chờ API response và disabled khi Form invalid.
   - Kiểm tra 100% modal confirm có xử lý hủy/đồng ý rõ ràng.
