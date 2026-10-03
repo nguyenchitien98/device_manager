@@ -23,34 +23,39 @@ BƯỚC 1 — ĐỌC TÀI LIỆU (BẮT BUỘC trước khi làm bất cứ gì)
 
 Đọc theo thứ tự sau. Mỗi file đều quan trọng:
 
-1. `docs/00_Project_Vision.md`
-   → Tầm nhìn, scope, 9 roles, Business Scope, Engineering Objectives
+1. `.agents/AGENTS.md`
+   → QUY TẮC BẮT BUỘC dành cho AI: Tái sử dụng Shared UI Components 100%, Angular Signals, Strict Typing, Dark mode standards.
 
-2. `docs/01_Architecture_Bible.md`
+2. `docs/CODING_AGENT_GUIDE.md` & `.agents/skills/pos-shared-components/SKILL.md`
+   → Hướng dẫn chuẩn dùng `@shared` library (PosButton, PosInput, PosSelect, PosBadge, PosModal, PosTable, PosPagination, PosDropdown, PosConfirmDialog).
+
+3. `docs/00_Project_Vision.md`
+   → Tầm nhìn, scope, 9 roles, Business Scope, Engineering Objectives.
+
+4. `docs/01_Architecture_Bible.md`
    → Kiến trúc Hexagonal, Sequence Diagrams, Patterns:
-     Outbox, Idempotency, Optimistic Lock, State Machine, Approval Workflow
+     Outbox, Idempotency, Optimistic Lock, State Machine, Approval Workflow.
 
-3. `docs/02_Coding_Guideline.md`
+5. `docs/02_Coding_Guideline.md`
    → Coding standards, Javadoc tiếng Việt, Package structure,
-     Flyway naming, Immutable tables, Angular Signal standards
+     Flyway naming, Immutable tables, Angular Signal standards.
 
-4. `docs/06_Database_Schema.md`
-   → Toàn bộ DDL, ERD, Flyway migration map (V1–V15)
+6. `docs/06_Database_Schema.md`
+   → Toàn bộ DDL, ERD, Flyway migration map (V1–V15).
 
-5. `docs/09_API_Contract.md`
+7. `docs/09_API_Contract.md`
    → Request/Response schema, Error codes (POS-1001 → POS-7006),
-     Excel Export API
+     Excel Export API.
 
-6. `docs/11_Business_Flow.md`
+8. `docs/11_Business_Flow.md`
    → Master Data là gì, thứ tự tạo data, Dropdown sources,
-     6 End-to-End flows, Angular message library đầy đủ
+     6 End-to-End flows, Angular message library đầy đủ.
 
-7. `docs/04_Sprint_Plan.md`
-   → 15 Sprint, xác định Sprint hiện tại và scope được phép làm
+9. `docs/04_Sprint_Plan.md`
+   → 15 Sprint, xác định Sprint hiện tại và scope được phép làm.
 
-8. `task.md`
-   → Task nào đã xong [x], đang làm [/], chưa làm [ ]
-   → Đây là file tiến độ thực tế
+10. `task.md`
+   → Task nào đã xong [x], đang làm [/], chưa làm [ ] (Tiến độ thực tế).
 
 ═══════════════════════════════════════════════════════
 BƯỚC 2 — XÁC NHẬN VÀ ĐỀ XUẤT
@@ -87,15 +92,28 @@ BƯỚC 3 — QUY TẮC CỨNG KHI VIẾT CODE
 - Mọi mutation API → kiểm tra X-Idempotency-Key
 - Database: CHỈ Flyway — KHÔNG ddl-auto=create/update
 
-### Frontend Angular — BẮT BUỘC:
-- Component tách .ts / .html / .scss riêng
-- Dùng Angular Signals — KHÔNG mutable variables
-- Interceptor tự inject JWT + X-Idempotency-Key
-- Route Guard kiểm tra permission trước khi render
-- Mọi table/list phải có empty state component (xem docs/11_Business_Flow.md Section 4.1)
-- Search không ra kết quả → hiển thị message từ message library (KHÔNG để trống)
-- Mọi dropdown → load từ API, KHÔNG hardcode (xem Dropdown Source Map)
-- Export Excel button → validate totalElements trước khi gọi API
+### Frontend Angular — BẮT BUỘC (UI COMPONENT REUSE 100%):
+- **TÁI SỬ DỤNG COMMON COMPONENTS (`@shared` / `src/app/shared/index.ts`):**
+  - Nút bấm: `<pos-button>` (KHÔNG dùng `<button class="btn...">`)
+  - Input/Search/Textarea: `<pos-input>` (KHÔNG dùng `<input class="form-control">`)
+  - Select Dropdown: `<pos-select>` (KHÔNG dùng `<select>` thô)
+  - Badge trạng thái: `<pos-badge>` (KHÔNG dùng `<span class="badge">`)
+  - Modal / Popup: `<pos-modal>` (KHÔNG tự dựng backdrop overlay)
+  - Bảng dữ liệu: `<pos-table>` (KHÔNG tự dựng `<table>` lặp lại)
+  - Phân trang: `<pos-pagination>`
+  - Context Menu: `<pos-dropdown>`
+  - Hộp thoại xác nhận: `<pos-confirm-dialog>`
+  - Loading: `<pos-skeleton>`
+  - Trạng thái rỗng: `<app-empty-state>`
+- **AUTOMATION TEST ID:** Bắt buộc truyền `btnId`, `inputId`, `selectId` cho mọi control.
+- **CHANGE DETECTION:** 100% `changeDetection: ChangeDetectionStrategy.OnPush`.
+- **STATE MANAGEMENT:** Dùng Angular Signals (`signal()`, `computed()`) — KHÔNG mutable variables.
+- **STRICT TYPING:** KHÔNG BAO GIỜ dùng `any`.
+- Component tách .ts / .html / .scss riêng biệt.
+- Interceptor tự inject JWT + X-Idempotency-Key.
+- Route Guard kiểm tra permission trước khi render.
+- Mọi dropdown → load từ API, KHÔNG hardcode (xem Dropdown Source Map trong docs/11).
+- Export Excel button → validate totalElements trước khi gọi API.
 
 ### Database — BẮT BUỘC:
 - Append-Only tables: device_lifecycle_history, stock_transactions,
@@ -106,6 +124,12 @@ BƯỚC 3 — QUY TẮC CỨNG KHI VIẾT CODE
 ═══════════════════════════════════════════════════════
 BƯỚC 4 — CẤU TRÚC TÀI LIỆU DỰ ÁN
 ═══════════════════════════════════════════════════════
+
+.agents/
+├── AGENTS.md                   ← Quy tắc cứng bắt buộc cho AI Agents
+└── skills/
+    ├── pos-shared-components/  ← Hướng dẫn dùng UI Shared Library
+    └── pos-clean-code/         ← Standards về Angular 22 & Clean Code
 
 docs/
 ├── 00_Project_Vision.md        ← Tầm nhìn, scope, roles
@@ -119,7 +143,8 @@ docs/
 ├── 08_Interview_QA.md          ← Câu hỏi phỏng vấn + model answers
 ├── 09_API_Contract.md          ← Request/Response schemas, Error codes
 ├── 10_Environment_Setup.md     ← Docker Compose, Maven, Angular setup
-└── 11_Business_Flow.md         ← Master Data, Flows, Angular messages ⭐ MỚI
+├── 11_Business_Flow.md         ← Master Data, Flows, Angular messages
+└── CODING_AGENT_GUIDE.md       ← Quy trình làm việc chi tiết của AI Agent
 
 task.md                         ← Tiến độ thực tế (cập nhật sau mỗi task)
 prompt.md                       ← File này
@@ -134,6 +159,7 @@ Dự án POS Management — Banking Enterprise.
 Stack: Java 21 + Spring Boot 3 + Angular 22 + PostgreSQL + Kafka + Redis.
 
 Đọc nhanh:
+- `.agents/AGENTS.md` → Quy tắc bắt buộc (dùng shared components @shared 100%)
 - `task.md` → xem tiến độ hiện tại
 - `docs/04_Sprint_Plan.md` → Sprint đang làm
 - `docs/09_API_Contract.md` → API schema cần implement
@@ -155,10 +181,11 @@ Hỏi tôi muốn bắt đầu từ Backend hay Frontend.
 
 ### Khi cần review code:
 ```markdown
-Review đoạn code sau theo chuẩn POS Management (docs/02_Coding_Guideline.md):
+Review đoạn code sau theo chuẩn POS Management (.agents/AGENTS.md & docs/02_Coding_Guideline.md):
+- Có vi phạm tái sử dụng Shared UI Components không?
 - Javadoc tiếng Việt đầy đủ chưa?
 - Có vi phạm nào về Immutable tables, Data Scope, Outbox Pattern không?
-- Angular: có dùng Signals không? Empty state đã handle chưa?
+- Angular: có dùng Signals không? ChangeDetectionStrategy.OnPush chưa?
 [PASTE CODE]
 ```
 
@@ -181,10 +208,11 @@ Làm đúng pattern: Controller → UseCase → DomainService → Repository (He
 ### Khi cần implement Angular screen:
 ```markdown
 Implement màn hình: [tên screen / URL]
+Đọc .agents/skills/pos-shared-components/SKILL.md và .agents/AGENTS.md.
+BẮT BUỘC tái sử dụng PosButton, PosInput, PosSelect, PosBadge, PosModal, PosTable, PosPagination từ `@shared`.
 Đọc docs/07_UI_UX_Standard.md Section 4 để lấy spec màn hình.
 Đọc docs/11_Business_Flow.md Section 2.4 để biết dropdown load từ API nào.
-Đọc docs/11_Business_Flow.md Section 4 để implement đúng empty states và messages.
-Dùng Angular Signals, KHÔNG mutable variables.
+Dùng Angular Signals và ChangeDetectionStrategy.OnPush.
 ```
 
 ---
@@ -216,6 +244,4 @@ Bạn có thể dùng các lệnh ngắn sau trong chat:
 > **Cập nhật `task.md`** — đổi `[ ]` → `[x]` để AI biết tiến độ thực tế.
 
 > Nếu AI viết code sai pattern:
-> **Trích dẫn đúng section** trong docs để AI tự sửa.
-> VD: "Sai — xem docs/02_Coding_Guideline.md Section 1.3 Value Objects"
-
+> **Trích dẫn đúng section** trong docs hoặc `.agents/AGENTS.md` để AI tự sửa.
