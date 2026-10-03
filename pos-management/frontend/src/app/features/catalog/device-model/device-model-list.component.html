@@ -53,7 +53,7 @@
       </div>
 
       <div class="card-header-actions">
-        <pos-dropdown buttonVariant="ghost" [items]="columnToggleItems()" (itemClick)="toggleColumn($event)">
+        <pos-dropdown buttonVariant="ghost" [autoClose]="false" [items]="columnToggleItems()" (itemClick)="toggleColumn($event)">
           <span class="col-toggle-btn">👁️ Hiển thị cột</span>
         </pos-dropdown>
 

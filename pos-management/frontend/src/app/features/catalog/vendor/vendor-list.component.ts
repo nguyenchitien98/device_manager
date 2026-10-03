@@ -81,8 +81,7 @@ export class VendorListPageComponent {
     const hidden = this.hiddenColumns();
     return this.allColumns.map(col => ({
       id: col.field,
-      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
-      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
     }));
   });
 

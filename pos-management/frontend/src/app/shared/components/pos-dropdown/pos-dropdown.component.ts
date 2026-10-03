@@ -78,6 +78,7 @@ export interface DropdownItem {
 export class PosDropdownComponent {
   @Input() items: DropdownItem[] = [];
   @Input() align: 'left' | 'right' = 'right';
+  @Input() autoClose: boolean = true;
 
   @Output() itemClick = new EventEmitter<DropdownItem>();
 
@@ -104,6 +105,8 @@ export class PosDropdownComponent {
     event.stopPropagation();
     if (item.disabled) return;
     this.itemClick.emit(item);
-    this.close();
+    if (this.autoClose) {
+      this.close();
+    }
   }
 }

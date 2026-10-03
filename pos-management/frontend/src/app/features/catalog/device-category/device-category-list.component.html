@@ -82,6 +82,7 @@
         <!-- Dropdown select Ẩn/Hiển thị cột -->
         <pos-dropdown
           buttonVariant="ghost"
+          [autoClose]="false"
           [items]="columnToggleItems()"
           (itemClick)="toggleColumn($event)">
           <span class="col-toggle-btn">👁️ Hiển thị cột</span>
