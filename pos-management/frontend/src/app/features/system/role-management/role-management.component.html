@@ -1,0 +1,89 @@
+<div class="pos-page-container">
+  <div class="search-zone-card">
+    <div class="search-card-header">
+      <div class="card-title">
+        <i class="bi bi-shield-lock-fill icon-blue"></i>
+        <span>Quản lý Vai trò & Phân quyền Chi tiết (Role Matrix)</span>
+      </div>
+    </div>
+    <div class="search-card-body">
+      <div class="filter-grid">
+        <pos-input
+          inputId="search-keyword"
+          label="Từ khóa tìm kiếm"
+          placeholder="Mã vai trò, Tên vai trò..."
+          [ngModel]="keyword()"
+          (ngModelChange)="keyword.set($event)">
+        </pos-input>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-card-header">
+      <div class="card-title">
+        <i class="bi bi-person-gear icon-blue"></i>
+        <span>Danh sách Vai trò Hệ thống</span>
+        <pos-badge variant="info" class="count-badge">{{ filteredRoles().length }} vai trò</pos-badge>
+      </div>
+    </div>
+
+    <div class="list-card-body">
+      <pos-table [columns]="columns" [data]="filteredRoles()" [loading]="loading()">
+        <ng-template #cellTemplate let-item let-field="field">
+          <ng-container [ngSwitch]="field">
+            <span *ngSwitchCase="'roleCode'" class="font-mono text-primary font-bold">
+              {{ item.roleCode }}
+            </span>
+            <span *ngSwitchCase="'isSystemDefault'">
+              <pos-badge [variant]="item.isSystemDefault ? 'primary' : 'info'">
+                {{ item.isSystemDefault ? 'Mặc định' : 'Tùy chỉnh' }}
+              </pos-badge>
+            </span>
+            <span *ngSwitchCase="'actions'">
+              <pos-button
+                [btnId]="'btn-perm-' + item.id"
+                variant="primary"
+                size="sm"
+                icon="bi bi-sliders"
+                (clicked)="openPermissionModal(item)">
+                Phân Quyền
+              </pos-button>
+            </span>
+            <span *ngSwitchDefault>{{ item[field] }}</span>
+          </ng-container>
+        </ng-template>
+      </pos-table>
+    </div>
+  </div>
+
+  <!-- Permissions Matrix Modal -->
+  <pos-modal
+    [isOpen]="isPermissionModalOpen()"
+    [title]="'Ma Trận Phân Quyền - ' + selectedRole()?.roleName"
+    size="lg"
+    (closeModal)="isPermissionModalOpen.set(false)">
+    <div class="permissions-matrix">
+      <div *ngFor="let group of permissionGroups(); let gIdx = index" class="perm-group-card mb-4">
+        <div class="perm-group-title font-bold text-primary mb-2">
+          <i class="bi bi-folder2-open me-2"></i>{{ group.groupName }}
+        </div>
+        <div class="perm-items-grid">
+          <div *ngFor="let perm of group.permissions; let pIdx = index" class="perm-item p-2 border rounded d-flex align-items-center justify-content-between">
+            <span class="perm-name">{{ perm.name }}</span>
+            <input
+              type="checkbox"
+              class="form-check-input cursor-pointer"
+              [checked]="perm.granted"
+              (change)="togglePermission(gIdx, pIdx)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer-actions">
+      <pos-button btnId="btn-cancel-perm" variant="secondary" (clicked)="isPermissionModalOpen.set(false)">Hủy bỏ</pos-button>
+      <pos-button btnId="btn-save-perm" variant="primary" (clicked)="savePermissions()">Lưu Phân Quyền</pos-button>
+    </div>
+  </pos-modal>
+</div>

@@ -1,0 +1,68 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span class="material-icons title-icon">filter_alt</span>
+        <span>Bộ Lọc Tra Cứu Tồn Kho POS</span>
+      </div>
+    </div>
+
+    <div class="filter-grid">
+      <pos-input
+        label="Từ khóa"
+        inputId="inp-search-kw"
+        type="search"
+        placeholder="Nhập model POS, tên vendor..."
+        [ngModel]="keyword()"
+        (ngModelChange)="keyword.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-select
+        label="Kho hàng"
+        selectId="sel-search-wh"
+        [options]="warehouseOptions"
+        [ngModel]="selectedWarehouse()"
+        (ngModelChange)="selectedWarehouse.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Báo Cáo Tồn Kho POS Thời Gian Thực (Real-time Stock)</h3>
+        <pos-badge variant="info">{{ filteredStock().length }} dòng dữ liệu</pos-badge>
+      </div>
+    </div>
+
+    <pos-table [columns]="columns" [data]="filteredStock()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'inStockQty') {
+          <pos-badge variant="success">{{ row.inStockQty | number:'1.0-0' }} máy</pos-badge>
+        } @else if (col.field === 'assignedQty') {
+          <pos-badge variant="primary">{{ row.assignedQty | number:'1.0-0' }} máy</pos-badge>
+        } @else if (col.field === 'maintenanceQty') {
+          <pos-badge variant="warning">{{ row.maintenanceQty | number:'1.0-0' }} máy</pos-badge>
+        } @else if (col.field === 'totalQty') {
+          <strong>{{ row.totalQty | number:'1.0-0' }} máy</strong>
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="filteredStock().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
+  </div>
+</div>

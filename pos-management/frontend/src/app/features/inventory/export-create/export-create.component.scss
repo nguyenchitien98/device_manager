@@ -1,0 +1,27 @@
+@import '../../../shared/styles/list-page.shared.scss';
+
+.create-header-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-color, #111827);
+  }
+}
+
+.serial-entry-area {
+  padding: 16px 0;
+}
+
+.form-actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+}

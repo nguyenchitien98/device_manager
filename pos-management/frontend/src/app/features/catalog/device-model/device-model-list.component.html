@@ -1,0 +1,98 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span class="material-icons title-icon">filter_alt</span>
+        <span>Bộ Lọc Tìm Kiếm Model Thiết Bị</span>
+      </div>
+    </div>
+
+    <div class="filter-grid">
+      <pos-input
+        label="Từ khóa"
+        inputId="inp-search-kw"
+        type="search"
+        placeholder="Nhập mã, tên model..."
+        [ngModel]="keyword()"
+        (ngModelChange)="keyword.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-select
+        label="Vendor (Nhà sản xuất)"
+        selectId="sel-search-vendor"
+        [options]="vendorOptions"
+        [ngModel]="selectedVendor()"
+        (ngModelChange)="selectedVendor.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Danh Sách Model Thiết Bị POS</h3>
+        <pos-badge variant="info">{{ filteredModels().length }} model</pos-badge>
+      </div>
+      <div class="toolbar-right">
+        <pos-button variant="primary" (clicked)="openCreateModal()">➕ Thêm model thiết bị</pos-button>
+      </div>
+    </div>
+
+    <pos-table [columns]="columns" [data]="filteredModels()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'code') {
+          <span class="code-badge">{{ row.code }}</span>
+        } @else if (col.field === 'specs') {
+          <pos-badge variant="gray">{{ row.ramMb / 1024 }}GB RAM / {{ row.storageMb / 1024 }}GB ROM</pos-badge>
+        } @else if (col.field === 'status') {
+          <pos-badge [variant]="row.status === 'ACTIVE' ? 'success' : 'gray'" [dot]="true">
+            {{ row.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động' }}
+          </pos-badge>
+        } @else if (col.field === 'actions') {
+          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="filteredModels().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
+  </div>
+</div>
+
+<pos-modal [isOpen]="showModal()" [title]="modalTitle()" size="md" (closed)="showModal.set(false)">
+  <div class="form-grid">
+    <pos-input label="Mã Model" inputId="inp-model-code" placeholder="VD: A920_PRO" [required]="true" [(ngModel)]="formModel.code" />
+    <pos-input label="Tên Model" inputId="inp-model-name" placeholder="VD: PAX A920 Pro Smart POS" [required]="true" [(ngModel)]="formModel.name" />
+    <pos-select label="Nhà Sản Xuất (Vendor)" selectId="sel-model-vendor" [options]="vendorOptions" [(ngModel)]="formModel.vendorName" />
+    <pos-input type="number" label="Dung lượng RAM (MB)" inputId="inp-model-ram" [(ngModel)]="formModel.ramMb" />
+    <pos-input type="number" label="Bộ nhớ trong ROM (MB)" inputId="inp-model-rom" [(ngModel)]="formModel.storageMb" />
+  </div>
+
+  <div modal-footer>
+    <pos-button variant="ghost" (clicked)="showModal.set(false)">Hủy</pos-button>
+    <pos-button variant="primary" [loading]="saving()" (clicked)="onSave()">Lưu thông tin</pos-button>
+  </div>
+</pos-modal>
+
+<pos-confirm-dialog
+  [isOpen]="showDeleteConfirm()"
+  title="Xóa Model Thiết Bị"
+  [message]="'Bạn có chắc chắn muốn xóa model `' + selectedItem()?.name + '`?'"
+  type="danger"
+  [loading]="deleting()"
+  (confirm)="onConfirmDelete()"
+  (cancel)="showDeleteConfirm.set(false)"
+/>

@@ -1,0 +1,21 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="detail-header-row">
+      <div class="detail-title-area">
+        <pos-button variant="ghost" (clicked)="goBack()">← Quay lại</pos-button>
+        <h2 class="merchant-name">Chi Tiết TID: {{ terminalDetail().tid }}</h2>
+        <pos-badge variant="success" [dot]="true">Đang hoạt động</pos-badge>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-item"><span class="info-label">Mã MID Thuộc về:</span> <span class="info-val">{{ terminalDetail().merchantCode }} ({{ terminalDetail().merchantName }})</span></div>
+      <div class="info-item"><span class="info-label">Serial Thiết Bị Gán:</span> <span class="info-val">{{ terminalDetail().assignedSerial }}</span></div>
+      <div class="info-item"><span class="info-label">Model Thiết Bị:</span> <span class="info-val">{{ terminalDetail().posModel }}</span></div>
+      <div class="info-item"><span class="info-label">Nhà Sản Xuất:</span> <span class="info-val">{{ terminalDetail().vendorName }}</span></div>
+      <div class="info-item"><span class="info-label">SIM 4G Tích Hợp:</span> <span class="info-val">{{ terminalDetail().simNumber }}</span></div>
+      <div class="info-item"><span class="info-label">Chính Sách Phí:</span> <span class="info-val">{{ terminalDetail().feePolicyName }}</span></div>
+      <div class="info-item"><span class="info-label">Ngày Khởi Tạo:</span> <span class="info-val">{{ terminalDetail().createdAt }}</span></div>
+    </div>
+  </div>
+</div>

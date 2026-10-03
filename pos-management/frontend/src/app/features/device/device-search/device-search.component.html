@@ -1,0 +1,68 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span class="material-icons title-icon">search</span>
+        <span>Tra Cứu & Tìm Kiếm Thiết Bị POS Vòng Đời</span>
+      </div>
+    </div>
+
+    <div class="filter-grid">
+      <pos-input
+        label="Từ khóa tra cứu"
+        inputId="inp-search-kw"
+        type="search"
+        placeholder="Nhập Serial Number, Model, MID, TID, SIM ICCID..."
+        [ngModel]="keyword()"
+        (ngModelChange)="keyword.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-select
+        label="Trạng thái thiết bị"
+        selectId="sel-search-status"
+        [options]="statusOptions"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tra cứu ngay</pos-button>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Kết Quả Tra Cứu Thiết Bị POS</h3>
+        <pos-badge variant="info">{{ filteredDevices().length }} thiết bị</pos-badge>
+      </div>
+    </div>
+
+    <pos-table [columns]="columns" [data]="filteredDevices()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'serialNumber') {
+          <span class="code-badge">{{ row.serialNumber }}</span>
+        } @else if (col.field === 'status') {
+          <pos-badge [variant]="row.status === 'IN_USE' ? 'success' : row.status === 'IN_STOCK' ? 'primary' : row.status === 'MAINTENANCE' ? 'warning' : 'danger'" [dot]="true">
+            {{ row.status === 'IN_USE' ? 'Đang hoạt động' : row.status === 'IN_STOCK' ? 'Tồn kho sẵn sàng' : row.status === 'MAINTENANCE' ? 'Bảo hành' : 'Thanh lý' }}
+          </pos-badge>
+        } @else if (col.field === 'actions') {
+          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="filteredDevices().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
+  </div>
+</div>

@@ -1,0 +1,65 @@
+<div class="pos-page-container">
+  <div class="search-zone-card">
+    <div class="search-card-header">
+      <div class="card-title">
+        <i class="bi bi-clock-history icon-blue"></i>
+        <span>Tra cứu Nhật ký & Lịch sử Bàn giao Terminal</span>
+      </div>
+    </div>
+    <div class="search-card-body">
+      <div class="filter-grid">
+        <pos-input
+          inputId="search-keyword"
+          label="Từ khóa tìm kiếm"
+          placeholder="Mã lệnh, Tên Merchant, Serial POS..."
+          [ngModel]="keyword()"
+          (ngModelChange)="keyword.set($event)"
+          (keydown.enter)="onSearch()">
+        </pos-input>
+
+        <div class="filter-actions">
+          <pos-button btnId="btn-search" variant="primary" icon="bi bi-search" (clicked)="onSearch()">Tra cứu</pos-button>
+          <pos-button btnId="btn-reset" variant="secondary" icon="bi bi-arrow-counterclockwise" (clicked)="onReset()">Đặt lại</pos-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-card-header">
+      <div class="card-title">
+        <i class="bi bi-journal-text icon-blue"></i>
+        <span>Nhật ký Lịch sử Giao dịch Bàn giao</span>
+        <pos-badge variant="info" class="count-badge">{{ filteredHistory().length }} bản ghi</pos-badge>
+      </div>
+    </div>
+
+    <div class="list-card-body">
+      <pos-table [columns]="columns" [data]="filteredHistory()" [loading]="loading()">
+        <ng-template #cellTemplate let-item let-field="field">
+          <ng-container [ngSwitch]="field">
+            <span *ngSwitchCase="'actionType'" class="badge-action">
+              <pos-badge [variant]="item.actionType === 'Cấp mới' ? 'success' : 'warning'">{{ item.actionType }}</pos-badge>
+            </span>
+            <span *ngSwitchCase="'assignmentCode'" class="font-mono text-primary font-bold">
+              {{ item.assignmentCode }}
+            </span>
+            <span *ngSwitchCase="'tid'" class="font-mono font-medium">
+              {{ item.tid }}
+            </span>
+            <span *ngSwitchDefault>{{ item[field] }}</span>
+          </ng-container>
+        </ng-template>
+      </pos-table>
+    </div>
+
+    <div class="list-card-footer">
+      <pos-pagination
+        [totalItems]="filteredHistory().length"
+        [pageSize]="pageSize()"
+        [currentPage]="currentPage()"
+        (pageChange)="currentPage.set($event)">
+      </pos-pagination>
+    </div>
+  </div>
+</div>

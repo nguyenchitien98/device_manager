@@ -1,0 +1,40 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="create-header-row">
+      <pos-button variant="ghost" (clicked)="goBack()">← Quay lại danh sách</pos-button>
+      <h2>Tạo Phiếu Nhập Kho Thiết Bị POS Mới</h2>
+    </div>
+
+    <div class="form-grid">
+      <pos-input label="Số Đơn Hàng PO Liên Quan" inputId="inp-po" placeholder="VD: PO-2026-001" [(ngModel)]="formModel.poNumber" />
+      <pos-select label="Kho Nhập Hàng Đích" selectId="sel-target-wh" [options]="warehouseOptions" [(ngModel)]="formModel.warehouseName" />
+      <pos-input type="textarea" label="Ghi Chú Nhập Kho" inputId="inp-import-note" placeholder="Nhập lý do hoặc thông tin vận đơn..." [(ngModel)]="formModel.note" />
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Danh Sách Serial Thiết Bị POS Nhập Kho</h3>
+        <pos-badge variant="info">{{ parsedCount() }} thiết bị nhận diện</pos-badge>
+      </div>
+    </div>
+
+    <div class="serial-entry-area">
+      <pos-input
+        type="textarea"
+        label="Dán danh sách Serial Number (Mỗi Serial một dòng)"
+        inputId="inp-serial-lines"
+        [rows]="10"
+        placeholder="VD:&#10;PAX-A920-990001&#10;PAX-A920-990002&#10;PAX-A920-990003"
+        [ngModel]="formModel.serialListText"
+        (ngModelChange)="formModel.serialListText = $event; onSerialListChange($event)"
+      />
+    </div>
+
+    <div class="form-actions-bar">
+      <pos-button variant="ghost" (clicked)="goBack()">Hủy bỏ</pos-button>
+      <pos-button variant="primary" [loading]="saving()" (clicked)="onSubmit()">Lưu & Gửi Phê Duyệt Nhập Kho</pos-button>
+    </div>
+  </div>
+</div>

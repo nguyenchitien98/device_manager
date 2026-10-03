@@ -1,0 +1,102 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span class="material-icons title-icon">filter_alt</span>
+        <span>Bộ Lọc Tìm Kiếm Merchant (Đơn Vị Chấp Nhận Thẻ)</span>
+      </div>
+    </div>
+
+    <div class="filter-grid">
+      <pos-input
+        label="Từ khóa"
+        inputId="inp-search-kw"
+        type="search"
+        placeholder="Nhập mã MID, tên thương hiệu, tên pháp lý..."
+        [ngModel]="keyword()"
+        (ngModelChange)="keyword.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-select
+        label="Trạng thái Merchant"
+        selectId="sel-search-status"
+        [options]="statusOptions"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Quản Lý Danh Sách Merchant (MID)</h3>
+        <pos-badge variant="info">{{ filteredMerchants().length }} merchant</pos-badge>
+      </div>
+      <div class="toolbar-right">
+        <pos-button variant="primary" (clicked)="openCreateModal()">➕ Đăng ký Merchant mới</pos-button>
+      </div>
+    </div>
+
+    <pos-table [columns]="columns" [data]="filteredMerchants()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'merchantCode') {
+          <span class="code-badge">{{ row.merchantCode }}</span>
+        } @else if (col.field === 'mccCode') {
+          <pos-badge variant="gray">{{ row.mccCode }}</pos-badge>
+        } @else if (col.field === 'status') {
+          <pos-badge [variant]="row.status === 'ACTIVE' ? 'success' : row.status === 'PENDING_APPROVAL' ? 'warning' : 'danger'" [dot]="true">
+            {{ row.status === 'ACTIVE' ? 'Hoạt động' : row.status === 'PENDING_APPROVAL' ? 'Chờ duyệt' : 'Tạm khóa' }}
+          </pos-badge>
+        } @else if (col.field === 'actions') {
+          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="filteredMerchants().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
+  </div>
+</div>
+
+<pos-modal [isOpen]="showModal()" title="Đăng Ký Merchant Mới (Tạo Mã MID)" size="lg" (closed)="showModal.set(false)">
+  <div class="form-grid">
+    <pos-input label="Mã MID Hệ Thống" inputId="inp-m-mid" [disabled]="true" [(ngModel)]="formModel.merchantCode" />
+    <pos-input label="Tên Thương Hiệu / Cửa Hàng" inputId="inp-m-brand" placeholder="VD: WinMart Thăng Long" [required]="true" [(ngModel)]="formModel.brandName" />
+    <pos-input label="Tên Pháp Lý (Công ty / HKD)" inputId="inp-m-legal" placeholder="VD: Công Ty TNHH Siêu Thị WinMart" [required]="true" [(ngModel)]="formModel.legalName" />
+    <pos-input label="Mã Số Thuế" inputId="inp-m-tax" placeholder="VD: 0101234567" [(ngModel)]="formModel.taxCode" />
+    <pos-input label="Người Đại Diện Pháp Luật" inputId="inp-m-rep" [(ngModel)]="formModel.representativeName" />
+    <pos-input label="Số Điện Thoại Liên Hệ" inputId="inp-m-phone" [(ngModel)]="formModel.phone" />
+    <pos-input type="email" label="Email Liên Hệ" inputId="inp-m-email" [(ngModel)]="formModel.email" />
+    <pos-input label="Địa Chỉ Kinh Doanh" inputId="inp-m-addr" [(ngModel)]="formModel.address" />
+  </div>
+
+  <div modal-footer>
+    <pos-button variant="ghost" (clicked)="showModal.set(false)">Hủy</pos-button>
+    <pos-button variant="primary" [loading]="saving()" (clicked)="onSave()">Gửi hồ sơ duyệt MID</pos-button>
+  </div>
+</pos-modal>
+
+<pos-confirm-dialog
+  [isOpen]="showDeleteConfirm()"
+  title="Khóa Mã Merchant MID"
+  [message]="'Bạn có chắc chắn muốn tạm khóa mã Merchant MID `' + selectedItem()?.merchantCode + '`?'"
+  type="danger"
+  confirmText="Tạm khóa MID"
+  [loading]="deleting()"
+  (confirm)="onConfirmLock()"
+  (cancel)="showDeleteConfirm.set(false)"
+/>

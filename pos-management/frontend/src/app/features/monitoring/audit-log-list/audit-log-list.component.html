@@ -1,0 +1,81 @@
+<div class="pos-page-container">
+  <div class="search-zone-card">
+    <div class="search-card-header">
+      <div class="card-title">
+        <i class="bi bi-shield-check icon-blue"></i>
+        <span>Nhật ký Tác động & An ninh Hệ thống (Audit Logs)</span>
+      </div>
+    </div>
+    <div class="search-card-body">
+      <div class="filter-grid">
+        <pos-input
+          inputId="search-keyword"
+          label="Từ khóa tìm kiếm"
+          placeholder="Tên tài khoản, Hành động, Nội dung chi tiết..."
+          [ngModel]="keyword()"
+          (ngModelChange)="keyword.set($event)"
+          (keydown.enter)="onSearch()">
+        </pos-input>
+
+        <pos-select
+          selectId="search-module"
+          label="Phân Hệ Tác Động"
+          [options]="moduleOptions"
+          [(ngModel)]="selectedModule">
+        </pos-select>
+
+        <pos-select
+          selectId="search-status"
+          label="Kết Quả Thực Hiện"
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus">
+        </pos-select>
+
+        <div class="filter-actions">
+          <pos-button btnId="btn-search" variant="primary" icon="bi bi-search" (clicked)="onSearch()">Tra cứu nhật ký</pos-button>
+          <pos-button btnId="btn-reset" variant="secondary" icon="bi bi-arrow-counterclockwise" (clicked)="onReset()">Đặt lại</pos-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-card-header">
+      <div class="card-title">
+        <i class="bi bi-list-columns-reverse icon-blue"></i>
+        <span>Danh sách Nhật ký Hoạt động</span>
+        <pos-badge variant="info" class="count-badge">{{ filteredLogs().length }} bản ghi</pos-badge>
+      </div>
+    </div>
+
+    <div class="list-card-body">
+      <pos-table [columns]="columns" [data]="filteredLogs()" [loading]="loading()">
+        <ng-template #cellTemplate let-item let-field="field">
+          <ng-container [ngSwitch]="field">
+            <span *ngSwitchCase="'timestamp'" class="font-mono text-muted text-sm">
+              {{ item.timestamp }}
+            </span>
+            <span *ngSwitchCase="'username'" class="font-medium text-primary">
+              {{ item.username }}
+            </span>
+            <span *ngSwitchCase="'status'">
+              <pos-badge [variant]="item.status === 'SUCCESS' ? 'success' : (item.status === 'FAILED' ? 'danger' : 'warning')">
+                {{ item.status === 'SUCCESS' ? 'Thành công' : (item.status === 'FAILED' ? 'Thất bại' : 'Cảnh báo') }}
+              </pos-badge>
+            </span>
+            <span *ngSwitchDefault>{{ item[field] }}</span>
+          </ng-container>
+        </ng-template>
+      </pos-table>
+    </div>
+
+    <div class="list-card-footer">
+      <pos-pagination
+        [totalItems]="filteredLogs().length"
+        [pageSize]="pageSize()"
+        [currentPage]="currentPage()"
+        (pageChange)="currentPage.set($event)">
+      </pos-pagination>
+    </div>
+  </div>
+</div>

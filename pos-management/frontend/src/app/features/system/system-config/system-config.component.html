@@ -1,0 +1,162 @@
+<div class="pos-page-container">
+  <div class="config-header-card">
+    <div class="header-titles">
+      <h2 class="page-title">
+        <i class="bi bi-gear-wide-connected icon-blue"></i>
+        <span>Cấu Hình Tham Số & Kết Nối Hệ Thống</span>
+      </h2>
+      <span class="sub-title">Quản lý tham số vận hành, Email server, An ninh & Tích hợp API</span>
+    </div>
+
+    <div class="header-actions">
+      <pos-button btnId="btn-save-config" variant="primary" icon="bi bi-floppy-fill" (clicked)="onSaveConfig()">
+        Lưu Tất Cả Cấu Hình
+      </pos-button>
+    </div>
+  </div>
+
+  <div class="config-body-layout">
+    <!-- Left Navigation Tabs -->
+    <div class="config-tabs-nav">
+      <div class="tab-item" [class.active]="activeTab() === 'general'" (click)="setTab('general')">
+        <i class="bi bi-sliders"></i> Cấu hình chung
+      </div>
+      <div class="tab-item" [class.active]="activeTab() === 'smtp'" (click)="setTab('smtp')">
+        <i class="bi bi-envelope-at-fill"></i> Cấu hình Email (SMTP)
+      </div>
+      <div class="tab-item" [class.active]="activeTab() === 'security'" (click)="setTab('security')">
+        <i class="bi bi-shield-lock-fill"></i> Chính sách An ninh
+      </div>
+      <div class="tab-item" [class.active]="activeTab() === 'integration'" (click)="setTab('integration')">
+        <i class="bi bi-diagram-3-fill"></i> Tích hợp API External
+      </div>
+    </div>
+
+    <!-- Right Tab Content Panel -->
+    <div class="config-content-panel">
+      <!-- General Tab -->
+      <div *ngIf="activeTab() === 'general'" class="config-section">
+        <h4 class="section-title">Thông Tin & Cấu Hình Vận Hành Chung</h4>
+        <div class="form-grid">
+          <pos-input
+            inputId="config-system-name"
+            label="Tên hiển thị hệ thống"
+            [ngModel]="systemName()"
+            (ngModelChange)="systemName.set($event)">
+          </pos-input>
+
+          <pos-input
+            inputId="config-system-email"
+            label="Email thông báo hệ thống"
+            [ngModel]="systemEmail()"
+            (ngModelChange)="systemEmail.set($event)">
+          </pos-input>
+
+          <pos-input
+            inputId="config-autolock"
+            label="Thời gian tự động khóa phiên (Phút)"
+            [ngModel]="autoLockMinutes()"
+            (ngModelChange)="autoLockMinutes.set($event)">
+          </pos-input>
+
+          <pos-input
+            inputId="config-page-size"
+            label="Số bản ghi hiển thị mặc định"
+            [ngModel]="recordsPerPage()"
+            (ngModelChange)="recordsPerPage.set($event)">
+          </pos-input>
+        </div>
+      </div>
+
+      <!-- SMTP Tab -->
+      <div *ngIf="activeTab() === 'smtp'" class="config-section">
+        <h4 class="section-title">Máy Chủ Gửi Email Tự Động (SMTP Server)</h4>
+        <div class="form-grid">
+          <pos-input
+            inputId="config-smtp-host"
+            label="SMTP Host / IP Address"
+            [ngModel]="smtpHost()"
+            (ngModelChange)="smtpHost.set($event)">
+          </pos-input>
+
+          <pos-input
+            inputId="config-smtp-port"
+            label="Cổng kết nối (Port)"
+            [ngModel]="smtpPort()"
+            (ngModelChange)="smtpPort.set($event)">
+          </pos-input>
+
+          <pos-input
+            inputId="config-smtp-user"
+            label="Tài khoản SMTP"
+            [ngModel]="smtpUser()"
+            (ngModelChange)="smtpUser.set($event)">
+          </pos-input>
+
+          <pos-input
+            inputId="config-smtp-pass"
+            label="Mật khẩu SMTP"
+            type="password"
+            [ngModel]="smtpPassword()"
+            (ngModelChange)="smtpPassword.set($event)">
+          </pos-input>
+        </div>
+      </div>
+
+      <!-- Security Tab -->
+      <div *ngIf="activeTab() === 'security'" class="config-section">
+        <h4 class="section-title">Quy Định Mật Khẩu & Bảo Mật Nâng Cao</h4>
+        <div class="form-grid">
+          <pos-input
+            inputId="config-min-pass"
+            label="Độ dài mật khẩu tối thiểu"
+            [ngModel]="minPasswordLength()"
+            (ngModelChange)="minPasswordLength.set($event)">
+          </pos-input>
+
+          <pos-input
+            inputId="config-pass-expiry"
+            label="Thời hạn hiệu lực mật khẩu (Ngày)"
+            [ngModel]="passwordExpiryDays()"
+            (ngModelChange)="passwordExpiryDays.set($event)">
+          </pos-input>
+
+          <pos-input
+            inputId="config-max-attempts"
+            label="Số lần đăng nhập sai tối đa trước khi khóa"
+            [ngModel]="maxLoginAttempts()"
+            (ngModelChange)="maxLoginAttempts.set($event)">
+          </pos-input>
+        </div>
+      </div>
+
+      <!-- Integration Tab -->
+      <div *ngIf="activeTab() === 'integration'" class="config-section">
+        <h4 class="section-title">Thông Tin Kết Nối API Core Banking & Gateway</h4>
+        <div class="form-grid">
+          <pos-input
+            inputId="config-api-url"
+            label="Core Banking Endpoint URL"
+            value="https://api-corebanking.bank.com.vn/v1/pos">
+          </pos-input>
+
+          <pos-input
+            inputId="config-api-key"
+            label="API Key / Secret Token"
+            type="password"
+            value="sec_live_9988776655443322">
+          </pos-input>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <pos-confirm-dialog
+    [isOpen]="isSaveModalOpen()"
+    title="Xác nhận Lưu Cấu hình"
+    message="Bạn có chắc chắn muốn cập nhật toàn bộ tham số cấu hình hệ thống không? Một số thay đổi sẽ có hiệu lực ngay lập tức."
+    type="info"
+    (confirm)="confirmSaveConfig()"
+    (cancel)="isSaveModalOpen.set(false)">
+  </pos-confirm-dialog>
+</div>

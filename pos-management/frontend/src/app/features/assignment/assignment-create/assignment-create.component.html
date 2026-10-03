@@ -1,0 +1,21 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="create-header-row">
+      <pos-button variant="ghost" (clicked)="goBack()">← Quay lại danh sách</pos-button>
+      <h2>Tạo Lệnh Bàn Giao / Thu Hồi / Đổi Thiết Bị POS</h2>
+    </div>
+
+    <div class="form-grid">
+      <pos-select label="Loại Hành Động" selectId="sel-asn-action" [options]="actionTypeOptions" [(ngModel)]="formModel.actionType" />
+      <pos-input label="Mã MID Merchant" inputId="inp-asn-mid" [(ngModel)]="formModel.merchantCode" />
+      <pos-input label="Mã TID Gán" inputId="inp-asn-tid" [(ngModel)]="formModel.tid" />
+      <pos-input label="Serial POS Thao Tác" inputId="inp-asn-serial" [(ngModel)]="formModel.posSerial" />
+      <pos-input type="textarea" label="Lý Do & Ghi Chú Thao Tác" inputId="inp-asn-reason" [(ngModel)]="formModel.reasonNote" />
+    </div>
+
+    <div class="form-actions-bar">
+      <pos-button variant="ghost" (clicked)="goBack()">Hủy bỏ</pos-button>
+      <pos-button variant="primary" [loading]="saving()" (clicked)="onSubmit()">Lưu & Trình Phê Duyệt Assignment</pos-button>
+    </div>
+  </div>
+</div>

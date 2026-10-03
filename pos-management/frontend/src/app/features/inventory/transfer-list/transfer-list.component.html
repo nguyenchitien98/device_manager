@@ -1,0 +1,71 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span class="material-icons title-icon">filter_alt</span>
+        <span>Bộ Lọc Tìm Kiếm Phiếu Điều Chuyển Kho</span>
+      </div>
+    </div>
+
+    <div class="filter-grid">
+      <pos-input
+        label="Từ khóa"
+        inputId="inp-search-kw"
+        type="search"
+        placeholder="Nhập mã điều chuyển, tên kho..."
+        [ngModel]="keyword()"
+        (ngModelChange)="keyword.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-select
+        label="Trạng thái"
+        selectId="sel-search-status"
+        [options]="statusOptions"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Danh Sách Phiếu Điều Chuyển Kho Thiết Bị POS</h3>
+        <pos-badge variant="info">{{ filteredTransfers().length }} phiếu</pos-badge>
+      </div>
+      <div class="toolbar-right">
+        <pos-button variant="primary" (clicked)="openCreatePage()">➕ Tạo lệnh điều chuyển kho</pos-button>
+      </div>
+    </div>
+
+    <pos-table [columns]="columns" [data]="filteredTransfers()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'transferCode') {
+          <span class="code-badge">{{ row.transferCode }}</span>
+        } @else if (col.field === 'status') {
+          <pos-badge [variant]="row.status === 'COMPLETED' ? 'success' : row.status === 'IN_TRANSIT' ? 'warning' : 'primary'" [dot]="true">
+            {{ row.status === 'COMPLETED' ? 'Hoàn thành' : row.status === 'IN_TRANSIT' ? 'Đang vận chuyển' : 'Đã duyệt' }}
+          </pos-badge>
+        } @else if (col.field === 'actions') {
+          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="filteredTransfers().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
+  </div>
+</div>

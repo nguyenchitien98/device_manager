@@ -1,0 +1,44 @@
+@import '../../../shared/styles/list-page.shared.scss';
+
+.detail-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.detail-title-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.merchant-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-color, #111827);
+  margin: 0;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 16px;
+  background-color: var(--bg-hover, #f8fafc);
+  border-radius: 8px;
+}
+
+.info-item {
+  font-size: 13px;
+
+  .info-label {
+    color: var(--text-secondary, #6b7280);
+    margin-right: 6px;
+  }
+
+  .info-val {
+    font-weight: 600;
+    color: var(--text-color, #111827);
+  }
+}

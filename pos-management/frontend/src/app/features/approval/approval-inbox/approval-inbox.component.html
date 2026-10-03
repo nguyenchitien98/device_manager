@@ -1,0 +1,89 @@
+<div class="pos-page-container">
+  <div class="search-zone-card">
+    <div class="search-card-header">
+      <div class="card-title">
+        <i class="bi bi-inbox-fill icon-blue"></i>
+        <span>Hòm thư Phê duyệt & Quản lý Hồ sơ Yêu cầu</span>
+      </div>
+    </div>
+    <div class="search-card-body">
+      <div class="filter-grid">
+        <pos-input
+          inputId="search-keyword"
+          label="Từ khóa tìm kiếm"
+          placeholder="Mã yêu cầu, Tiêu đề, Người trình..."
+          [ngModel]="keyword()"
+          (ngModelChange)="keyword.set($event)"
+          (keydown.enter)="onSearch()">
+        </pos-input>
+
+        <pos-select
+          selectId="search-type"
+          label="Loại Hồ Sơ"
+          [options]="typeOptions"
+          [(ngModel)]="selectedType">
+        </pos-select>
+
+        <pos-select
+          selectId="search-status"
+          label="Trạng Thái Phê Duyệt"
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus">
+        </pos-select>
+
+        <div class="filter-actions">
+          <pos-button btnId="btn-search" variant="primary" icon="bi bi-search" (clicked)="onSearch()">Lọc hồ sơ</pos-button>
+          <pos-button btnId="btn-reset" variant="secondary" icon="bi bi-arrow-counterclockwise" (clicked)="onReset()">Đặt lại</pos-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-card-header">
+      <div class="card-title">
+        <i class="bi bi-card-checklist icon-blue"></i>
+        <span>Danh sách Yêu cầu Trình duyệt</span>
+        <pos-badge variant="info" class="count-badge">{{ filteredApprovals().length }} hồ sơ</pos-badge>
+      </div>
+    </div>
+
+    <div class="list-card-body">
+      <pos-table [columns]="columns" [data]="filteredApprovals()" [loading]="loading()">
+        <ng-template #cellTemplate let-item let-field="field">
+          <ng-container [ngSwitch]="field">
+            <span *ngSwitchCase="'requestCode'" class="font-mono text-primary font-bold">
+              {{ item.requestCode }}
+            </span>
+            <span *ngSwitchCase="'priority'">
+              <pos-badge [variant]="item.priority === 'High' ? 'danger' : (item.priority === 'Medium' ? 'warning' : 'info')">
+                {{ item.priority }}
+              </pos-badge>
+            </span>
+            <span *ngSwitchCase="'status'">
+              <pos-badge [variant]="item.status === 'APPROVED' ? 'success' : (item.status === 'REJECTED' ? 'danger' : 'warning')">
+                {{ item.status === 'APPROVED' ? 'Đã duyệt' : (item.status === 'REJECTED' ? 'Từ chối' : 'Chờ phê duyệt') }}
+              </pos-badge>
+            </span>
+            <span *ngSwitchCase="'actions'">
+              <pos-dropdown
+                [items]="getActionItems(item)"
+                (itemClick)="onActionClick(item, $event)">
+              </pos-dropdown>
+            </span>
+            <span *ngSwitchDefault>{{ item[field] }}</span>
+          </ng-container>
+        </ng-template>
+      </pos-table>
+    </div>
+
+    <div class="list-card-footer">
+      <pos-pagination
+        [totalItems]="filteredApprovals().length"
+        [pageSize]="pageSize()"
+        [currentPage]="currentPage()"
+        (pageChange)="currentPage.set($event)">
+      </pos-pagination>
+    </div>
+  </div>
+</div>

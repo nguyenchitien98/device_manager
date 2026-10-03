@@ -1,0 +1,104 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span class="material-icons title-icon">filter_alt</span>
+        <span>Bộ Lọc Tìm Kiếm Chính Sách Phí</span>
+      </div>
+    </div>
+
+    <div class="filter-grid">
+      <pos-input
+        label="Từ khóa"
+        inputId="inp-search-kw"
+        type="search"
+        placeholder="Nhập mã, tên chính sách..."
+        [ngModel]="keyword()"
+        (ngModelChange)="keyword.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-select
+        label="Loại thẻ"
+        selectId="sel-search-card-type"
+        [options]="cardTypeOptions"
+        [ngModel]="selectedCardType()"
+        (ngModelChange)="selectedCardType.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Danh Sách Chính Sách Phí Merchant</h3>
+        <pos-badge variant="info">{{ filteredPolicies().length }} chính sách</pos-badge>
+      </div>
+      <div class="toolbar-right">
+        <pos-button variant="primary" (clicked)="openCreateModal()">➕ Thêm chính sách phí</pos-button>
+      </div>
+    </div>
+
+    <pos-table [columns]="columns" [data]="filteredPolicies()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'code') {
+          <span class="code-badge">{{ row.code }}</span>
+        } @else if (col.field === 'cardType') {
+          <pos-badge [variant]="row.cardType === 'DOMESTIC' ? 'primary' : 'purple'">
+            {{ row.cardType === 'DOMESTIC' ? 'Thẻ Nội Địa' : 'Thẻ Quốc Tế' }}
+          </pos-badge>
+        } @else if (col.field === 'merchantRatePercent') {
+          <strong>{{ row.merchantRatePercent }}%</strong>
+        } @else if (col.field === 'minFeeAmount') {
+          <span>{{ row.minFeeAmount | number:'1.0-0' }} ₫</span>
+        } @else if (col.field === 'status') {
+          <pos-badge [variant]="row.status === 'ACTIVE' ? 'success' : 'gray'" [dot]="true">
+            {{ row.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động' }}
+          </pos-badge>
+        } @else if (col.field === 'actions') {
+          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="filteredPolicies().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
+  </div>
+</div>
+
+<pos-modal [isOpen]="showModal()" [title]="modalTitle()" size="md" (closed)="showModal.set(false)">
+  <div class="form-grid">
+    <pos-input label="Mã Chính Sách" inputId="inp-fee-code" placeholder="VD: FEE_NAPAS_STANDARD" [required]="true" [(ngModel)]="formModel.code" />
+    <pos-input label="Tên Chính Sách Phí" inputId="inp-fee-name" placeholder="VD: Gói Phí Thẻ Napas Mẫu Chuẩn" [required]="true" [(ngModel)]="formModel.name" />
+    <pos-select label="Loại Thẻ Áp Dụng" selectId="sel-fee-cardtype" [options]="cardTypeOptions" [(ngModel)]="formModel.cardType" />
+    <pos-input type="number" label="Phí Phần Trăm (%)" inputId="inp-fee-rate" [(ngModel)]="formModel.merchantRatePercent" />
+    <pos-input type="number" label="Phí Tối Thiểu (VND)" inputId="inp-fee-min" [(ngModel)]="formModel.minFeeAmount" />
+  </div>
+
+  <div modal-footer>
+    <pos-button variant="ghost" (clicked)="showModal.set(false)">Hủy</pos-button>
+    <pos-button variant="primary" [loading]="saving()" (clicked)="onSave()">Lưu thông tin</pos-button>
+  </div>
+</pos-modal>
+
+<pos-confirm-dialog
+  [isOpen]="showDeleteConfirm()"
+  title="Xóa Chính Sách Phí"
+  [message]="'Bạn có chắc chắn muốn xóa chính sách phí `' + selectedItem()?.name + '`?'"
+  type="danger"
+  [loading]="deleting()"
+  (confirm)="onConfirmDelete()"
+  (cancel)="showDeleteConfirm.set(false)"
+/>

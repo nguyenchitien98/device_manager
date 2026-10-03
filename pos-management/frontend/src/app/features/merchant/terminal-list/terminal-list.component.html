@@ -1,0 +1,98 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span class="material-icons title-icon">filter_alt</span>
+        <span>Bộ Lọc Tìm Kiếm Mã TID Terminal</span>
+      </div>
+    </div>
+
+    <div class="filter-grid">
+      <pos-input
+        label="Từ khóa"
+        inputId="inp-search-kw"
+        type="search"
+        placeholder="Nhập TID, MID, Serial POS..."
+        [ngModel]="keyword()"
+        (ngModelChange)="keyword.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-select
+        label="Trạng thái TID"
+        selectId="sel-search-status"
+        [options]="statusOptions"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Quản Lý Mã TID Terminal</h3>
+        <pos-badge variant="info">{{ filteredTerminals().length }} TID</pos-badge>
+      </div>
+      <div class="toolbar-right">
+        <pos-button variant="primary" (clicked)="openCreateModal()">➕ Cấp mã TID mới</pos-button>
+      </div>
+    </div>
+
+    <pos-table [columns]="columns" [data]="filteredTerminals()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'tid') {
+          <span class="code-badge">{{ row.tid }}</span>
+        } @else if (col.field === 'merchantCode') {
+          <span class="code-badge secondary">{{ row.merchantCode }}</span>
+        } @else if (col.field === 'status') {
+          <pos-badge [variant]="row.status === 'ACTIVE' ? 'success' : row.status === 'UNASSIGNED' ? 'warning' : 'danger'" [dot]="true">
+            {{ row.status === 'ACTIVE' ? 'Hoạt động' : row.status === 'UNASSIGNED' ? 'Chưa gán máy' : 'Tạm khóa' }}
+          </pos-badge>
+        } @else if (col.field === 'actions') {
+          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="filteredTerminals().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
+  </div>
+</div>
+
+<pos-modal [isOpen]="showModal()" title="Cấp Mới Mã TID Terminal" size="md" (closed)="showModal.set(false)">
+  <div class="form-grid">
+    <pos-input label="Mã TID Tự Động" inputId="inp-tid-val" [disabled]="true" [(ngModel)]="formModel.tid" />
+    <pos-input label="Mã MID Merchant" inputId="inp-tid-mid" [(ngModel)]="formModel.merchantCode" />
+    <pos-input label="Tên Merchant" inputId="inp-tid-mname" [(ngModel)]="formModel.merchantName" />
+    <pos-input label="Serial POS Gán" inputId="inp-tid-serial" [(ngModel)]="formModel.assignedSerial" />
+  </div>
+
+  <div modal-footer>
+    <pos-button variant="ghost" (clicked)="showModal.set(false)">Hủy</pos-button>
+    <pos-button variant="primary" [loading]="saving()" (clicked)="onSave()">Khởi tạo TID</pos-button>
+  </div>
+</pos-modal>
+
+<pos-confirm-dialog
+  [isOpen]="showDeleteConfirm()"
+  title="Khóa Mã TID Terminal"
+  [message]="'Bạn có chắc chắn muốn tạm khóa mã TID `' + selectedItem()?.tid + '`?'"
+  type="danger"
+  confirmText="Tạm khóa TID"
+  [loading]="deleting()"
+  (confirm)="onConfirmLock()"
+  (cancel)="showDeleteConfirm.set(false)"
+/>

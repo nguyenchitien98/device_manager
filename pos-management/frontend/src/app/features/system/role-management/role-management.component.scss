@@ -1,0 +1,19 @@
+@import '../../../shared/styles/list-page.shared.scss';
+
+.permissions-matrix {
+  max-height: 450px;
+  overflow-y: auto;
+
+  .perm-group-card {
+    background: var(--pos-bg-card, #ffffff);
+    border: 1px solid var(--pos-border-color, #e2e8f0);
+    border-radius: 8px;
+    padding: 16px;
+
+    .perm-items-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+  }
+}

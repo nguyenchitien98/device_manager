@@ -1,0 +1,55 @@
+<div class="pos-page-container">
+  <div class="search-zone-card">
+    <div class="search-card-header">
+      <div class="card-title">
+        <i class="bi bi-file-earmark-bar-graph icon-blue"></i>
+        <span>Báo cáo Tổng hợp Tồn kho & Động thái Thiết bị POS</span>
+      </div>
+    </div>
+    <div class="search-card-body">
+      <div class="filter-grid">
+        <pos-select
+          selectId="search-warehouse"
+          label="Kho Quản Lý"
+          [options]="warehouseOptions"
+          [(ngModel)]="selectedWarehouse">
+        </pos-select>
+
+        <pos-select
+          selectId="search-type"
+          label="Loại Máy POS"
+          [options]="typeOptions"
+          [(ngModel)]="selectedType">
+        </pos-select>
+
+        <div class="filter-actions">
+          <pos-button btnId="btn-export-excel" variant="success" icon="bi bi-file-earmark-excel" (clicked)="onExportExcel()">Xuất Excel</pos-button>
+          <pos-button btnId="btn-export-pdf" variant="danger" icon="bi bi-file-earmark-pdf" (clicked)="onExportPdf()">Xuất PDF</pos-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-card-header">
+      <div class="card-title">
+        <i class="bi bi-table icon-blue"></i>
+        <span>Chi tiết Bảng Số liệu Tồn kho Theo Chủng loại</span>
+      </div>
+    </div>
+
+    <div class="list-card-body">
+      <pos-table [columns]="columns" [data]="filteredReport()" [loading]="loading()">
+        <ng-template #cellTemplate let-item let-field="field">
+          <ng-container [ngSwitch]="field">
+            <span *ngSwitchCase="'inStockNew'" class="font-bold text-success">{{ item.inStockNew | number:'1.0-0' }}</span>
+            <span *ngSwitchCase="'allocatedActive'" class="font-medium text-primary">{{ item.allocatedActive | number:'1.0-0' }}</span>
+            <span *ngSwitchCase="'underRepair'" class="text-warning font-medium">{{ item.underRepair | number:'1.0-0' }}</span>
+            <span *ngSwitchCase="'disposed'" class="text-muted">{{ item.disposed | number:'1.0-0' }}</span>
+            <span *ngSwitchDefault>{{ item[field] }}</span>
+          </ng-container>
+        </ng-template>
+      </pos-table>
+    </div>
+  </div>
+</div>

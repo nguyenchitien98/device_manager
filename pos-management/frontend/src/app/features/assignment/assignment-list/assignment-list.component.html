@@ -1,0 +1,75 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span class="material-icons title-icon">filter_alt</span>
+        <span>Bộ Lọc Tìm Kiếm Lệnh Assignment</span>
+      </div>
+    </div>
+
+    <div class="filter-grid">
+      <pos-input
+        label="Từ khóa"
+        inputId="inp-search-kw"
+        type="search"
+        placeholder="Nhập mã lệnh, MID, TID, Serial..."
+        [ngModel]="keyword()"
+        (ngModelChange)="keyword.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-select
+        label="Loại hành động"
+        selectId="sel-search-type"
+        [options]="typeOptions"
+        [ngModel]="selectedType()"
+        (ngModelChange)="selectedType.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Danh Sách Lệnh Bàn Giao / Thu Hồi Thiết Bị (Assignment)</h3>
+        <pos-badge variant="info">{{ filteredAssignments().length }} lệnh</pos-badge>
+      </div>
+      <div class="toolbar-right">
+        <pos-button variant="primary" (clicked)="openCreatePage()">➕ Tạo lệnh assignment mới</pos-button>
+      </div>
+    </div>
+
+    <pos-table [columns]="columns" [data]="filteredAssignments()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'assignmentCode') {
+          <span class="code-badge">{{ row.assignmentCode }}</span>
+        } @else if (col.field === 'actionType') {
+          <pos-badge [variant]="row.actionType === 'ASSIGN' ? 'success' : row.actionType === 'RECLAIM' ? 'danger' : 'warning'">
+            {{ row.actionType === 'ASSIGN' ? 'Cấp mới' : row.actionType === 'RECLAIM' ? 'Thu hồi' : 'Đổi máy' }}
+          </pos-badge>
+        } @else if (col.field === 'status') {
+          <pos-badge [variant]="row.status === 'COMPLETED' ? 'success' : row.status === 'PENDING_APPROVAL' ? 'warning' : 'danger'" [dot]="true">
+            {{ row.status === 'COMPLETED' ? 'Hoàn thành' : row.status === 'PENDING_APPROVAL' ? 'Chờ duyệt' : 'Từ chối' }}
+          </pos-badge>
+        } @else if (col.field === 'actions') {
+          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="filteredAssignments().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
+  </div>
+</div>

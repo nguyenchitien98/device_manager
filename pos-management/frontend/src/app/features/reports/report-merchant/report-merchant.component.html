@@ -1,0 +1,70 @@
+<div class="pos-page-container">
+  <div class="search-zone-card">
+    <div class="search-card-header">
+      <div class="card-title">
+        <i class="bi bi-pie-chart-fill icon-blue"></i>
+        <span>Báo cáo Hiệu quả Khai thác & Sản lượng GD Theo Merchant</span>
+      </div>
+    </div>
+    <div class="search-card-body">
+      <div class="filter-grid">
+        <pos-input
+          inputId="search-keyword"
+          label="Tên Merchant"
+          placeholder="Nhập tên Merchant..."
+          [ngModel]="keyword()"
+          (ngModelChange)="keyword.set($event)">
+        </pos-input>
+
+        <pos-select
+          selectId="search-city"
+          label="Khu Vực Tỉnh Thành"
+          [options]="cityOptions"
+          [(ngModel)]="selectedCity">
+        </pos-select>
+
+        <pos-select
+          selectId="search-rating"
+          label="Đánh Giá Hiệu Quả Khai Thác"
+          [options]="ratingOptions"
+          [(ngModel)]="selectedRating">
+        </pos-select>
+
+        <div class="filter-actions">
+          <pos-button btnId="btn-export-excel" variant="success" icon="bi bi-file-earmark-excel" (clicked)="onExportExcel()">Xuất Excel</pos-button>
+          <pos-button btnId="btn-export-pdf" variant="danger" icon="bi bi-file-earmark-pdf" (clicked)="onExportPdf()">Xuất PDF</pos-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-card-header">
+      <div class="card-title">
+        <i class="bi bi-table icon-blue"></i>
+        <span>Bảng Tổng Hợp Sản Lượng & Doanh Số Thiết Bị</span>
+      </div>
+    </div>
+
+    <div class="list-card-body">
+      <pos-table [columns]="columns" [data]="filteredReport()" [loading]="loading()">
+        <ng-template #cellTemplate let-item let-field="field">
+          <ng-container [ngSwitch]="field">
+            <span *ngSwitchCase="'monthlyTxnVolume'" class="font-bold">
+              {{ item.monthlyTxnVolume | number:'1.0-0' }} GD
+            </span>
+            <span *ngSwitchCase="'monthlyRevenue'" class="font-bold text-primary">
+              {{ item.monthlyRevenue | number:'1.0-0' }} VNĐ
+            </span>
+            <span *ngSwitchCase="'efficiencyRating'">
+              <pos-badge [variant]="item.efficiencyRating === 'EXCELLENT' ? 'success' : (item.efficiencyRating === 'GOOD' ? 'info' : 'danger')">
+                {{ item.efficiencyRating === 'EXCELLENT' ? 'Xuất Sắc' : (item.efficiencyRating === 'GOOD' ? 'Đạt Chuẩn' : 'Hiệu Quả Thấp') }}
+              </pos-badge>
+            </span>
+            <span *ngSwitchDefault>{{ item[field] }}</span>
+          </ng-container>
+        </ng-template>
+      </pos-table>
+    </div>
+  </div>
+</div>

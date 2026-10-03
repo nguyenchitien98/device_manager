@@ -1,0 +1,68 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span class="material-icons title-icon">filter_alt</span>
+        <span>Bộ Lọc Tìm Kiếm Mã Vận Đơn Logistics</span>
+      </div>
+    </div>
+
+    <div class="filter-grid">
+      <pos-input
+        label="Từ khóa"
+        inputId="inp-search-kw"
+        type="search"
+        placeholder="Nhập mã vận đơn, đơn vị vận chuyển..."
+        [ngModel]="keyword()"
+        (ngModelChange)="keyword.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-select
+        label="Trạng thái vận chuyển"
+        selectId="sel-search-status"
+        [options]="statusOptions"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Theo Dõi Vận Chuyển / Logistics Thiết Bị POS</h3>
+        <pos-badge variant="info">{{ filteredTrackings().length }} vận đơn</pos-badge>
+      </div>
+    </div>
+
+    <pos-table [columns]="columns" [data]="filteredTrackings()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'trackingNumber') {
+          <span class="code-badge">{{ row.trackingNumber }}</span>
+        } @else if (col.field === 'status') {
+          <pos-badge [variant]="row.status === 'DELIVERED' ? 'success' : row.status === 'IN_TRANSIT' ? 'warning' : row.status === 'PREPARING' ? 'primary' : 'danger'" [dot]="true">
+            {{ row.status === 'DELIVERED' ? 'Đã giao' : row.status === 'IN_TRANSIT' ? 'Đang giao' : row.status === 'PREPARING' ? 'Đóng gói' : 'Thất bại' }}
+          </pos-badge>
+        } @else if (col.field === 'actions') {
+          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="filteredTrackings().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
+  </div>
+</div>

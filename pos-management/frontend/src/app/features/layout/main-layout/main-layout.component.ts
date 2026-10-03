@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  HostListener,
   computed,
   inject,
   signal,
@@ -11,6 +10,8 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { HeaderComponent } from '../header/header.component';
+import { SidebarComponent } from '../sidebar/sidebar.component';
 
 /** Breadcrumb item */
 interface Breadcrumb {
@@ -39,7 +40,7 @@ const BREADCRUMB_MAP: Record<string, Breadcrumb[]> = {
   ],
   '/catalog/mcc': [
     { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
-    { label: 'MCC', url: '/catalog/mcc' },
+    { label: 'Quản lý MCC', url: '/catalog/mcc' },
   ],
   '/catalog/fee-policies': [
     { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
@@ -61,9 +62,17 @@ const BREADCRUMB_MAP: Record<string, Breadcrumb[]> = {
     { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/imports' },
     { label: 'Thông tin Nhập kho', url: '/inventory/imports' },
   ],
+  '/inventory/import-create': [
+    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/imports' },
+    { label: 'Tạo phiếu Nhập kho', url: '/inventory/import-create' },
+  ],
   '/inventory/exports': [
     { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/exports' },
     { label: 'Thông tin Xuất kho', url: '/inventory/exports' },
+  ],
+  '/inventory/export-create': [
+    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/exports' },
+    { label: 'Tạo phiếu Xuất kho', url: '/inventory/export-create' },
   ],
   '/inventory/stock': [
     { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/stock' },
@@ -72,6 +81,10 @@ const BREADCRUMB_MAP: Record<string, Breadcrumb[]> = {
   '/inventory/transfers': [
     { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/transfers' },
     { label: 'Điều chuyển kho', url: '/inventory/transfers' },
+  ],
+  '/inventory/transfer-create': [
+    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/transfers' },
+    { label: 'Tạo phiếu Điều chuyển', url: '/inventory/transfer-create' },
   ],
   '/inventory/logistics': [
     { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/logistics' },
@@ -93,6 +106,10 @@ const BREADCRUMB_MAP: Record<string, Breadcrumb[]> = {
     { label: 'Quản Lý Assignment', url: '/assignment/list' },
     { label: 'Quản lý assignment', url: '/assignment/list' },
   ],
+  '/assignment/create': [
+    { label: 'Quản Lý Assignment', url: '/assignment/list' },
+    { label: 'Tạo lệnh assignment', url: '/assignment/create' },
+  ],
   '/assignment/history': [
     { label: 'Quản Lý Assignment', url: '/assignment/list' },
     { label: 'Lịch sử assignment', url: '/assignment/history' },
@@ -102,12 +119,36 @@ const BREADCRUMB_MAP: Record<string, Breadcrumb[]> = {
     { label: 'Hộp việc cần duyệt', url: '/approval/inbox' },
   ],
   '/monitoring/pos': [
-    { label: 'Báo Cáo & Hệ Thống', url: '/monitoring/pos' },
-    { label: 'Giám sát hệ thống', url: '/monitoring/pos' },
+    { label: 'Báo Cáo & Giám Sát', url: '/monitoring/pos' },
+    { label: 'Giám sát hệ thống Realtime', url: '/monitoring/pos' },
   ],
-  '/reports': [
-    { label: 'Báo Cáo & Hệ Thống', url: '/reports' },
-    { label: 'Báo cáo', url: '/reports' },
+  '/monitoring/audit-logs': [
+    { label: 'Báo Cáo & Giám Sát', url: '/monitoring/pos' },
+    { label: 'Nhật ký tác động (Audit Logs)', url: '/monitoring/audit-logs' },
+  ],
+  '/reports/inventory': [
+    { label: 'Báo Cáo & Giám Sát', url: '/reports/inventory' },
+    { label: 'Báo cáo tồn kho', url: '/reports/inventory' },
+  ],
+  '/reports/merchant': [
+    { label: 'Báo Cáo & Giám Sát', url: '/reports/merchant' },
+    { label: 'Báo cáo merchant', url: '/reports/merchant' },
+  ],
+  '/system/users': [
+    { label: 'Quản Trị Hệ Thống', url: '/system/users' },
+    { label: 'Quản lý người dùng', url: '/system/users' },
+  ],
+  '/system/roles': [
+    { label: 'Quản Trị Hệ Thống', url: '/system/roles' },
+    { label: 'Quản lý vai trò & quyền', url: '/system/roles' },
+  ],
+  '/system/config': [
+    { label: 'Quản Trị Hệ Thống', url: '/system/config' },
+    { label: 'Cấu hình tham số', url: '/system/config' },
+  ],
+  '/system/profile': [
+    { label: 'Tài Khoản Cá Nhân', url: '/system/profile' },
+    { label: 'Hồ sơ cá nhân', url: '/system/profile' },
   ],
 };
 
@@ -124,29 +165,39 @@ const PAGE_TITLE_MAP: Record<string, string> = {
   '/organization/warehouses': 'Quản lý kho',
   '/inventory/purchase-orders': 'Purchase Order',
   '/inventory/imports': 'Thông tin Nhập kho',
+  '/inventory/import-create': 'Tạo Phiếu Nhập Kho',
   '/inventory/exports': 'Thông tin Xuất kho',
-  '/inventory/stock': 'Thông tin tồn kho',
+  '/inventory/export-create': 'Tạo Phiếu Xuất Kho',
+  '/inventory/stock': 'Thông tin Tồn kho',
   '/inventory/transfers': 'Điều chuyển kho',
-  '/inventory/logistics': 'Theo dõi vận chuyển',
+  '/inventory/transfer-create': 'Tạo Phiếu Điều Chuyển',
+  '/inventory/logistics': 'Theo dõi Vận chuyển',
   '/merchant/merchants': 'Danh sách Merchant',
   '/merchant/terminals': 'Quản lý TID',
   '/device/search': 'Tra cứu thiết bị',
   '/assignment/list': 'Quản lý Assignment',
+  '/assignment/create': 'Tạo Lệnh Assignment',
   '/assignment/history': 'Lịch sử Assignment',
   '/approval/inbox': 'Hộp việc cần duyệt',
   '/monitoring/pos': 'Giám sát hệ thống',
-  '/reports': 'Báo cáo',
+  '/monitoring/audit-logs': 'Nhật ký tác động (Audit Logs)',
+  '/reports/inventory': 'Báo cáo tồn kho',
+  '/reports/merchant': 'Báo cáo merchant',
+  '/system/users': 'Quản lý người dùng',
+  '/system/roles': 'Quản lý vai trò',
+  '/system/config': 'Cấu hình hệ thống',
+  '/system/profile': 'Thông tin cá nhân',
 };
 
 /**
  * Main Layout Component — App shell bao gồm Sidebar, Header, Content.
- * Quản lý: Dual Theme, Sidebar collapse, User menu, Breadcrumb.
+ * Composed từ Standalone Components: HeaderComponent & SidebarComponent.
  */
 @Component({
   selector: 'app-main-layout',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, HeaderComponent, SidebarComponent],
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
 })
@@ -157,28 +208,12 @@ export class MainLayoutComponent implements OnInit {
   // ─── Signals ────────────────────────────────────────────────────
   readonly isSidebarCollapsed = signal(false);
   readonly isDarkMode = signal(false);
-  readonly isUserMenuOpen = signal(false);
   readonly activeRoute = signal('/dashboard');
   readonly approvalBadge = signal(8);
   readonly notificationCount = signal(8);
 
-  /** Mỗi group key: true = expanded */
-  readonly expandedGroups = signal<Record<string, boolean>>({
-    catalog: true,
-  });
-
   // ─── Derived from Auth ───────────────────────────────────────────
   readonly currentUser = this.authService.currentUser;
-
-  readonly userInitials = computed(() => {
-    const name = this.currentUser()?.fullName ?? 'Admin User';
-    return name
-      .split(' ')
-      .map(w => w[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  });
 
   // ─── Page title & Breadcrumb ─────────────────────────────────────
   readonly currentPageTitle = computed(() => {
@@ -221,15 +256,12 @@ export class MainLayoutComponent implements OnInit {
     // Track route changes
     const initialUrl = this.router.url.split('?')[0];
     this.activeRoute.set(initialUrl);
-    this.autoExpandGroup(initialUrl);
 
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd)
     ).subscribe((e: any) => {
       const currentUrl = (e.urlAfterRedirects ?? e.url).split('?')[0];
       this.activeRoute.set(currentUrl);
-      this.autoExpandGroup(currentUrl);
-      this.isUserMenuOpen.set(false); // đóng dropdown khi navigate
     });
   }
 
@@ -253,67 +285,8 @@ export class MainLayoutComponent implements OnInit {
     });
   }
 
-  /** Auto expand active route group */
-  private autoExpandGroup(url: string): void {
-    if (url.startsWith('/catalog') || url.startsWith('/organization') || url.startsWith('/inventory/purchase-orders')) {
-      this.expandedGroups.set({ catalog: true });
-    } else if (url.startsWith('/merchant')) {
-      this.expandedGroups.set({ merchant: true });
-    } else if (url.startsWith('/inventory')) {
-      this.expandedGroups.set({ inventory: true });
-    } else if (url.startsWith('/device')) {
-      this.expandedGroups.set({ device: true });
-    } else if (url.startsWith('/assignment')) {
-      this.expandedGroups.set({ assignment: true });
-    } else if (url.startsWith('/approval')) {
-      this.expandedGroups.set({ workflow: true });
-    } else if (url.startsWith('/monitoring') || url.startsWith('/reports')) {
-      this.expandedGroups.set({ system: true });
-    }
-  }
-
-  /** Toggle accordion group — chỉ mở 1 nhóm danh mục cha duy nhất tại một thời điểm */
-  toggleGroup(key: string): void {
-    this.expandedGroups.update(prev => {
-      const isCurrentlyOpen = !!prev[key];
-      // Nếu nhóm đang mở -> đóng lại. Nếu nhóm đang đóng -> mở duy nhất nhóm được click (đóng toàn bộ các nhóm khác)
-      return isCurrentlyOpen ? {} : { [key]: true };
-    });
-  }
-
-  /** Kiểm tra group có đang mở không */
-  isGroupOpen(key: string): boolean {
-    return !!this.expandedGroups()[key];
-  }
-
-  /** Toggle user menu dropdown */
-  toggleUserMenu(): void {
-    this.isUserMenuOpen.update(v => !v);
-  }
-
-  /** Đóng user menu */
-  closeUserMenu(): void {
-    this.isUserMenuOpen.set(false);
-  }
-
   /** Đăng xuất */
   logout(): void {
-    this.isUserMenuOpen.set(false);
     this.authService.logout();
-  }
-
-  /** Kiểm tra route có active không */
-  isActive(route: string): boolean {
-    const current = this.activeRoute();
-    return current === route || current.startsWith(route + '/');
-  }
-
-  /** Đóng user menu khi click outside */
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(e: MouseEvent): void {
-    const target = e.target as HTMLElement;
-    if (!target.closest('.user-menu')) {
-      this.isUserMenuOpen.set(false);
-    }
   }
 }

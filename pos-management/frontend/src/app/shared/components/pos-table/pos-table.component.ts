@@ -102,7 +102,7 @@ export interface TableColumn {
                           *ngTemplateOutlet="cellTemplate; context: { $implicit: row, column: col, index: $index }"
                         ></ng-container>
                       } @else {
-                        {{ row[col.field] }}
+                        {{ $any(row)[col.field] }}
                       }
                     </td>
                   }
@@ -116,7 +116,7 @@ export interface TableColumn {
   `,
   styleUrl: './pos-table.component.scss'
 })
-export class PosTableComponent<T = Record<string, unknown>> {
+export class PosTableComponent<T = any> {
   @Input() columns: TableColumn[] = [];
   @Input() data: T[] = [];
   @Input() loading = false;

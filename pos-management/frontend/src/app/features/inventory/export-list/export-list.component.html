@@ -1,0 +1,75 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span class="material-icons title-icon">filter_alt</span>
+        <span>Bộ Lọc Tìm Kiếm Phiếu Xuất Kho</span>
+      </div>
+    </div>
+
+    <div class="filter-grid">
+      <pos-input
+        label="Từ khóa"
+        inputId="inp-search-kw"
+        type="search"
+        placeholder="Nhập mã phiếu xuất, tên nơi nhận..."
+        [ngModel]="keyword()"
+        (ngModelChange)="keyword.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-select
+        label="Trạng thái"
+        selectId="sel-search-status"
+        [options]="statusOptions"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions">
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Thông Tin Xuất Kho Thiết Bị POS</h3>
+        <pos-badge variant="info">{{ filteredExports().length }} phiếu xuất</pos-badge>
+      </div>
+      <div class="toolbar-right">
+        <pos-button variant="primary" (clicked)="openCreatePage()">➕ Tạo phiếu xuất kho mới</pos-button>
+      </div>
+    </div>
+
+    <pos-table [columns]="columns" [data]="filteredExports()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'exportCode') {
+          <span class="code-badge">{{ row.exportCode }}</span>
+        } @else if (col.field === 'exportType') {
+          <pos-badge [variant]="row.exportType === 'MERCHANT' ? 'primary' : 'purple'">
+            {{ row.exportType === 'MERCHANT' ? 'Gán Merchant' : 'Điều chuyển' }}
+          </pos-badge>
+        } @else if (col.field === 'status') {
+          <pos-badge [variant]="row.status === 'APPROVED' ? 'success' : row.status === 'PENDING' ? 'warning' : 'danger'" [dot]="true">
+            {{ row.status === 'APPROVED' ? 'Hoàn thành' : row.status === 'PENDING' ? 'Chờ duyệt' : 'Từ chối' }}
+          </pos-badge>
+        } @else if (col.field === 'actions') {
+          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="filteredExports().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
+  </div>
+</div>

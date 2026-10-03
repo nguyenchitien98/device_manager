@@ -1,0 +1,40 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="detail-header-row">
+      <div class="detail-title-area">
+        <pos-button variant="ghost" (clicked)="goBack()">← Quay lại tra cứu</pos-button>
+        <h2 class="merchant-name">Thiết Bị: {{ deviceDetail().serialNumber }}</h2>
+        <pos-badge variant="success" [dot]="true">Đang hoạt động (In Use)</pos-badge>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-item"><span class="info-label">Model POS:</span> <span class="info-val">{{ deviceDetail().posModel }}</span></div>
+      <div class="info-item"><span class="info-label">Nhà Sản Xuất:</span> <span class="info-val">{{ deviceDetail().vendorName }}</span></div>
+      <div class="info-item"><span class="info-label">Danh Mục:</span> <span class="info-val">{{ deviceDetail().categoryName }}</span></div>
+      <div class="info-item"><span class="info-label">Kho Hiện Tại:</span> <span class="info-val">{{ deviceDetail().warehouseName }}</span></div>
+      <div class="info-item"><span class="info-label">Merchant Gán:</span> <span class="info-val">{{ deviceDetail().merchantName }}</span></div>
+      <div class="info-item"><span class="info-label">Mã TID:</span> <span class="info-val">{{ deviceDetail().tid }}</span></div>
+      <div class="info-item"><span class="info-label">SIM ICCID:</span> <span class="info-val">{{ deviceDetail().simIccid }}</span></div>
+      <div class="info-item"><span class="info-label">Ngày Nhập Kho:</span> <span class="info-val">{{ deviceDetail().importDate }}</span></div>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Lịch Sử Vòng Đời & Tác Động Thiết Bị (Asset Lifecycle Audit)</h3>
+      </div>
+    </div>
+
+    <pos-table [columns]="historyColumns" [data]="historyList()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'eventType') {
+          <pos-badge variant="primary">{{ row.eventType }}</pos-badge>
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+  </div>
+</div>

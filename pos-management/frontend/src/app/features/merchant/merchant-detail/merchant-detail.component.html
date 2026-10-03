@@ -1,0 +1,47 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="detail-header-row">
+      <div class="detail-title-area">
+        <pos-button variant="ghost" (clicked)="goBack()">← Quay lại</pos-button>
+        <h2 class="merchant-name">{{ merchantDetail().brandName }}</h2>
+        <span class="code-badge">{{ merchantDetail().merchantCode }}</span>
+        <pos-badge [variant]="merchantDetail().status === 'ACTIVE' ? 'success' : 'danger'" [dot]="true">
+          {{ merchantDetail().status === 'ACTIVE' ? 'Hoạt động' : 'Tạm khóa' }}
+        </pos-badge>
+      </div>
+    </div>
+
+    <!-- Info Grid -->
+    <div class="info-grid">
+      <div class="info-item"><span class="info-label">Tên Pháp Lý:</span> <span class="info-val">{{ merchantDetail().legalName }}</span></div>
+      <div class="info-item"><span class="info-label">Mã Số Thuế:</span> <span class="info-val">{{ merchantDetail().taxCode }}</span></div>
+      <div class="info-item"><span class="info-label">Mã Ngành MCC:</span> <span class="info-val">{{ merchantDetail().mccCode }}</span></div>
+      <div class="info-item"><span class="info-label">Đơn Vị Quản Lý:</span> <span class="info-val">{{ merchantDetail().businessUnitName }}</span></div>
+      <div class="info-item"><span class="info-label">Người Đại Diện:</span> <span class="info-val">{{ merchantDetail().representativeName }}</span></div>
+      <div class="info-item"><span class="info-label">Điện Thoại:</span> <span class="info-val">{{ merchantDetail().phone }}</span></div>
+      <div class="info-item"><span class="info-label">Email:</span> <span class="info-val">{{ merchantDetail().email }}</span></div>
+      <div class="info-item"><span class="info-label">Địa Chỉ:</span> <span class="info-val">{{ merchantDetail().address }}</span></div>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Danh Sách Mã TID & Thiết Bị Gán Thuộc Merchant</h3>
+        <pos-badge variant="info">{{ terminals().length }} TID</pos-badge>
+      </div>
+    </div>
+
+    <pos-table [columns]="terminalColumns" [data]="terminals()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'tid') {
+          <span class="code-badge">{{ row.tid }}</span>
+        } @else if (col.field === 'status') {
+          <pos-badge variant="success" [dot]="true">Đang hoạt động</pos-badge>
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
+  </div>
+</div>

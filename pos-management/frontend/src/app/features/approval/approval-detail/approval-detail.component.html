@@ -1,0 +1,147 @@
+<div class="pos-page-container">
+  <!-- Top Navigation & Action Header -->
+  <div class="detail-header-card">
+    <div class="header-left">
+      <pos-button btnId="btn-back" variant="secondary" icon="bi bi-arrow-left" (clicked)="onBack()">Quay lại Inbox</pos-button>
+      <div class="header-titles">
+        <h2 class="page-title">
+          <span>{{ approvalInfo().title }}</span>
+          <pos-badge [variant]="approvalInfo().status === 'APPROVED' ? 'success' : (approvalInfo().status === 'REJECTED' ? 'danger' : 'warning')">
+            {{ approvalInfo().status === 'APPROVED' ? 'Đã Phê Duyệt' : (approvalInfo().status === 'REJECTED' ? 'Đã Từ Chối' : 'Chờ Phê Duyệt') }}
+          </pos-badge>
+        </h2>
+        <span class="sub-title">Mã trình duyệt: <strong>{{ approvalInfo().id }}</strong> | Loại: {{ approvalInfo().type }} | Ngày tạo: {{ approvalInfo().createdDate }}</span>
+      </div>
+    </div>
+
+    <div class="header-actions" *ngIf="approvalInfo().status === 'PENDING'">
+      <pos-button btnId="btn-reject" variant="danger" icon="bi bi-x-circle" (clicked)="onReject()">Từ chối</pos-button>
+      <pos-button btnId="btn-approve" variant="success" icon="bi bi-check-circle-fill" (clicked)="onApprove()">Phê duyệt hồ sơ</pos-button>
+    </div>
+  </div>
+
+  <!-- Main Detail Info Grid -->
+  <div class="detail-grid">
+    <!-- Left Column: General Info & Items Table -->
+    <div class="left-section">
+      <div class="detail-card">
+        <div class="card-header">
+          <i class="bi bi-info-circle-fill icon-blue"></i>
+          <span>Thông Tin Chung Trình Duyệt</span>
+        </div>
+        <div class="card-body">
+          <div class="info-rows">
+            <div class="info-group">
+              <span class="info-label">Người trình:</span>
+              <span class="info-value font-medium">{{ approvalInfo().creator }}</span>
+            </div>
+            <div class="info-group">
+              <span class="info-label">Đơn vị trình:</span>
+              <span class="info-value">{{ approvalInfo().department }}</span>
+            </div>
+            <div class="info-group">
+              <span class="info-label">Kho tiếp nhận:</span>
+              <span class="info-value">{{ approvalInfo().warehouse }}</span>
+            </div>
+            <div class="info-group">
+              <span class="info-label">Nhà cung cấp:</span>
+              <span class="info-value">{{ approvalInfo().vendor }}</span>
+            </div>
+            <div class="info-group">
+              <span class="info-label">Số hợp đồng:</span>
+              <span class="info-value font-mono">{{ approvalInfo().contractNo }}</span>
+            </div>
+            <div class="info-group">
+              <span class="info-label">Tổng giá trị:</span>
+              <span class="info-value text-primary font-bold">{{ approvalInfo().totalValue | number:'1.0-0' }} VNĐ</span>
+            </div>
+            <div class="info-group full-width">
+              <span class="info-label">Ghi chú trình duyệt:</span>
+              <span class="info-value">{{ approvalInfo().note }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items List Table -->
+      <div class="detail-card mt-4">
+        <div class="card-header">
+          <i class="bi bi-box-seam icon-blue"></i>
+          <span>Danh Sách Danh Mục Hàng Khởi Tạo</span>
+        </div>
+        <div class="card-body p-0">
+          <pos-table [columns]="columns" [data]="items()">
+            <ng-template #cellTemplate let-item let-field="field">
+              <ng-container [ngSwitch]="field">
+                <span *ngSwitchCase="'unitPrice'">{{ item.unitPrice | number:'1.0-0' }}</span>
+                <span *ngSwitchCase="'totalAmount'" class="font-bold text-primary">{{ item.totalAmount | number:'1.0-0' }}</span>
+                <span *ngSwitchDefault>{{ item[field] }}</span>
+              </ng-container>
+            </ng-template>
+          </pos-table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Workflow Steps & Comments -->
+    <div class="right-section">
+      <div class="detail-card">
+        <div class="card-header">
+          <i class="bi bi-diagram-3-fill icon-blue"></i>
+          <span>Luồng Tiến Trình Phê Duyệt</span>
+        </div>
+        <div class="card-body">
+          <div class="timeline-container">
+            <div *ngFor="let step of workflowSteps(); let i = index" class="timeline-item" [class.active]="step.status === 'PENDING'" [class.completed]="step.status === 'COMPLETED'">
+              <div class="timeline-badge">
+                <i class="bi" [ngClass]="step.status === 'COMPLETED' ? 'bi-check-lg' : (step.status === 'PENDING' ? 'bi-clock-fill' : 'bi-circle')"></i>
+              </div>
+              <div class="timeline-content">
+                <div class="step-title font-bold">{{ step.stepName }}</div>
+                <div class="step-user text-muted">Người xử lý: {{ step.assignee }}</div>
+                <div *ngIf="step.actionDate" class="step-date text-xs text-muted">{{ step.actionDate }}</div>
+                <div *ngIf="step.comment" class="step-comment mt-1 p-2 bg-light rounded text-sm">"{{ step.comment }}"</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-card mt-4" *ngIf="approvalInfo().status === 'PENDING'">
+        <div class="card-header">
+          <i class="bi bi-chat-left-text-fill icon-blue"></i>
+          <span>Ý Kiến Phê Duyệt / Nhận Xét</span>
+        </div>
+        <div class="card-body">
+          <pos-input
+            inputId="comment-text"
+            label="Nội dung ý kiến (không bắt buộc)"
+            placeholder="Nhập ghi chú hoặc lý do phê duyệt / từ chối..."
+            [ngModel]="commentText()"
+            (ngModelChange)="commentText.set($event)">
+          </pos-input>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal Approve -->
+  <pos-confirm-dialog
+    [isOpen]="isApproveModalOpen()"
+    title="Xác nhận Phê duyệt Hồ sơ"
+    message="Bạn có chắc chắn muốn PHÊ DUYỆT hồ sơ trình duyệt này không? Thiết bị sẽ tự động được ghi nhận vào hệ thống kho."
+    type="info"
+    (confirm)="confirmApprove()"
+    (cancel)="isApproveModalOpen.set(false)">
+  </pos-confirm-dialog>
+
+  <!-- Confirm Modal Reject -->
+  <pos-confirm-dialog
+    [isOpen]="isRejectModalOpen()"
+    title="Xác nhận Từ chối Hồ sơ"
+    message="Bạn có chắc chắn muốn TỪ CHỐI hồ sơ này không? Yêu cầu sẽ bị hủy bỏ và chuyển trạng thái Từ chối."
+    type="danger"
+    (confirm)="confirmReject()"
+    (cancel)="isRejectModalOpen.set(false)">
+  </pos-confirm-dialog>
+</div>

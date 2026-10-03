@@ -1,0 +1,118 @@
+/* ==========================================
+   Shared List Page Layout & Card Styles
+   ========================================== */
+
+.pos-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.search-zone-card, .list-zone-card {
+  background: var(--pos-bg-card, #ffffff);
+  border: 1px solid var(--pos-border-color, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+
+  .search-card-header, .list-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--pos-border-color, #f1f5f9);
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--pos-text-main, #1e293b);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .icon-blue {
+        color: var(--pos-primary-color, #0284c7);
+      }
+
+      .count-badge {
+        margin-left: 8px;
+      }
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+  }
+
+  .search-card-body, .list-card-body {
+    padding: 20px;
+  }
+
+  .list-card-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--pos-border-color, #f1f5f9);
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  align-items: end;
+
+  .filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+}
+
+.font-mono {
+  font-family: var(--font-mono, monospace);
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-bold {
+  font-weight: 600;
+}
+
+.text-primary {
+  color: var(--pos-primary-color, #0284c7);
+}
+
+.text-success {
+  color: #10b981;
+}
+
+.text-danger {
+  color: #ef4444;
+}
+
+.text-warning {
+  color: #f59e0b;
+}
+
+.text-muted {
+  color: var(--pos-text-secondary, #64748b);
+}
+
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.modal-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}

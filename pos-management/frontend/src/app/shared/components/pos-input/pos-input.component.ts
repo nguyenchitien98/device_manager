@@ -123,7 +123,7 @@ export class PosInputComponent implements ControlValueAccessor {
   @Input() prefixIcon  = '';
   @Input() suffixIcon  = '';
 
-  @Output() enterPressed = new EventEmitter<KeyboardEvent>();
+  @Output() enterPressed = new EventEmitter<Event>();
 
   value     = '';
   isDisabled = false;

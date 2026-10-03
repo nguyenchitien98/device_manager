@@ -1,0 +1,40 @@
+<div class="list-page-container">
+  <div class="search-zone-card">
+    <div class="create-header-row">
+      <pos-button variant="ghost" (clicked)="goBack()">← Quay lại danh sách</pos-button>
+      <h2>Tạo Lệnh Điều Chuyển Kho Thiết Bị POS</h2>
+    </div>
+
+    <div class="form-grid">
+      <pos-select label="Kho Xuất Hàng" selectId="sel-trf-src" [options]="warehouseOptions" [(ngModel)]="formModel.sourceWarehouse" />
+      <pos-select label="Kho Nhận Hàng" selectId="sel-trf-tgt" [options]="warehouseOptions" [(ngModel)]="formModel.targetWarehouse" />
+      <pos-input type="textarea" label="Ghi Chú Điều Chuyển" inputId="inp-trf-note" [(ngModel)]="formModel.note" />
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-toolbar">
+      <div class="toolbar-left">
+        <h3 class="list-title">Danh Sách Serial Thiết Bị POS Điều Chuyển</h3>
+        <pos-badge variant="info">{{ parsedCount() }} thiết bị nhận diện</pos-badge>
+      </div>
+    </div>
+
+    <div class="serial-entry-area">
+      <pos-input
+        type="textarea"
+        label="Dán danh sách Serial Number (Mỗi Serial một dòng)"
+        inputId="inp-serial-trf-lines"
+        [rows]="10"
+        placeholder="VD:&#10;PAX-A920-998822&#10;PAX-A920-998823"
+        [ngModel]="formModel.serialListText"
+        (ngModelChange)="formModel.serialListText = $event; onSerialListChange($event)"
+      />
+    </div>
+
+    <div class="form-actions-bar">
+      <pos-button variant="ghost" (clicked)="goBack()">Hủy bỏ</pos-button>
+      <pos-button variant="primary" [loading]="saving()" (clicked)="onSubmit()">Lưu & Gửi Duyệt Điều Chuyển</pos-button>
+    </div>
+  </div>
+</div>

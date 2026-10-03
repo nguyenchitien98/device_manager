@@ -1,0 +1,11 @@
+@import '../../../shared/styles/list-page.shared.scss';
+
+.code-badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a56db;
+  background-color: rgba(26, 86, 219, 0.08);
+  padding: 3px 8px;
+  border-radius: 6px;
+}

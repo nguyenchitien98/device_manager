@@ -1,0 +1,147 @@
+<div class="pos-page-container">
+  <div class="search-zone-card">
+    <div class="search-card-header">
+      <div class="card-title">
+        <i class="bi bi-people-fill icon-blue"></i>
+        <span>Quản lý Tài khoản & Phân quyền Người dùng</span>
+      </div>
+    </div>
+    <div class="search-card-body">
+      <div class="filter-grid">
+        <pos-input
+          inputId="search-keyword"
+          label="Từ khóa tìm kiếm"
+          placeholder="Username, Họ tên, Email..."
+          [ngModel]="keyword()"
+          (ngModelChange)="keyword.set($event)"
+          (keydown.enter)="onSearch()">
+        </pos-input>
+
+        <pos-select
+          selectId="search-role"
+          label="Vai Trò Người Dùng"
+          [options]="roleOptions"
+          [(ngModel)]="selectedRole">
+        </pos-select>
+
+        <pos-select
+          selectId="search-status"
+          label="Trạng Thái Tài Khoản"
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus">
+        </pos-select>
+
+        <div class="filter-actions">
+          <pos-button btnId="btn-search" variant="primary" icon="bi bi-search" (clicked)="onSearch()">Lọc tài khoản</pos-button>
+          <pos-button btnId="btn-reset" variant="secondary" icon="bi bi-arrow-counterclockwise" (clicked)="onReset()">Đặt lại</pos-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-card-header">
+      <div class="card-title">
+        <i class="bi bi-person-lines-fill icon-blue"></i>
+        <span>Danh sách Tài khoản Người dùng</span>
+        <pos-badge variant="info" class="count-badge">{{ filteredUsers().length }} tài khoản</pos-badge>
+      </div>
+
+      <div class="card-actions">
+        <pos-button btnId="btn-create-user" variant="primary" icon="bi bi-plus-lg" (clicked)="openCreateModal()">
+          Tạo Tài Khoản Mới
+        </pos-button>
+      </div>
+    </div>
+
+    <div class="list-card-body">
+      <pos-table [columns]="columns" [data]="filteredUsers()" [loading]="loading()">
+        <ng-template #cellTemplate let-item let-field="field">
+          <ng-container [ngSwitch]="field">
+            <span *ngSwitchCase="'username'" class="font-mono text-primary font-bold">
+              {{ item.username }}
+            </span>
+            <span *ngSwitchCase="'status'">
+              <pos-badge [variant]="item.status === 'ACTIVE' ? 'success' : 'danger'">
+                {{ item.status === 'ACTIVE' ? 'Hoạt động' : 'Bị khóa' }}
+              </pos-badge>
+            </span>
+            <span *ngSwitchCase="'actions'">
+              <pos-dropdown
+                [items]="getActionItems(item)"
+                (itemClick)="onActionClick(item, $event)">
+              </pos-dropdown>
+            </span>
+            <span *ngSwitchDefault>{{ item[field] }}</span>
+          </ng-container>
+        </ng-template>
+      </pos-table>
+    </div>
+
+    <div class="list-card-footer">
+      <pos-pagination
+        [totalItems]="filteredUsers().length"
+        [pageSize]="pageSize()"
+        [currentPage]="currentPage()"
+        (pageChange)="currentPage.set($event)">
+      </pos-pagination>
+    </div>
+  </div>
+
+  <!-- Create / Edit Modal -->
+  <pos-modal
+    [isOpen]="isModalOpen()"
+    [title]="isEditMode() ? 'Chỉnh Sửa Thông Tin Tài Khoản' : 'Tạo Mới Tài Khoản Người Dùng'"
+    size="md"
+    (closeModal)="isModalOpen.set(false)">
+    <div class="modal-form-grid">
+      <pos-input
+        inputId="form-username"
+        label="Tên đăng nhập (Username)"
+        placeholder="VD: user_nam"
+        [disabled]="isEditMode()"
+        [ngModel]="formUsername()"
+        (ngModelChange)="formUsername.set($event)">
+      </pos-input>
+
+      <pos-input
+        inputId="form-fullname"
+        label="Họ và tên"
+        placeholder="VD: Nguyễn Văn Nam"
+        [ngModel]="formFullName()"
+        (ngModelChange)="formFullName.set($event)">
+      </pos-input>
+
+      <pos-input
+        inputId="form-email"
+        label="Email công vụ"
+        placeholder="VD: nam.nv@bank.com.vn"
+        [ngModel]="formEmail()"
+        (ngModelChange)="formEmail.set($event)">
+      </pos-input>
+
+      <pos-input
+        inputId="form-phone"
+        label="Số điện thoại"
+        placeholder="VD: 0912345678"
+        [ngModel]="formPhone()"
+        (ngModelChange)="formPhone.set($event)">
+      </pos-input>
+    </div>
+
+    <div class="modal-footer-actions">
+      <pos-button btnId="btn-cancel-user" variant="secondary" (clicked)="isModalOpen.set(false)">Hủy bỏ</pos-button>
+      <pos-button btnId="btn-save-user" variant="primary" (clicked)="saveUser()">Lưu thông tin</pos-button>
+    </div>
+  </pos-modal>
+
+  <!-- Lock Confirm Dialog -->
+  <pos-confirm-dialog
+    [isOpen]="isLockModalOpen()"
+    [title]="selectedItem()?.status === 'ACTIVE' ? 'Khóa Tài Khoản Người Dùng' : 'Mở Khóa Tài Khoản'"
+    [message]="'Bạn có chắc chắn muốn thay đổi trạng thái hoạt động của tài khoản ' + selectedItem()?.username + '?'"
+    [type]="selectedItem()?.status === 'ACTIVE' ? 'danger' : 'info'"
+    (confirm)="confirmToggleLock()"
+    (cancel)="isLockModalOpen.set(false)">
+  </pos-confirm-dialog>
+</div>

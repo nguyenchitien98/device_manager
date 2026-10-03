@@ -1,0 +1,67 @@
+import { ChangeDetectionStrategy, Component, Input, signal, OnChanges, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+
+@Component({
+  selector: 'app-sidebar',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, RouterModule],
+  templateUrl: './sidebar.component.html',
+  styleUrl: './sidebar.component.scss'
+})
+export class SidebarComponent implements OnChanges {
+  @Input() isCollapsed = false;
+  @Input() activeRoute = '/dashboard';
+  @Input() approvalBadge = 8;
+
+  /** Mỗi group key: true = expanded */
+  readonly expandedGroups = signal<Record<string, boolean>>({
+    catalog: true
+  });
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['activeRoute'] && changes['activeRoute'].currentValue) {
+      this.autoExpandGroup(changes['activeRoute'].currentValue);
+    }
+  }
+
+  /** Auto expand active route group */
+  private autoExpandGroup(url: string): void {
+    if (url.startsWith('/catalog') || url.startsWith('/organization') || url.startsWith('/inventory/purchase-orders')) {
+      this.expandedGroups.set({ catalog: true });
+    } else if (url.startsWith('/merchant')) {
+      this.expandedGroups.set({ merchant: true });
+    } else if (url.startsWith('/inventory')) {
+      this.expandedGroups.set({ inventory: true });
+    } else if (url.startsWith('/device')) {
+      this.expandedGroups.set({ device: true });
+    } else if (url.startsWith('/assignment')) {
+      this.expandedGroups.set({ assignment: true });
+    } else if (url.startsWith('/approval')) {
+      this.expandedGroups.set({ approval: true });
+    } else if (url.startsWith('/monitoring') || url.startsWith('/reports')) {
+      this.expandedGroups.set({ reports: true });
+    } else if (url.startsWith('/system')) {
+      this.expandedGroups.set({ system: true });
+    }
+  }
+
+  /** Toggle accordion group — chỉ mở 1 nhóm danh mục cha duy nhất tại một thời điểm */
+  toggleGroup(key: string): void {
+    this.expandedGroups.update(prev => {
+      const isCurrentlyOpen = !!prev[key];
+      return isCurrentlyOpen ? {} : { [key]: true };
+    });
+  }
+
+  /** Kiểm tra group có đang mở không */
+  isGroupOpen(key: string): boolean {
+    return !!this.expandedGroups()[key];
+  }
+
+  /** Kiểm tra route có active không */
+  isActive(route: string): boolean {
+    return this.activeRoute === route || this.activeRoute.startsWith(route + '/');
+  }
+}

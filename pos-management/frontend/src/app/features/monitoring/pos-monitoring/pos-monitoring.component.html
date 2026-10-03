@@ -1,0 +1,118 @@
+<div class="pos-page-container">
+  <!-- Summary Monitoring Cards -->
+  <div class="stats-row">
+    <div class="stat-card border-left-success">
+      <div class="stat-icon bg-success-light text-success">
+        <i class="bi bi-wifi"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Đang Online</span>
+        <span class="stat-value text-success">{{ onlineCount() }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card border-left-warning">
+      <div class="stat-icon bg-warning-light text-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Cảnh báo / Pin yếu</span>
+        <span class="stat-value text-warning">{{ warningCount() }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card border-left-danger">
+      <div class="stat-icon bg-danger-light text-danger">
+        <i class="bi bi-wifi-off"></i>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">Offline / Mất kết nối</span>
+        <span class="stat-value text-danger">{{ offlineCount() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-zone-card mt-3">
+    <div class="search-card-header">
+      <div class="card-title">
+        <i class="bi bi-activity icon-blue"></i>
+        <span>Giám sát Trạng thái Mạng & Hoạt động POS (Realtime)</span>
+      </div>
+    </div>
+    <div class="search-card-body">
+      <div class="filter-grid">
+        <pos-input
+          inputId="search-keyword"
+          label="Từ khóa tìm kiếm"
+          placeholder="Serial POS, Tên Merchant, Mã TID..."
+          [ngModel]="keyword()"
+          (ngModelChange)="keyword.set($event)"
+          (keydown.enter)="onSearch()">
+        </pos-input>
+
+        <pos-select
+          selectId="search-status"
+          label="Trạng Thái Kết Nối"
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus">
+        </pos-select>
+
+        <pos-select
+          selectId="search-connection"
+          label="Mạng Kết Nối"
+          [options]="connectionOptions"
+          [(ngModel)]="selectedConnection">
+        </pos-select>
+
+        <div class="filter-actions">
+          <pos-button btnId="btn-search" variant="primary" icon="bi bi-search" (clicked)="onSearch()">Lọc dữ liệu</pos-button>
+          <pos-button btnId="btn-reset" variant="secondary" icon="bi bi-arrow-counterclockwise" (clicked)="onReset()">Đặt lại</pos-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-zone-card">
+    <div class="list-card-header">
+      <div class="card-title">
+        <i class="bi bi-display icon-blue"></i>
+        <span>Danh sách Thiết bị Giám sát</span>
+        <pos-badge variant="info" class="count-badge">{{ filteredDevices().length }} máy</pos-badge>
+      </div>
+    </div>
+
+    <div class="list-card-body">
+      <pos-table [columns]="columns" [data]="filteredDevices()" [loading]="loading()">
+        <ng-template #cellTemplate let-item let-field="field">
+          <ng-container [ngSwitch]="field">
+            <span *ngSwitchCase="'serialNumber'" class="font-mono text-primary font-bold">
+              {{ item.serialNumber }}
+            </span>
+            <span *ngSwitchCase="'batteryLevel'">
+              <div class="d-flex align-items-center justify-content-center gap-1">
+                <i class="bi" [ngClass]="item.batteryLevel < 20 ? 'bi-battery text-danger' : (item.batteryLevel < 50 ? 'bi-battery-half text-warning' : 'bi-battery-full text-success')"></i>
+                <span>{{ item.batteryLevel }}%</span>
+              </div>
+            </span>
+            <span *ngSwitchCase="'status'">
+              <pos-badge [variant]="item.status === 'ONLINE' ? 'success' : (item.status === 'WARNING' ? 'warning' : 'danger')">
+                <i class="bi" [ngClass]="item.status === 'ONLINE' ? 'bi-circle-fill text-xs' : 'bi-dash-circle'"></i>
+                {{ item.status }}
+              </pos-badge>
+            </span>
+            <span *ngSwitchDefault>{{ item[field] }}</span>
+          </ng-container>
+        </ng-template>
+      </pos-table>
+    </div>
+
+    <div class="list-card-footer">
+      <pos-pagination
+        [totalItems]="filteredDevices().length"
+        [pageSize]="pageSize()"
+        [currentPage]="currentPage()"
+        (pageChange)="currentPage.set($event)">
+      </pos-pagination>
+    </div>
+  </div>
+</div>
