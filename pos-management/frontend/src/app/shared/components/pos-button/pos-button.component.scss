@@ -1,0 +1,143 @@
+/* ================================================================
+   PosButton — Design System Button Component
+   Variants: primary | secondary | ghost | danger | success | warning
+   Sizes:    xs | sm | md | lg
+   ================================================================ */
+
+.pos-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  font-family: var(--font);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  outline: none;
+  position: relative;
+  transition: background 0.14s, border-color 0.14s, color 0.14s,
+              box-shadow 0.14s, transform 0.1s, opacity 0.14s;
+  user-select: none;
+  text-decoration: none;
+
+  /* ─── Active press feedback ──────────────────────────── */
+  &:active:not(:disabled) { transform: scale(0.97); }
+  &:focus-visible { box-shadow: 0 0 0 3px rgba(26,86,219,0.28); }
+
+  /* ─── Disabled ───────────────────────────────────────── */
+  &:disabled,
+  &[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* ─── Loading state ──────────────────────────────────── */
+  &--loading { pointer-events: none; }
+
+  /* ── Spinner ─────────────────────────── */
+  &__spinner {
+    position: absolute;
+    width: 14px; height: 14px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: pos-btn-spin 0.6s linear infinite;
+  }
+
+  &__content--hidden { opacity: 0; }
+
+  @keyframes pos-btn-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ─── Sizes ──────────────────────────────────────────── */
+  &--xs { font-size: 11px; padding: 4px 10px; border-radius: 6px; gap: 4px; }
+  &--sm { font-size: 12px; padding: 6px 14px; border-radius: 7px; gap: 5px; }
+  &--md { font-size: 13px; padding: 9px 18px; border-radius: 8px; gap: 6px; }
+  &--lg { font-size: 14px; padding: 11px 24px; border-radius: 9px; gap: 8px; }
+
+  /* ─── Icon-only (square) ─────────────────────────────── */
+  &--icon-only {
+    &.pos-btn--xs { width: 24px; height: 24px; padding: 0; }
+    &.pos-btn--sm { width: 30px; height: 30px; padding: 0; }
+    &.pos-btn--md { width: 36px; height: 36px; padding: 0; }
+    &.pos-btn--lg { width: 42px; height: 42px; padding: 0; }
+  }
+
+  /* ─── Variants ───────────────────────────────────────── */
+
+  /* PRIMARY */
+  &--primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #FFFFFF;
+
+    &:hover:not(:disabled) {
+      background: var(--primary-hover, #1446B3);
+      border-color: var(--primary-hover, #1446B3);
+      box-shadow: 0 4px 12px rgba(26,86,219,0.3);
+    }
+  }
+
+  /* SECONDARY */
+  &--secondary {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+
+    &:hover:not(:disabled) {
+      background: var(--bg-hover);
+      border-color: var(--input-border);
+    }
+  }
+
+  /* GHOST */
+  &--ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text-secondary);
+
+    &:hover:not(:disabled) {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+  }
+
+  /* DANGER */
+  &--danger {
+    background: var(--bg-card);
+    border-color: var(--error, #DC2626);
+    color: var(--error, #DC2626);
+
+    &:hover:not(:disabled) {
+      background: rgba(220,38,38,0.08);
+      box-shadow: 0 2px 8px rgba(220,38,38,0.2);
+    }
+  }
+
+  /* SUCCESS */
+  &--success {
+    background: var(--bg-card);
+    border-color: var(--success, #059669);
+    color: var(--success, #059669);
+
+    &:hover:not(:disabled) {
+      background: rgba(5,150,105,0.08);
+      box-shadow: 0 2px 8px rgba(5,150,105,0.2);
+    }
+  }
+
+  /* WARNING */
+  &--warning {
+    background: rgba(217,119,6,0.1);
+    border-color: var(--warning, #D97706);
+    color: var(--warning, #D97706);
+
+    &:hover:not(:disabled) {
+      background: rgba(217,119,6,0.16);
+    }
+  }
+}

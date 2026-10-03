@@ -1,0 +1,114 @@
+.pos-dropdown-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.pos-dropdown-default-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: var(--bg-hover, #f3f4f6);
+    color: var(--text-color, #111827);
+  }
+}
+
+.pos-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  z-index: 1000;
+  min-width: 180px;
+  padding: 6px;
+  background-color: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  animation: dropdownFadeIn 0.15s ease-out;
+
+  &--right {
+    right: 0;
+  }
+
+  &--left {
+    left: 0;
+  }
+}
+
+.pos-dropdown-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pos-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-color, #374151);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover:not(.pos-dropdown-item--disabled) {
+    background-color: var(--bg-hover, #f3f4f6);
+    color: var(--text-color, #111827);
+  }
+
+  &--danger {
+    color: #ef4444;
+
+    &:hover:not(.pos-dropdown-item--disabled) {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+    }
+
+    .pos-dropdown-icon {
+      color: #ef4444;
+    }
+  }
+
+  &--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.pos-dropdown-icon {
+  font-size: 18px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.pos-dropdown-label {
+  flex: 1;
+}
+
+.pos-dropdown-divider {
+  height: 1px;
+  margin: 4px 0;
+  background-color: var(--border-color, #e5e7eb);
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,109 @@
+.pos-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  &--error {
+    .pos-input-ctrl {
+      border-color: var(--error, #DC2626) !important;
+      &:focus { box-shadow: 0 0 0 3px rgba(220,38,38,0.15) !important; }
+    }
+  }
+}
+
+.pos-input-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.pos-input-required {
+  color: var(--error, #DC2626);
+  font-weight: 600;
+}
+
+.pos-input-field {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+
+  &--prefix .pos-input-ctrl { padding-left: 34px; }
+  &--suffix .pos-input-ctrl { padding-right: 34px; }
+}
+
+.pos-input-ctrl {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid var(--input-border);
+  border-radius: 8px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  resize: vertical;
+  appearance: none;
+
+  &::placeholder { color: var(--text-muted); }
+
+  &:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.12);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: var(--bg-app);
+  }
+}
+
+.pos-input-prefix-icon,
+.pos-input-suffix-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.pos-input-prefix-icon { left: 10px; }
+.pos-input-suffix-icon { right: 10px; }
+
+.pos-input-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px; height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--text-muted);
+  color: #FFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.12s;
+  padding: 0;
+
+  &:hover { opacity: 1; }
+}
+
+.pos-input-error {
+  font-size: 11px;
+  color: var(--error, #DC2626);
+  font-weight: 500;
+}
+
+.pos-input-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}

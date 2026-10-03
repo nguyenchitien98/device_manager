@@ -1,0 +1,125 @@
+.pos-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 500;
+  border-radius: 6px;
+  white-space: nowrap;
+  line-height: 1.2;
+
+  &--pill {
+    border-radius: 9999px;
+  }
+
+  /* Sizes */
+  &--sm {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+
+  &--md {
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+
+  &--lg {
+    padding: 5px 12px;
+    font-size: 13px;
+  }
+
+  /* Dot */
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: currentColor;
+  }
+
+  &__icon {
+    font-size: 14px;
+  }
+
+  /* Variants */
+  &--primary {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+  }
+
+  &--success {
+    background-color: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+  }
+
+  &--danger {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+  }
+
+  &--warning {
+    background-color: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+  }
+
+  &--info {
+    background-color: #f0f9ff;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+  }
+
+  &--gray {
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+  }
+
+  &--purple {
+    background-color: #f5f3ff;
+    color: #6d28d9;
+    border: 1px solid #ddd6fe;
+  }
+}
+
+/* Dark mode compatibility */
+:host-context(.theme-dark) {
+  .pos-badge {
+    &--primary {
+      background-color: rgba(30, 58, 138, 0.4);
+      color: #93c5fd;
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+    &--success {
+      background-color: rgba(6, 78, 59, 0.4);
+      color: #6ee7b7;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    &--danger {
+      background-color: rgba(127, 29, 29, 0.4);
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    &--warning {
+      background-color: rgba(120, 53, 15, 0.4);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+    &--info {
+      background-color: rgba(12, 74, 110, 0.4);
+      color: #7dd3fc;
+      border-color: rgba(14, 165, 233, 0.3);
+    }
+    &--gray {
+      background-color: rgba(55, 65, 81, 0.5);
+      color: #d1d5db;
+      border-color: rgba(75, 85, 99, 0.4);
+    }
+    &--purple {
+      background-color: rgba(88, 28, 135, 0.4);
+      color: #c4b5fd;
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+  }
+}

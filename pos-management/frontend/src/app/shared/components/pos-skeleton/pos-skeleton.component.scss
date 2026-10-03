@@ -1,0 +1,65 @@
+.pos-skeleton-item {
+  background: linear-gradient(
+    90deg,
+    var(--bg-hover, #e2e8f0) 25%,
+    var(--border-color, #f1f5f9) 50%,
+    var(--bg-hover, #e2e8f0) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.pos-skeleton-line {
+  border-radius: 6px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.pos-skeleton-circle {
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.pos-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.pos-skeleton-card {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  background-color: var(--bg-card, #ffffff);
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.pos-skeleton-card-body {
+  flex: 1;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+:host-context(.theme-dark) {
+  .pos-skeleton-item {
+    background: linear-gradient(
+      90deg,
+      #1f2937 25%,
+      #374151 50%,
+      #1f2937 75%
+    );
+    background-size: 200% 100%;
+  }
+}

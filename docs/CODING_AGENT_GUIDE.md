@@ -37,6 +37,21 @@ CHỈ làm tasks trong Sprint hiện tại. KHÔNG tự ý làm Sprint sau.
 
 ## 🎨 THIẾT KẾ UI — QUY TẮC BẮT BUỘC
 
+### Shared UI Components (BẮT BUỘC TÁI SỬ DỤNG 100%)
+
+TUYỆT ĐỐI KHÔNG tự viết lại các thẻ HTML thô hoặc CSS tùy biến khi đã có Shared Component trong `@shared` (`src/app/shared/index.ts`):
+- Nút bấm: `<pos-button>`
+- Ô nhập liệu / Search: `<pos-input>`
+- Dropdown select: `<pos-select>`
+- Huy hiệu trạng thái: `<pos-badge>`
+- Modal / Pop-up: `<pos-modal>`
+- Bảng dữ liệu: `<pos-table>`
+- Phân trang: `<pos-pagination>`
+- Context menu: `<pos-dropdown>`
+- Xác nhận: `<pos-confirm-dialog>`
+- Loading placeholder: `<pos-skeleton>`
+- Trang trống: `<app-empty-state>`
+
 ### Màu Sắc
 
 DÙNG CSS variables `var(--bg-card)`, `var(--text-primary)` v.v. — KHÔNG hardcode màu
