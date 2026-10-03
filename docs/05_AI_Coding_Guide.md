@@ -1,5 +1,7 @@
 # POS Management System — Hướng Dẫn Cho AI Agent (AI Coding Guide)
 
+> ⚠️ **ANTIGRAVITY AI AGENT:** Đọc `CODING_AGENT_GUIDE.md` TRƯỚC tài liệu này. Đó là "kim chỉ nam" với quy trình bắt buộc, checklist và coding standards chi tiết nhất.
+
 Tài liệu này hướng dẫn cách làm việc hiệu quả với AI Agent (Gemini, Claude, Cursor, Copilot) trong dự án POS Management. Đọc kỹ trước khi bắt đầu code bất kỳ Sprint nào.
 
 ---

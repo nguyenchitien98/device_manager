@@ -1,1303 +1,954 @@
 # POS Management System — UI/UX Standard & Screen Inventory
 
-Tài liệu này mô tả tiêu chuẩn thiết kế giao diện, bộ màu sắc, typography, component guidelines và danh sách đầy đủ **38 màn hình** cần xây dựng cho hệ thống POS Management.
+Tài liệu mô tả tiêu chuẩn thiết kế, bộ màu sắc, typography, component guidelines và 38 màn hình.
+
+> ⚠️ **QUAN TRỌNG:** Mọi màu sắc và cấu trúc được **calibrate trực tiếp từ 2 ảnh chuẩn UI** (Light + Dark). AI Agent PHẢI bám sát ảnh chuẩn.
+
+---
+
+## 0. Nguyên Tắc — BẮT BUỘC ĐỌC TRƯỚC
+
+### 0.1 Dual Theme
+
+Hỗ trợ 2 chế độ toggle bằng nút Moon/Sun trên header:
+
+| Theme | Đặc điểm |
+|---|---|
+| Light Mode | Nền trắng, sidebar trắng, text tối — từ ảnh Light Dashboard |
+| Dark Mode | Nền navy #0E1726, sidebar #111827, card #1C2A3A — từ ảnh Dark Dashboard |
+
+Angular: class `.theme-light` / `.theme-dark` trên `<body>`. ThemeService lưu localStorage.
+
+### 0.2 Sidebar Structure — Từ Ảnh Chuẩn
+
+```
+POS Management  (Logo + Brand)
+─────────────────────────────────
+TỔNG QUAN
+  Dashboard
+
+QUẢN LÝ DANH MỤC  (collapsible)
+  Device Category
+  Device Type
+  Device model
+  Vendor
+  Quản lý kho         (Warehouse — nằm trong Danh Mục)
+  Chính sách phí
+  Đơn vị Kinh doanh
+  Purchase order
+  Quản lý MCC
+
+QUẢN LÝ MERCHANT  (collapsible)
+  Danh sách merchant
+  Quản lý TID
+
+QUẢN LÝ XUẤT/NHẬP KHO  (collapsible)
+  Thông tin Nhập kho
+  Thông tin xuất kho
+  Thông tin tồn kho
+  Điều chuyển kho
+
+QUẢN LÝ THIẾT BỊ  (collapsible)
+  Tra cứu thiết bị
+
+QUẢN LÝ ASSIGNMENT  (collapsible)
+  Quản lý assignment
+  Lịch sử assignment
+
+QUY TRÌNH NGHIỆP VỤ  (collapsible)
+  Hộp việc cần duyệt  [8]  ← badge đỏ
+
+BÁO CÁO & HỆ THỐNG  (collapsible)
+  Giám sát hệ thống
+  Báo cáo
+```
+
+> ⚠️ Warehouse nằm trong **QUẢN LÝ DANH MỤC**. Nhập/Xuất/Tồn/Điều chuyển nằm trong **QUẢN LÝ XUẤT/NHẬP KHO**.
 
 ---
 
 ## 1. Design System
 
-### 1.1 Color Palette
+### 1.1 Color Palette — Light Mode
 
 ```scss
-// Primary — Banking Blue
-$primary-900: #0D1B2A;
-$primary-800: #1B2B3A;
-$primary-700: #1E3A5F;
-$primary-600: #1565C0;
-$primary-500: #1976D2;      // Primary brand color
-$primary-400: #42A5F5;
-$primary-100: #E3F2FD;
+$lm-app-bg:         #F0F2F5;
+$lm-sidebar-bg:     #FFFFFF;
+$lm-header-bg:      #FFFFFF;
+$lm-card-bg:        #FFFFFF;
+$lm-text-primary:   #1A2332;
+$lm-text-secondary: #6B7A8D;
+$lm-text-muted:     #9CA3AF;
+$lm-border:         #E5E7EB;
+$lm-sidebar-section-label: #9CA3AF;
+$lm-sidebar-item-text:     #374151;
+$lm-sidebar-item-hover:    #F3F4F6;
+$lm-sidebar-active-bg:     #1976D2;
+$lm-sidebar-active-text:   #FFFFFF;
+```
 
-// Accent — Banking Gold
-$accent-500: #F9A825;
-$accent-400: #FBC02D;
+### 1.2 Color Palette — Dark Mode
 
-// Status Colors
-$status-instock:     #2E7D32;    // Xanh lá — INSTOCK
-$status-deployed:    #1565C0;    // Xanh dương — DEPLOYED
-$status-returned:    #F57C00;    // Cam — RETURNED
-$status-repairing:   #E65100;    // Đỏ cam — REPAIRING
-$status-disposed:    #B71C1C;    // Đỏ tối — DISPOSED
-$status-out-of-wh:   #6A1B9A;    // Tím — OUT_OF_WAREHOUSE
+```scss
+$dm-app-bg:         #0E1726;
+$dm-sidebar-bg:     #111827;
+$dm-header-bg:      #111827;
+$dm-card-bg:        #1C2A3A;
+$dm-card-alt-bg:    #162032;
+$dm-text-primary:   #FFFFFF;
+$dm-text-secondary: #8899AA;
+$dm-text-muted:     #5A6A7A;
+$dm-border:         #1E3048;
+$dm-sidebar-section-label: #6B7A8D;
+$dm-sidebar-item-text:     #CBD5E1;
+$dm-sidebar-item-hover:    rgba(255,255,255,0.05);
+$dm-sidebar-active-bg:     #1976D2;
+$dm-sidebar-active-text:   #FFFFFF;
+```
 
-// Approval Status Colors
-$approval-draft:     #757575;    // Xám
-$approval-pending:   #F57C00;    // Cam — chờ duyệt
-$approval-approved:  #2E7D32;    // Xanh lá
-$approval-rejected:  #B71C1C;    // Đỏ
-$approval-executing: #1565C0;    // Xanh dương
-$approval-completed: #1B5E20;    // Xanh lá tối
+### 1.3 Shared Color Tokens
 
-// Neutral — Calibrated từ ảnh chuẩn
-$app-background:   #0E1726;    // Nền tổng thể (dark navy, bên ngoài sidebar)
-$sidebar-bg:       #111827;    // Nền sidebar (tối hơn background một chút)
-$header-bg:        #111827;    // Nền header (cùng màu sidebar)
-$card-bg:          #1C2A3A;    // Nền card / content area
-$card-bg-alt:      #162032;    // Nền card KPI lớn
-$border-color:     #1E3048;    // Màu border giữa các vùng
-$text-primary:     #FFFFFF;    // Tiêu đề, label chính
-$text-secondary:   #8899AA;    // Label phụ, mô tả
-$text-muted:       #5A6A7A;    // Section label, placeholder
-$sidebar-active-bg: #1976D2;  // Background item đang active trong sidebar (blue)
-$sidebar-active-text: #FFFFFF; // Text item active
-$sidebar-hover-bg: rgba(255,255,255,0.05); // Hover state
-$sidebar-section-label: #6B7A8D; // TỔNG QUAN, QUẢN LÝ DANH MỤC...
+```scss
+// Device Status
+$status-instock:     #2E7D32;
+$status-deployed:    #1565C0;
+$status-returned:    #F57C00;
+$status-repairing:   #E65100;
+$status-disposed:    #B71C1C;
+$status-out-of-wh:   #6A1B9A;
 
-// Neutral legacy
-$gray-900: #0E1726;
-$gray-800: #111827;
-$gray-700: #1C2A3A;
-$gray-600: #1E3048;
-$gray-100: #F5F5F5;
-$white:    #FFFFFF;
+// Approval Status
+$approval-draft:     #757575;
+$approval-pending:   #F57C00;
+$approval-approved:  #2E7D32;
+$approval-rejected:  #B71C1C;
+$approval-executing: #1565C0;
+$approval-completed: #1B5E20;
 
 // Semantic
-$success: #4CAF50;
-$warning: #FF9800;
-$error:   #F44336;
-$info:    #2196F3;
+$success: #4CAF50;  $warning: #FF9800;
+$error:   #F44336;  $info:    #2196F3;
+
+// Primary Brand
+$primary-500: #1976D2;  $primary-400: #42A5F5;
+$primary-100: #E3F2FD;  $accent-500:  #F9A825;
+
+// KPI Card Gradients
+$kpi-blue:   linear-gradient(135deg, #1565C0, #1976D2);
+$kpi-green:  linear-gradient(135deg, #1B5E20, #2E7D32);
+$kpi-indigo: linear-gradient(135deg, #311B92, #512DA8);
+$kpi-amber:  linear-gradient(135deg, #E65100, #F57C00);
+$kpi-red:    linear-gradient(135deg, #B71C1C, #C62828);
 ```
 
-### 1.2 Typography
+### 1.4 Angular CSS Variables (Dual Theme)
 
 ```scss
-// Import Google Fonts
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+// styles.scss
+body, body.theme-light {
+  --bg-app:              #F0F2F5;
+  --bg-sidebar:          #FFFFFF;
+  --bg-header:           #FFFFFF;
+  --bg-card:             #FFFFFF;
+  --text-primary:        #1A2332;
+  --text-secondary:      #6B7A8D;
+  --text-muted:          #9CA3AF;
+  --border-color:        #E5E7EB;
+  --sidebar-active-bg:   #1976D2;
+  --sidebar-active-text: #FFFFFF;
+  --sidebar-item-text:   #374151;
+  --sidebar-hover:       #F3F4F6;
+  --sidebar-section:     #9CA3AF;
+  --shadow-card:         0 1px 3px rgba(0,0,0,0.08);
+  --shadow-modal:        0 4px 24px rgba(0,0,0,0.15);
+  --input-bg:            #FFFFFF;
+  --input-border:        #D1D5DB;
+  --table-header-bg:     #F9FAFB;
+  --table-row-hover:     #F3F4F6;
+}
 
+body.theme-dark {
+  --bg-app:              #0E1726;
+  --bg-sidebar:          #111827;
+  --bg-header:           #111827;
+  --bg-card:             #1C2A3A;
+  --text-primary:        #FFFFFF;
+  --text-secondary:      #8899AA;
+  --text-muted:          #5A6A7A;
+  --border-color:        #1E3048;
+  --sidebar-active-bg:   #1976D2;
+  --sidebar-active-text: #FFFFFF;
+  --sidebar-item-text:   #CBD5E1;
+  --sidebar-hover:       rgba(255,255,255,0.05);
+  --sidebar-section:     #6B7A8D;
+  --shadow-card:         0 2px 8px rgba(0,0,0,0.4);
+  --shadow-modal:        0 8px 48px rgba(0,0,0,0.6);
+  --input-bg:            #162032;
+  --input-border:        #1E3048;
+  --table-header-bg:     #162032;
+  --table-row-hover:     rgba(255,255,255,0.04);
+}
+```
+
+### 1.5 Typography & Spacing
+
+```scss
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 $font-primary: 'Inter', sans-serif;
-$font-mono: 'JetBrains Mono', monospace;
 
-// Font Scale
-$text-xs:   12px;
-$text-sm:   13px;
-$text-base: 14px;   // Default body
-$text-md:   16px;
-$text-lg:   18px;
-$text-xl:   20px;
-$text-2xl:  24px;
-$text-3xl:  30px;
+$text-xs: 12px;  $text-sm: 13px;  $text-base: 14px;
+$text-md: 16px;  $text-lg: 18px;  $text-2xl: 24px;  $text-3xl: 30px;
 
-// Font Weight
-$fw-light:    300;
-$fw-regular:  400;
-$fw-medium:   500;
-$fw-semibold: 600;
-$fw-bold:     700;
-```
+$fw-regular: 400;  $fw-medium: 500;  $fw-semibold: 600;  $fw-bold: 700;
 
-### 1.3 Spacing & Layout
+$sidebar-width: 280px;  $sidebar-collapsed: 64px;
+$header-height: 64px;  $content-padding: 24px;
 
-```scss
-// Spacing
-$space-1: 4px;
-$space-2: 8px;
-$space-3: 12px;
-$space-4: 16px;
-$space-5: 20px;
-$space-6: 24px;
-$space-8: 32px;
-$space-10: 40px;
-
-// Layout — Calibrated từ ảnh chuẩn 1920×1080
-$sidebar-width: 280px;          // Sidebar mở rộng
-$sidebar-collapsed: 64px;       // Sidebar thu gọn (icon only)
-$header-height: 64px;           // Header top
-$content-padding: 24px;         // Padding nội dung bên phải
-$content-max-width: 1440px;     // Max width content area
-$card-border-radius: 12px;      // Bo góc card KPI
-$kpi-card-height: 120px;        // Chiều cao card KPI hàng trên
-
-// Border Radius
-$radius-sm: 4px;
-$radius-md: 8px;
-$radius-lg: 12px;
-$radius-xl: 16px;
-$radius-full: 9999px;
-
-// Shadow
-$shadow-card: 0 2px 8px rgba(0, 0, 0, 0.4);
-$shadow-modal: 0 8px 48px rgba(0, 0, 0, 0.6);
-$shadow-sidebar: 2px 0 8px rgba(0, 0, 0, 0.3);
-
-// KPI Card Gradient Backgrounds (từ ảnh chuẩn)
-$kpi-blue:    linear-gradient(135deg, #1565C0, #1976D2);   // Tổng thiết bị
-$kpi-green:   linear-gradient(135deg, #1B5E20, #2E7D32);   // Tồn kho
-$kpi-indigo:  linear-gradient(135deg, #311B92, #512DA8);   // Đang triển khai
-$kpi-amber:   linear-gradient(135deg, #E65100, #F57C00);   // Đang sửa chữa
-$kpi-red:     linear-gradient(135deg, #B71C1C, #C62828);   // Thanh lý
+$radius-sm: 4px;  $radius-md: 8px;  $radius-lg: 12px;  $radius-full: 9999px;
 ```
 
 ---
 
 ## 2. Layout Architecture
 
-### 2.1 Main Layout Structure — Theo Ảnh Chuẩn
-
-> Đã cập nhật: Bỏ Global Search khỏi header, thay bằng **Dark Mode Toggle** (🌙/☀️) và **i18n Language Switcher** (🌐).
+### 2.1 Main Layout
 
 ```
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│  HEADER (height: 64px, bg: #111827, border-bottom: 1px solid #1E3048)           │
-│  ┌─────────────────────────────────┐           ┌──────────────────────────────┐  │
-│  │ ☰  📊 POS Management  Dashboard │  ← flex-1 │ 🌙    🌐    🔔(8)  [●] ▼  │  │
-│  │  [hamburger]  [logo + name]     │           │Dark  VIE   Bell  Avatar     │  │
-│  │  + current page title inline    │           │                Admin User   │  │
-│  └─────────────────────────────────┘           │                SUPER_ADMIN  │  │
-│                                                └──────────────────────────────┘  │
-├──────────────────────────────────────────────────────────────────────────────────┤
-│  SIDEBAR (280px, bg: #111827)    │  MAIN CONTENT AREA (flex-1, bg: #0E1726)     │
-│  ─────────────────────────────  │  ────────────────────────────────────────     │
-│  🏠 POS Management (logo+name)  │  ┌────────────────────────────────────────┐   │
-│                                 │  │  BREADCRUMB (khi không phải Dashboard) │   │
-│  TỔNG QUAN (section label)      │  │  Quản Lý Danh Mục  >  Loại thiết bị   │   │
-│  [🏠 Dashboard]  ← active=blue  │  └────────────────────────────────────────┘   │
-│                                 │                                               │
-│  QUẢN LÝ DANH MỤC ▲ (expanded) │  ┌────────────────────────────────────────┐   │
-│    Device Category              │  │  PAGE HEADER                           │   │
-│    Device Type                  │  │  [Page Title]           [Action Btns]  │   │
-│    Device Model                 │  └────────────────────────────────────────┘   │
-│    Vendor                       │                                               │
-│    MCC                          │  ┌────────────────────────────────────────┐   │
-│    Business Unit                │  │  CONTENT AREA (padding: 24px)          │   │
-│    Fee Policy                   │  │  Table / Form / Detail / Dashboard     │   │
-│                                 │  │                                        │   │
-│  QUẢN LÝ KHO ▼ (collapsed)      │  └────────────────────────────────────────┘   │
-│  QUẢN LÝ MERCHANT ▼             │                                               │
-│  QUẢN LÝ THIẾT BỊ ▼             │                                               │
-│  QUẢN LÝ ASSIGNMENT ▼           │                                               │
-│  QUY TRÌNH NGHIỆP VỤ            │                                               │
-│    Hộp việc cần duyệt [8]       │                                               │
-│  BÁO CÁO & HỆ THỐNG ▼           │                                               │
-└──────────────────────────────────────────────────────────────────────────────────┘
+HEADER (64px, bg: var(--bg-header), border-bottom: 1px solid var(--border-color))
+  LEFT:  [Hamburger] [Logo] "POS Management" | [Page Title - dynamic từ route]
+  RIGHT: [Moon/Sun] [VIE] [Bell+badge] [Avatar+dropdown]
+
+SIDEBAR (280px, bg: var(--bg-sidebar))  |  CONTENT (flex-1, bg: var(--bg-app))
+  Collapsible to 64px                   |  Breadcrumb (trừ /dashboard)
+  Menu theo structure Section 0.2       |  Page Header + Actions
+                                        |  Content (padding: 24px)
 ```
 
-### 2.2 Breadcrumb Navigation — Bắt Buộc Trên Mọi Trang (Trừ Dashboard)
+### 2.2 Sidebar CSS
 
-Breadcrumb nằm ở **vị trí đầu tiên trong main content area**, phía trên Page Header, font 13px màu `$text-secondary`.
-
-```
- Trang hiện tại → URL → Breadcrumb hiển thị
- ─────────────────────────────────────────────────────────────────────────────
- /dashboard                    →  (không có breadcrumb)
- /catalog/device-categories    →  Quản Lý Danh Mục  >  Danh mục thiết bị
- /catalog/device-types         →  Quản Lý Danh Mục  >  Loại thiết bị
- /catalog/device-models        →  Quản Lý Danh Mục  >  Model thiết bị
- /catalog/vendors              →  Quản Lý Danh Mục  >  Nhà cung cấp
- /catalog/mcc                  →  Quản Lý Danh Mục  >  MCC
- /organization/business-units  →  Quản Lý Danh Mục  >  Đơn vị kinh doanh
- /organization/warehouses      →  Quản Lý Danh Mục  >  Kho
- /catalog/fee-policies         →  Quản Lý Danh Mục  >  Chính sách phí
- /inventory/purchase-orders    →  Quản Lý Kho  >  Thông tin nhập kho
- /inventory/stock-export       →  Quản Lý Kho  >  Thông tin xuất kho
- /inventory/stock              →  Quản Lý Kho  >  Tồn kho
- /inventory/transfers          →  Quản Lý Kho  >  Điều chuyển kho
- /merchant/merchants           →  Quản Lý Merchant  >  Danh sách Merchant
- /merchant/merchants/:id       →  Quản Lý Merchant  >  Danh sách Merchant  >  Chi tiết
- /merchant/terminals           →  Quản Lý Merchant  >  TID (Terminal)
- /device/search                →  Quản Lý Thiết Bị  >  Tra cứu thiết bị
- /device/:serial               →  Quản Lý Thiết Bị  >  Tra cứu thiết bị  >  SN-POS-XXXXXX
- /assignment/create            →  Quản Lý Assignment  >  Cấp phát thiết bị
- /assignment/list              →  Quản Lý Assignment  >  Danh sách assignment
- /assignment/history           →  Quản Lý Assignment  >  Lịch sử assignment
- /approval/inbox               →  Quy Trình Nghiệp Vụ  >  Hộp việc cần duyệt
- /approval/:id                 →  Quy Trình Nghiệp Vụ  >  Hộp việc cần duyệt  >  Chi tiết
- /approval/my-requests         →  Quy Trình Nghiệp Vụ  >  Yêu cầu tôi đã tạo
- /approval/all                 →  Quy Trình Nghiệp Vụ  >  Tất cả yêu cầu
- /approval/history             →  Quy Trình Nghiệp Vụ  >  Lịch sử phê duyệt
- /monitoring/dashboard         →  Báo Cáo & Hệ Thống  >  Giám sát POS
- /monitoring/audit             →  Báo Cáo & Hệ Thống  >  Audit Log
- /reports                      →  Báo Cáo & Hệ Thống  >  Báo cáo
- /admin/users                  →  Quản Trị  >  Quản lý User
- /admin/roles                  →  Quản Trị  >  Phân quyền
-```
-
-**Angular implementation:**
-```typescript
-// breadcrumb.service.ts — tự động generate từ route data
-export const ROUTES_WITH_BREADCRUMB: Routes = [
-  {
-    path: 'catalog',
-    data: { breadcrumb: 'Quản Lý Danh Mục' },
-    children: [
-      { path: 'device-types', data: { breadcrumb: 'Loại thiết bị' } },
-      { path: 'device-models', data: { breadcrumb: 'Model thiết bị' } },
-      // ...
-    ]
-  },
-  {
-    path: 'device',
-    data: { breadcrumb: 'Quản Lý Thiết Bị' },
-    children: [
-      { path: 'search', data: { breadcrumb: 'Tra cứu thiết bị' } },
-      // Route :serial sẽ lấy breadcrumb động từ signal: device().serialNumber
-      { path: ':serial', data: { breadcrumb: null } } // null = dùng dynamic value
-    ]
-  }
-];
-
-// Breadcrumb component hiển thị:
-// Quản Lý Danh Mục  ›  Loại thiết bị
-// [parent link]     ›  [current page - không có link]
-```
-
-**HTML template:**
-```html
-<!-- breadcrumb.component.html -->
-<nav class="breadcrumb" aria-label="Breadcrumb" *ngIf="breadcrumbs().length > 0">
-  <ol>
-    <li *ngFor="let crumb of breadcrumbs(); let last = last">
-      <a *ngIf="!last" [routerLink]="crumb.url" class="breadcrumb__link">
-        {{ crumb.label }}
-      </a>
-      <span *ngIf="last" class="breadcrumb__current">{{ crumb.label }}</span>
-      <span *ngIf="!last" class="breadcrumb__separator">›</span>
-    </li>
-  </ol>
-</nav>
-```
-
-**CSS:**
 ```scss
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
+.sidebar {
+  width: $sidebar-width;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  height: 100vh;  overflow-y: auto;
+  transition: width 0.25s ease;
 
-  ol { display: flex; align-items: center; gap: 6px; list-style: none; padding: 0; }
+  &.collapsed { width: $sidebar-collapsed; }
+}
 
-  &__link {
-    font-size: 13px;
-    color: $text-secondary;   // #8899AA
-    text-decoration: none;
-    transition: color 0.2s;
-    &:hover { color: $primary-400; text-decoration: underline; }
-  }
+.sidebar__section-label {
+  font-size: 11px; font-weight: $fw-semibold;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--sidebar-section); padding: 16px 16px 6px;
+}
 
-  &__separator {
-    font-size: 13px;
-    color: $text-muted;       // #5A6A7A
-  }
+.sidebar__item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 16px; border-radius: $radius-md;
+  margin: 2px 8px; color: var(--sidebar-item-text);
+  transition: background 0.15s;
 
-  &__current {
-    font-size: 13px;
-    color: $text-primary;     // #FFFFFF
-    font-weight: 500;
-  }
+  &:hover { background: var(--sidebar-hover); }
+  &.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-text); font-weight: $fw-semibold; }
+}
+
+.sidebar__badge {
+  margin-left: auto; background: #E53E3E; color: #FFF;
+  font-size: 11px; border-radius: $radius-full; padding: 2px 7px;
 }
 ```
 
-### 2.3 Sidebar Menu Structure — Theo Ảnh Chuẩn
+### 2.3 Breadcrumb — Bắt Buộc (Trừ Dashboard)
 
-Sidebar dùng **collapsible accordion** — mỗi section có thể mở/đóng bằng chevron `▲`/`▼`.
-Sidebar item active (đang xem) được highlight bằng background blue `#1976D2`.
-
-```
-┌─────────────────────────────────────────┐
-│  📊 POS Management          (logo + text)│  ← header sidebar, height 64px
-├─────────────────────────────────────────┤
-│                                         │
-│  TỔNG QUAN                  (label mờ)  │
-│  🏠 Dashboard               [active]   │  ← full-width, bg #1976D2, radius 8px
-│                                         │
-│  QUẢN LÝ DANH MỤC           (label) ▲  │  ← có chevron, click để collapse
-│    □ Device Category                    │  ← indent 16px, icon nhỏ
-│    □ Device Type                        │
-│    □ Device Model                       │
-│    □ Vendor                             │
-│    □ MCC                                │
-│    □ Business Unit                      │
-│    □ Fee Policy                         │
-│                                         │
-│  QUẢN LÝ KHO                (label) ▼  │  ← collapsed
-│  QUẢN LÝ MERCHANT           (label) ▼  │
-│  QUẢN LÝ THIẾT BỊ           (label) ▼  │
-│  QUẢN LÝ ASSIGNMENT         (label) ▼  │
-│                                         │
-│  QUY TRÌNH NGHIỆP VỤ        (label)    │  ← không có chevron (luôn hiện)
-│    □ Hộp việc cần duyệt    [8]         │  ← badge counter màu đỏ/cam
-│                                         │
-│  BÁO CÁO & HỆ THỐNG        (label) ▼  │
-│                                         │
-└─────────────────────────────────────────┘
-```
-
-**Màu sắc sidebar chi tiết (từ ảnh chuẩn):**
-
-| Element | Màu / Style |
+| URL | Breadcrumb |
 |---|---|
-| Sidebar background | `#111827` |
-| Section label (TỔNG QUAN...) | `#6B7A8D`, font-size 11px, uppercase, letter-spacing 0.08em |
-| Menu item text | `#CBD5E1`, font-size 14px |
-| Menu item hover | background `rgba(255,255,255,0.05)` |
-| Active item background | `#1976D2` (blue solid) |
-| Active item text | `#FFFFFF`, font-weight 600 |
-| Chevron icon | `#6B7A8D` (mở: ▲, đóng: ▼) |
-| Badge (Hộp việc cần duyệt) | background `#E53E3E`, text `#FFF`, font-size 11px, border-radius full |
-| Sidebar separator line | `1px solid #1E3048` |
-| Logo icon | blue gradient icon `#1976D2` |
+| /dashboard | (không có) |
+| /catalog/device-categories | Quản Lý Danh Mục > Danh mục thiết bị |
+| /catalog/device-types | Quản Lý Danh Mục > Loại thiết bị |
+| /catalog/device-models | Quản Lý Danh Mục > Model thiết bị |
+| /catalog/vendors | Quản Lý Danh Mục > Nhà cung cấp |
+| /catalog/mcc | Quản Lý Danh Mục > MCC |
+| /organization/business-units | Quản Lý Danh Mục > Đơn vị kinh doanh |
+| /organization/warehouses | Quản Lý Danh Mục > Kho |
+| /catalog/fee-policies | Quản Lý Danh Mục > Chính sách phí |
+| /inventory/purchase-orders | Quản Lý Danh Mục > Purchase Order |
+| /inventory/imports/new | Quản Lý Xuất/Nhập Kho > Thông tin Nhập kho |
+| /inventory/stock | Quản Lý Xuất/Nhập Kho > Thông tin tồn kho |
+| /inventory/exports | Quản Lý Xuất/Nhập Kho > Thông tin xuất kho |
+| /inventory/transfers | Quản Lý Xuất/Nhập Kho > Điều chuyển kho |
+| /merchant/merchants | Quản Lý Merchant > Danh sách merchant |
+| /merchant/merchants/:id | Quản Lý Merchant > Danh sách merchant > Chi tiết |
+| /merchant/terminals | Quản Lý Merchant > Quản lý TID |
+| /device/search | Quản Lý Thiết Bị > Tra cứu thiết bị |
+| /device/:serial | Quản Lý Thiết Bị > Tra cứu thiết bị > {serial} |
+| /assignment/create | Quản Lý Assignment > Cấp phát thiết bị |
+| /assignment/list | Quản Lý Assignment > Quản lý assignment |
+| /assignment/history | Quản Lý Assignment > Lịch sử assignment |
+| /approval/inbox | Quy Trình Nghiệp Vụ > Hộp việc cần duyệt |
+| /approval/:id | Quy Trình Nghiệp Vụ > Hộp việc cần duyệt > Chi tiết |
+| /approval/my-requests | Quy Trình Nghiệp Vụ > Yêu cầu tôi đã tạo |
+| /approval/all | Quy Trình Nghiệp Vụ > Tất cả yêu cầu |
+| /approval/history | Quy Trình Nghiệp Vụ > Lịch sử phê duyệt |
+| /monitoring/pos | Báo Cáo & Hệ Thống > Giám sát hệ thống |
+| /monitoring/outbox | Báo Cáo & Hệ Thống > Outbox Monitor |
+| /monitoring/audit | Báo Cáo & Hệ Thống > Audit Log |
+| /reports | Báo Cáo & Hệ Thống > Báo cáo |
+| /admin/users | Quản Trị > Quản lý User |
+| /admin/roles | Quản Trị > Phân quyền |
 
 ---
 
-## 3. Reusable Components
+## 3. Reusable Components — BUILD TRƯỚC KHI CODE PAGE
 
-### 3.1 Status Badge Component
+### 3.1 StatusBadgeComponent
 
-```html
-<!-- device-status.badge.component.html -->
-<span class="status-badge" [class]="'status-badge--' + status.toLowerCase()">
-  <span class="status-dot"></span>
-  {{ status | deviceStatus }}
-</span>
+```typescript
+@Component({ selector: 'app-status-badge', standalone: true })
+export class StatusBadgeComponent {
+  @Input() status!: string;
+  @Input() label!: string;
+}
+```
 
-<!-- Styles -->
+```scss
 .status-badge {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 500;
+  padding: 4px 10px; border-radius: $radius-full;
+  font-size: 12px; font-weight: $fw-medium;
 
-  &--instock        { background: rgba(46,125,50,0.15); color: #4CAF50; }
-  &--deployed       { background: rgba(21,101,192,0.15); color: #42A5F5; }
-  &--out_of_warehouse { background: rgba(106,27,154,0.15); color: #AB47BC; }
-  &--returned       { background: rgba(245,124,0,0.15); color: #FFA726; }
-  &--repairing      { background: rgba(230,81,0,0.15); color: #FF7043; }
-  &--disposed       { background: rgba(183,28,28,0.15); color: #EF5350; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  // Device
+  &--instock          { background: rgba(46,125,50,0.15);   color: #4CAF50; }
+  &--deployed         { background: rgba(21,101,192,0.15);  color: #42A5F5; }
+  &--out_of_warehouse { background: rgba(106,27,154,0.15);  color: #AB47BC; }
+  &--returned         { background: rgba(245,124,0,0.15);   color: #FFA726; }
+  &--repairing        { background: rgba(230,81,0,0.15);    color: #FF7043; }
+  &--disposed         { background: rgba(183,28,28,0.15);   color: #EF5350; }
+  // Approval
+  &--draft            { background: rgba(117,117,117,0.15); color: #9E9E9E; }
+  &--pending_approval { background: rgba(245,124,0,0.15);   color: #FFA726; }
+  &--approved         { background: rgba(46,125,50,0.15);   color: #66BB6A; }
+  &--rejected         { background: rgba(183,28,28,0.15);   color: #EF5350; }
+  &--executing        { background: rgba(21,101,192,0.15);  color: #42A5F5; }
+  &--completed        { background: rgba(27,94,32,0.15);    color: #4CAF50; }
+  &--cancelled        { background: rgba(117,117,117,0.15); color: #9E9E9E; }
+  // Merchant
+  &--active           { background: rgba(46,125,50,0.15);   color: #4CAF50; }
+  &--inactive         { background: rgba(245,124,0,0.15);   color: #FFA726; }
+  &--suspended        { background: rgba(183,28,28,0.15);   color: #EF5350; }
+  &--pending          { background: rgba(117,117,117,0.15); color: #9E9E9E; }
 }
 ```
 
-### 3.2 Data Table Component (Reusable)
+### 3.2 DataTableComponent
 
 ```typescript
-// shared/components/data-table/data-table.component.ts
-@Component({
-  selector: 'app-data-table',
-  standalone: true,
-  ...
-})
+export interface TableColumn {
+  key: string; label: string; sortable?: boolean;
+  width?: string; align?: 'left'|'center'|'right';
+  type?: 'text'|'badge'|'date'|'number'|'action';
+}
+
+@Component({ selector: 'app-data-table', standalone: true })
 export class DataTableComponent<T> {
-  // Inputs
   @Input() columns: TableColumn[] = [];
-  @Input() dataSource = signal<T[]>([]);
-  @Input() totalCount = signal<number>(0);
+  @Input() data = signal<T[]>([]);
+  @Input() totalItems = signal<number>(0);
   @Input() isLoading = signal<boolean>(false);
   @Input() pageSize = 20;
-
-  // Outputs
-  @Output() pageChange = new EventEmitter<PageEvent>();
-  @Output() sortChange = new EventEmitter<Sort>();
+  @Output() pageChange = new EventEmitter<{page: number; size: number}>();
+  @Output() sortChange = new EventEmitter<{column: string; direction: 'asc'|'desc'}>();
   @Output() rowClick = new EventEmitter<T>();
-  @Output() actionClick = new EventEmitter<{action: string, row: T}>();
+  @Output() selectionChange = new EventEmitter<T[]>();
+  @Output() actionClick = new EventEmitter<{action: string; row: T}>();
+  readonly skeletonRows = Array(5).fill(0);
 }
+// Template BẮT BUỘC: checkbox "chọn tất cả" | skeleton loading | empty state | pagination
 ```
 
-### 3.3 Approval Timeline Component
+### 3.3 ConfirmDialogComponent & ApprovalTimelineComponent
 
-```html
-<!-- approval-timeline.component.html -->
-<div class="approval-timeline">
-  <div class="timeline-step" *ngFor="let step of steps; let i = index"
-       [class.completed]="step.action" [class.current]="!step.action && i === currentStep">
-    <div class="step-connector" *ngIf="i > 0"></div>
-    <div class="step-circle">
-      <mat-icon *ngIf="step.action === 'APPROVED'">check_circle</mat-icon>
-      <mat-icon *ngIf="step.action === 'REJECTED'">cancel</mat-icon>
-      <span *ngIf="!step.action">{{ i + 1 }}</span>
-    </div>
-    <div class="step-content">
-      <h4>Cấp duyệt {{ step.level }}</h4>
-      <p *ngIf="step.performedBy">{{ step.performedBy }} — {{ step.occurredAt | date:'dd/MM/yyyy HH:mm' }}</p>
-      <p class="step-comment" *ngIf="step.comment">{{ step.comment }}</p>
-    </div>
-  </div>
-</div>
+```typescript
+// ConfirmDialog
+@Component({ selector: 'app-confirm-dialog', standalone: true })
+export class ConfirmDialogComponent {
+  @Input() title = 'Xác nhận';
+  @Input() message = '';
+  @Input() confirmText = 'Xác nhận';
+  @Input() type: 'danger'|'warning'|'info' = 'danger';
+  @Output() confirmed = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
+}
+
+// ApprovalTimeline — hiển thị dạng timeline dọc
+// Mỗi step: circle icon (check/x/number) + content + action buttons khi pending
 ```
 
 ---
 
-## 4. Danh Sách Đầy Đủ 38 Màn Hình
+## 4. Chuẩn Layout 2 Khung — BẮT BUỘC Trên MỌI Màn Danh Sách
 
-### 4.1 Authentication & Layout (Sprint 01)
+### 4.1 Cấu Trúc
 
-#### 01 — Login Page
 ```
-URL: /login
-Components:
-  - Form: username (text), password (password + toggle)
-  - Button: Đăng nhập (loading spinner khi submit)
-  - Error alert: sai mật khẩu / tài khoản khóa
-  - Footer: "Hệ thống Quản lý POS — Dành cho nội bộ ngân hàng"
-Design: Dark theme, logo ngân hàng, gradient background #0D1B2A → #1E3A5F
-```
-
-#### 02 — Main Layout (Shell)
-```
-Components:
-  - Sidebar (collapsible, 280px → 64px icon-only)
-  - Header: Logo | Page breadcrumb | Search global | Notification bell | User menu
-  - Content area (scrollable)
-  - Route animation transition
-```
-
-### 4.2 Admin (Sprint 01)
-
-#### 03 — User Management
-```
-URL: /admin/users
-Columns: Họ tên | Username | Email | Role | Business Unit | Trạng thái | Lần đăng nhập cuối | Actions
-Filters: Status, Role, Business Unit
-Actions: Tạo user, Chỉnh sửa, Khóa/Mở khóa, Đặt lại mật khẩu
-Form tạo user: Họ tên, Username, Email, Mật khẩu, Role (multi-select), Business Unit
-```
-
-#### 04 — Role & Permission Management
-```
-URL: /admin/roles
-Tab 1 — Roles: Danh sách role, tạo role, chỉnh sửa mô tả
-Tab 2 — Permission Matrix: Checkbox matrix Role × Permission (group by module)
-```
-
-### 4.3 Catalog (Sprint 02)
-
-#### 05 — Device Category
-```
-URL: /catalog/device-categories
-Table: Code | Tên | Số loại thiết bị | Trạng thái | Actions
-Dialog Add/Edit: Code, Tên, Mô tả
-```
-
-#### 06 — Device Type
-```
-URL: /catalog/device-types
-Filters: Device Category
-Table: Code | Tên | Danh mục | Trạng thái | Actions
-```
-
-#### 07 — Device Model
-```
-URL: /catalog/device-models
-Filters: Device Type, Vendor
-Table: Code | Tên | Loại | Vendor | Thông số | Trạng thái | Actions
-Dialog: Code, Tên, Loại thiết bị (dropdown), Vendor (dropdown), Thông số kỹ thuật (JSON editor)
-```
-
-#### 08 — Vendor
-```
-URL: /catalog/vendors
-Table: Code | Tên | Email liên hệ | Số model | Trạng thái | Actions
-```
-
-#### 09 — MCC
-```
-URL: /catalog/mcc
-Search: code, tên ngành
-Table: Code | Tên ngành nghề | Danh mục | Trạng thái
-```
-
-#### 10 — Fee Policy
-```
-URL: /catalog/fee-policies
-Table: Code | Tên | Tỷ lệ phí | Phí cố định | Trạng thái | Actions
-Dialog: Code, Tên, Tỷ lệ %, Phí cố định, Min/Max, Mô tả
-```
-
-#### 11 — Business Unit
-```
-URL: /organization/business-units
-Table: Code | Tên | Khu vực | Số kho | Số merchant | Trạng thái | Actions
-```
-
-#### 12 — Warehouse
-```
-URL: /organization/warehouses
-Filters: Business Unit
-Table: Code | Tên | Đơn vị KD | Địa chỉ | Tồn kho hiện tại | Trạng thái | Actions
-```
-
-### 4.4 Inventory (Sprint 03–04)
-
-#### 13 — Purchase Order List
-```
-URL: /inventory/purchase-orders
-Filters: Status, Vendor, Kho, Date range
-Table: Số PO | Vendor | Kho nhận | Tổng SL | Đã nhận | Trạng thái | Ngày tạo | Actions
-Status badges: DRAFT(xám) | SUBMITTED(cam) | APPROVED(xanh lá) | RECEIVED(xanh dương) | CLOSED(tối)
-```
-
-#### 14 — Purchase Order Create & Detail
-```
-URL: /inventory/purchase-orders/new | /inventory/purchase-orders/:id
-Create (multi-step):
-  Step 1: Chọn Vendor, Kho nhận, Ghi chú
-  Step 2: Thêm items (Device Model + Số lượng)
-  Step 3: Review & Submit
-Detail:
-  - Header: Số PO | Status badge | Vendor | Kho | Actions (Submit/Approve/Receive)
-  - Table items: Model | Vendor | SL đặt | SL nhận
-  - Timeline: Tạo → Submit → Approve → Receive
-```
-
-#### 15 — Nhập Kho (Stock Import)
-```
-URL: /inventory/imports/new
-Sections:
-  1. Chọn Purchase Order
-  2. Danh sách thiết bị nhập (bảng: Serial Number | Model | Vendor | Tình trạng)
-     - Nhập từng serial hoặc paste bulk (textarea)
-     - Validate real-time: duplicate, format
-  3. Preview tổng (SL hợp lệ / lỗi)
-  4. Confirm & Submit
-```
-
-#### 16 — Tồn Kho (Stock Overview)
-```
-URL: /inventory/stock
-KPI Cards: Tổng tồn | Hà Nội | HCM | Đà Nẵng
-Table tổng hợp: Kho | Model | Vendor | SL INSTOCK | SL DEPLOYED | SL REPAIRING | Tổng
-Drilldown: Click row → Modal danh sách serial chi tiết
-Filters: Warehouse, Model, Vendor, Status
-```
-
-#### 17 — Xuất Kho
-```
-URL: /inventory/exports/new | /inventory/exports
-Create form:
-  - Kho nguồn
-  - Thiết bị cần xuất (bảng chọn từ INSTOCK, multi-select)
-  - Đơn vị nhận / Mục đích xuất
-  - Ghi chú
-  → Submit → Tạo Approval Request → Redirect sang phiếu phê duyệt
-List: Bảng phiếu xuất kho + status
-```
-
-#### 18 — Điều Chuyển Kho
-```
-URL: /inventory/transfers/new | /inventory/transfers
-Create form:
-  - Kho nguồn → Kho đích
-  - Danh sách serial điều chuyển
-  → Submit → Approval Request
-List: Bảng phiếu điều chuyển + status
-```
-
-### 4.5 Merchant (Sprint 05)
-
-#### 19 — Danh Sách Merchant
-```
-URL: /merchant/merchants
-Filters: Status, MCC, Business Unit, search name/code
-Table: MID | Tên | Mã số thuế | MCC | Đơn vị KD | Số TID | Trạng thái | Ngày tạo | Actions
-Status badge: PENDING(xám) | ACTIVE(xanh lá) | INACTIVE(cam) | SUSPENDED(đỏ)
-Quick actions: View, Edit, Activate, Suspend
-FAB button: + Tạo Merchant
-```
-
-#### 20 — Chi Tiết Merchant (4 Tabs)
-```
-URL: /merchant/merchants/:id
-Header: MID | Tên Merchant | Status badge | [Edit] [Activate/Suspend]
-Tab 1 — Thông tin:    MID, Tên, Mã thuế, MCC, Business Unit, Địa chỉ, Liên hệ, Ngày tạo
-Tab 2 — TID:          Bảng TID (TID | Status | Ngày tạo | Actions) + Nút thêm TID
-Tab 3 — Lịch sử:      Timeline thay đổi trạng thái Merchant
-Tab 4 — Chính sách phí: Danh sách fee assignments với effective dating
-```
-
-#### 21 — Quản Lý TID
-```
-URL: /merchant/terminals
-Filters: Merchant, Status
-Table: TID | Merchant | MID | Trạng thái | Thiết bị đang gắn | Ngày hiệu lực | Actions
-```
-
-### 4.6 Device (Sprint 06)
-
-#### 22 — Tra Cứu Thiết Bị
-```
-URL: /device/search
-Search bar: Tìm theo Serial Number (prominent)
-Advanced filters: Model, Vendor, Status (multi-select), Warehouse, Merchant
-Table: Serial | Model | Vendor | Kho | Trạng thái | Merchant | TID | Warranty | Actions
-Row click → Device Detail
-Export CSV button
-```
-
-#### 23 — Chi Tiết Thiết Bị (8 Tabs) ⭐
-```
-URL: /device/:serial
-Header:
-  - Serial Number (bold, copy button)
-  - Status Badge (lớn, màu nổi)
-  - Model | Vendor | Kho hiện tại
-  - Action buttons (theo trạng thái):
-    INSTOCK: [Xuất kho] [Thanh lý]
-    DEPLOYED: [Thu hồi]
-    RETURNED: [Nhập lại kho] [Tạo đơn sửa chữa]
-    REPAIRING: [Nghiệm thu] [Đề nghị thanh lý]
+KHUNG TRÊN (Search Zone) — bg: var(--bg-card), padding: 20px, border-radius: 12px
+  Input text | Dropdowns | Date range pickers
+  Buttons (căn phải): [Tìm kiếm] PRIMARY | [Clear] ghost | [Xuất Excel] outline
 
-Tab 1 — Thông tin chung:
-  Grid 2 cột: Serial | Model | Vendor | Kho | Purchase Date | Warranty | Firmware | Notes
+  STATUS TABS (chỉ khi màn có workflow):
+  [Tất cả (120)] [Chờ Duyệt (8)] [Đã Duyệt (45)] [Từ chối (3)]
 
-Tab 2 — Trạng thái hiện tại:
-  FSM diagram hiển thị trạng thái hiện tại được highlight
-  Allowed transitions hiển thị dạng button
-
-Tab 3 — Thông tin Merchant:
-  Card: Merchant Name | MID | TID | Ngày cấp phát
-  (Nếu không có assignment → "Thiết bị chưa được cấp phát")
-
-Tab 4 — Lịch sử vòng đời:
-  Timeline dọc:
-  ● INSTOCK (01/01/2026) — Nhập kho từ PO-2026-001
-  ● OUT_OF_WAREHOUSE (05/01/2026) — Xuất kho theo EX-2026-001
-  ● DEPLOYED (06/01/2026) — Cấp phát cho Merchant ABC / TID T100001
-  ● RETURNED (10/06/2026) — Thu hồi từ Merchant ABC
-  ● REPAIRING (11/06/2026) — Lỗi màn hình
-  ● INSTOCK (15/06/2026) — Sửa thành công
-
-Tab 5 — Lịch sử Assignment:
-  Table: STT | Merchant | MID | TID | Ngày cấp | Ngày thu hồi | Người cấp | Người thu | Ghi chú
-
-Tab 6 — Lịch sử sửa chữa:
-  Table: Số đơn | Ngày tạo | Mô tả lỗi | Đơn vị sửa | Trạng thái | Kết quả | Ngày hoàn thành
-
-Tab 7 — Lịch sử kho:
-  Table: Thời gian | Loại (IMPORT/EXPORT/TRANSFER) | Kho từ | Kho đến | Phiếu liên quan | Người thực hiện
-
-Tab 8 — Audit Log:
-  Table: Thời gian | Người thực hiện | Hành động | Chi tiết thay đổi
-```
-
-### 4.7 Repair Management (Sprint 07)
-
-#### 24 — Quản Lý Đơn Sửa Chữa
-```
-URL: /device/:serial/repairs | /repairs
-Table: Số đơn | Serial | Mô tả lỗi | Đơn vị sửa | Trạng thái | Ngày tạo | Actions
-Form tạo (từ Device Detail): Serial (readonly), Mô tả lỗi, Đơn vị sửa, Ghi chú
-Form nghiệm thu: Kết quả, Tình trạng sau sửa (Đạt/Không đạt), Ghi chú
-```
-
-### 4.8 Assignment (Sprint 08–09)
-
-#### 25 — Cấp Phát Thiết Bị
-```
-URL: /assignment/create
-Multi-step form:
-  Step 1 — Chọn thiết bị:
-    - Search serial number (autocomplete từ INSTOCK devices)
-    - Hoặc: Chọn từ bảng (filter model, vendor, warehouse)
-  Step 2 — Chọn Merchant & TID:
-    - Search merchant (name/MID)
-    - Chọn TID của merchant đó
-    - Ghi chú
-  Step 3 — Xác nhận:
-    - Summary: Serial → Merchant → TID
-    - [Xác nhận cấp phát]
-Result: Success card với Assignment ID + confetti animation
-```
-
-#### 26 — Danh Sách Assignment
-```
-URL: /assignment/list
-Filters: Status, Merchant, Business Unit, Date range
-Table: Mã | Serial | Model | Merchant | TID | Ngày cấp | Ngày thu hồi | Người cấp | Trạng thái | Actions
-Status: ACTIVE(xanh) | RETURNED(cam) | TRANSFERRED(tím)
-Quick action: Thu hồi (chỉ với ACTIVE)
-```
-
-#### 27 — Lịch Sử Assignment
-```
-URL: /assignment/history
-Filters: Device serial, Merchant, Date range
-Timeline hoặc table toàn bộ lịch sử cấp phát/thu hồi
-```
-
-### 4.9 Approval Workflow (Sprint 10)
-
-#### 28 — Hộp Việc Cần Duyệt (Inbox) ⭐
-```
-URL: /approval/inbox
-Header stats:
-  [ Chờ duyệt: 8 ] [ Đã duyệt hôm nay: 12 ] [ Bị từ chối: 2 ]
-
-Tabs: Tất cả | Xuất kho | Thu hồi | Điều chuyển | Thanh lý
-
-Mỗi card trong list:
-  ┌─────────────────────────────────────────────────────────┐
-  │ 📤 Yêu cầu xuất kho EX-2026-0081          [Chờ duyệt cấp 1] │
-  │ Kho Hà Nội · 5 thiết bị POS PAX A920                   │
-  │ 👤 Nguyễn Văn A · 09:32 hôm nay                         │
-  │                           [Xem chi tiết] [Phê duyệt ▼]  │
-  └─────────────────────────────────────────────────────────┘
-
-Actions nhanh từ card: Duyệt | Từ chối | Yêu cầu bổ sung
-```
-
-#### 29 — Chi Tiết Phiếu Phê Duyệt ⭐
-```
-URL: /approval/:id
-Sections:
-  1. Header: Số phiếu | Loại | Trạng thái badge | Actions
-  2. Thông tin phiếu (tùy loại):
-     Xuất kho: Kho nguồn, Thiết bị xuất (list serial), Đơn vị nhận, Lý do
-     Thu hồi: Serial, Merchant, TID, Lý do thu hồi, Người phụ trách
-  3. Approval Timeline (component):
-     ● Step 1 — Chờ duyệt cấp 1: [Duyệt] [Từ chối] [Yêu cầu bổ sung]
-     ● Step 2 — Chờ duyệt cấp 2: (disabled nếu chưa qua step 1)
-  4. Form hành động (khi pending):
-     - Textarea: Ý kiến / Lý do từ chối
-     - Buttons: [✓ Phê duyệt] [✗ Từ chối] [↩ Yêu cầu bổ sung]
-  5. Lịch sử hành động: Table các step đã thực hiện
-```
-
-#### 30 — Yêu Cầu Tôi Đã Tạo
-```
-URL: /approval/my-requests
-Filters: Status, Loại yêu cầu, Date range
-Table: Số phiếu | Loại | Tóm tắt | Trạng thái | Ngày tạo | Cấp duyệt hiện tại | Actions
-Action: Hủy (nếu DRAFT), Xem chi tiết
-```
-
-#### 31 — Tất Cả Yêu Cầu (Admin)
-```
-URL: /approval/all
-Filters: Status, Loại, Người tạo, Business Unit, Date range
-Table như trên + cột Người tạo + Người duyệt
-```
-
-#### 32 — Lịch Sử Phê Duyệt
-```
-URL: /approval/history
-Filters: Loại, Kết quả (Approved/Rejected), Date range, Người duyệt
-Table: Số phiếu | Loại | Kết quả | Người duyệt | Ngày duyệt | Ý kiến
-```
-
-### 4.10 Monitoring (Sprint 12–14)
-
-#### 33 — Outbox Events Monitor
-```
-URL: /monitoring/outbox
-KPI: PENDING(🔴) | SENT(🟢) | FAILED(🔴)
-Table: Event ID | Loại | Aggregate | Trạng thái | Retry | Thời gian | Actions
-Actions: [Retry] (cho FAILED), [Toggle Kafka DOWN/UP] (chaos button)
-```
-
-#### 34 — Main Dashboard ⭐
-```
-URL: /dashboard
-Row 1 — Device KPIs (Cards):
-  [🟢 Tổng thiết bị: 1,245] [📦 Tồn kho: 423] [🚀 Đang triển khai: 756] [🔧 Đang sửa: 42] [🗑️ Thanh lý: 24]
-
-Row 2 — Merchant KPIs:
-  [🏪 Merchant Active: 238] [❌ Inactive: 15] [🔌 Tổng TID: 892]
-
-Row 3 — Approval KPIs:
-  [⏳ Chờ duyệt: 8] [✅ Đã duyệt hôm nay: 12]
-
-Row 4 — Charts (2 columns):
-  Left: Bar chart "Nhập/Xuất kho theo tháng" (12 tháng gần nhất)
-  Right: Donut chart "Phân bổ thiết bị theo trạng thái"
-
-Row 5 — Bottom (2 columns):
-  Left: Horizontal bar "Top 5 Kho tồn nhiều nhất"
-  Right: "10 hoạt động gần nhất" (activity feed)
-```
-
-#### 35 — Giám Sát Hệ Thống POS
-```
-URL: /monitoring/pos
-Filters: Business Unit, Merchant, Model
-Auto-refresh: mỗi 30s (countdown indicator)
-Grid thiết bị DEPLOYED:
-  - Search serial
-  - Card grid: Serial | Model | Merchant | TID | Trạng thái online/offline (mock)
-```
-
-#### 36 — Audit Log
-```
-URL: /monitoring/audit
-Filters: User, Action type, Resource type, Date range
-Table: Thời gian | User | Hành động | Resource | Chi tiết | IP
-Row click → Modal chi tiết: Old value / New value (JSON diff)
-Export CSV
-```
-
-#### 37 — Báo Cáo
-```
-URL: /reports
-Sidebar chọn loại báo cáo:
-  - Báo cáo tồn kho
-  - Báo cáo thiết bị theo trạng thái
-  - Báo cáo assignment (cấp phát/thu hồi)
-  - Báo cáo merchant
-Date picker: From → To
-Chart + Table + Export (PDF / Excel) buttons
-```
-
-#### 38 — Notification Center ⭐ (Sprint 11)
-```
-URL: /notifications
-Layout:
-  - Header: "Thông báo" + [Mark all as read] button
-  - Filter tabs: Tất cả | Chưa đọc | Đã đọc
-Mỗi thông báo hiển thị:
-  - Icon theo loại (APPROVAL_REQUIRED / APPROVAL_RESULT / SYSTEM)
-  - Tiêu đề + Nội dung tóm tắt
-  - Thời gian ("vừa xong", "2 phút trước", "09:32 hôm nay")
-  - Dấu chưa đọc (dot xanh trái)
-Click thông báo → navigate tới phiếu/tài nguyên liên quan:
-  - APPROVAL_REQUIRED → /approval/inbox (chi tiết phiếu)
-  - APPROVAL_RESULT   → /approval/my-requests
-  - SYSTEM            → /dashboard
-Pagination: Load more (20 items/page)
-Empty state: "Đã đọc hết thông báo" với icon
-Design: Unread items có background nhạt hơn (rgba(25, 118, 210, 0.08))
-```
-
----
-
-## 5. Angular Component Naming Convention
-
-| Loại | Tên File | Selector |
-|---|---|---|
-| Page/Screen | `device-search.page.ts` | `app-device-search-page` |
-| Feature Component | `approval-timeline.component.ts` | `app-approval-timeline` |
-| Shared Component | `status-badge.component.ts` | `app-status-badge` |
-| Dialog | `assign-device.dialog.ts` | `app-assign-device-dialog` |
-| API Service | `device-api.service.ts` | - |
-| State Service | `device-state.service.ts` | - |
-| Pipe | `device-status.pipe.ts` | `deviceStatus` |
-| Guard | `auth.guard.ts` | - |
-| Interceptor | `jwt.interceptor.ts` | - |
-
----
-
-## 6. Chuẩn Layout 2 Khung — BẮT BUỘC Trên MỌI Màn Danh Sách
-
-> **Nguyên tắc áp dụng cho TẤT CẢ màn có danh sách:** Catalog, Inventory, Merchant, Device, Assignment, Approval, Report...
-
-### 6.1 Cấu Trúc Khung Chuẩn (Standard 2-Zone Layout)
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│  KHUNG TRÊN — TRA CỨU / FILTER (Search Zone)                           │
-│  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │  [Input text]  [Dropdown 1]  [Dropdown 2]  [Date From] [Date To]│   │
-│  │  [Input text]  [Dropdown 3]  [Dropdown 4]  [Date From] [Date To]│   │
-│  │                                              [🔍 Tìm kiếm] [✕ Clear] [📥 Xuất Excel] │
-│  └─────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│  [Tuỳ chọn — CHỈ KHI MÀN CÓ TRẠNG THÁI] STATUS TABS:                  │
-│  ┌──────────────────────────────────────────────────────────────────┐   │
-│  │  Tất cả(120)  |  Chờ Duyệt(8)  |  Đã Duyệt(45)  |  Từ chối(3) │   │
-│  └──────────────────────────────────────────────────────────────────┘   │
-├─────────────────────────────────────────────────────────────────────────┤
-│  KHUNG DƯỚI — DANH SÁCH KẾT QUẢ (List Zone)                           │
-│  ┌─────────────────────────────────────────────────────────────────┐   │
-│  │  [+ Thêm mới]  hoặc  [+ Tạo yêu cầu]    [⚙ Chọn cột hiển thị] │   │
-│  │  ─────────────────────────────────────────────────────────────  │   │
-│  │  BẢNG DỮ LIỆU (sau khi click Tìm kiếm)                        │   │
-│  │  □  STT | Col1 | Col2 | Col3 | Trạng thái | Hành động          │   │
-│  │  □   1  | ...  | ...  | ...  |  [badge]   | [Xem][Sửa][...]    │   │
-│  │  ─────────────────────────────────────────────────────────────  │   │
-│  │  Hiển thị 1-20 của 120 kết quả  [< 1 2 3 ... 6 >]             │   │
-│  └─────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────┘
+KHUNG DƯỚI (List Zone) — bg: var(--bg-card), padding: 20px, border-radius: 12px
+  Toolbar: [+ Thêm mới] [Chọn cột]              [Làm mới]
+  Table: checkbox | STT | data cols | Actions
+  Pagination: "Hiển thị X-Y của Z" | [10][20][50][100] | [< 1 2 3 ... >]
 ```
 
-### 6.2 Khung Trên (Search Zone) — Quy Tắc Chi Tiết
+### 4.2 Search Zone Rules
 
 ```
-BẮT BUỘC:
-✅ Input text: placeholder mô tả rõ "Nhập mã, tên, serial..."
-✅ Dropdown: có option "Tất cả" ở đầu
-✅ Date picker: cặp From/To, validate From ≤ To
-✅ Button layout (căn phải, cuối filter zone):
-   - [🔍 Tìm kiếm]  → PRIMARY button (blue)
-   - [✕ Clear]      → SECONDARY button (ghost/outline) — reset tất cả filter
-   - [📥 Xuất Excel] → OUTLINE button với icon
-✅ Grid layout filter: 3-4 cột, responsive xuống 2 cột trên tablet
-✅ Khi màn có trạng thái: Status tabs nằm GIỮA 2 khung (thêm vào ngay phía trên khung dưới)
+Dropdown đầu tiên = "Tất cả"
+Date: 2 picker (From/To), validate From <= To
+Clear: reset ALL + auto search lại
+Tìm kiếm: spinner -> load data vào bảng
 ```
 
-### 6.3 Status Tabs (Tabs Trạng Thái) — Màn Có Workflow
+### 4.3 Status Tabs CSS
 
 ```scss
-// Chỉ hiển thị khi màn có trạng thái (workflow/lifecycle)
-
-.status-tabs {
-  display: flex;
-  gap: 8px;
-  padding: 12px 0;
-  border-bottom: 1px solid $border-color;
-  margin-bottom: 16px;
-}
+.status-tabs { display: flex; gap: 8px; padding: 16px 0 12px; flex-wrap: wrap; }
 
 .status-tab {
-  padding: 6px 16px;
-  border-radius: $radius-full;
-  font-size: $text-sm;
-  font-weight: $fw-medium;
-  cursor: pointer;
-  transition: all 0.2s;
+  padding: 6px 16px; border-radius: $radius-full;
+  font-size: $text-sm; font-weight: $fw-medium;
+  cursor: pointer; border: 1px solid transparent;
+  color: var(--text-secondary); transition: all 0.2s;
 
-  // Count badge trong tab
-  .count {
-    margin-left: 6px;
-    padding: 2px 7px;
-    border-radius: $radius-full;
-    font-size: 11px;
-    background: rgba(255,255,255,0.15);
+  &.active { background: $primary-500; color: #FFF; }
+  .tab-count { font-size: 11px; background: rgba(255,255,255,0.2); border-radius: $radius-full; padding: 1px 6px; }
+}
+```
+
+**Status Tabs theo module:**
+
+| Module | Tabs |
+|---|---|
+| Merchant | Tất cả \| Chờ Duyệt \| Đã Duyệt \| Từ chối |
+| Purchase Order | Tất cả \| DRAFT \| Submitted \| Approved \| Received \| Closed |
+| Xuất Kho | Tất cả \| Chờ duyệt \| Đã duyệt \| Hoàn thành \| Từ chối \| Đã hủy |
+| Assignment | Tất cả \| Đang cấp phát \| Đã thu hồi \| Điều chuyển |
+| Approval Inbox | Tất cả \| Xuất kho \| Thu hồi \| Điều chuyển \| Thanh lý |
+| Device | Tất cả \| Trong kho \| Xuất kho \| Triển khai \| Sửa chữa \| Thanh lý |
+
+### 4.4 List Zone Rules
+
+```
+Table:
+  - Cột 1: Checkbox (chọn nhiều)
+  - Cột 2: STT (từ 1 trên page hiện tại)
+  - Data cols...
+  - Cột cuối: Hành Động [Xem][Sửa][...dropdown]
+  - Header: bg var(--table-header-bg), font-medium 13px
+  - Row hover: bg var(--table-row-hover), cell padding 12px 16px
+Empty: icon + "Không có dữ liệu. Vui lòng thay đổi điều kiện tìm kiếm."
+Loading: 5 skeleton rows (animated shimmer)
+Column preference: lưu localStorage theo route key
+```
+
+### 4.5 ListPage Angular Template
+
+```typescript
+@Component({ selector: 'app-[name]-list-page', standalone: true })
+export class NameListPageComponent implements OnInit {
+  filterForm = this.fb.group({ keyword: [''], status: [''], ... });
+  activeTab    = signal<string>('ALL');
+  statusCounts = signal<Record<string, number>>({});
+  items        = signal<T[]>([]);
+  totalItems   = signal<number>(0);
+  isLoading    = signal<boolean>(false);
+  currentPage  = signal<number>(1);
+  pageSize     = signal<number>(20);
+
+  ngOnInit() { this.loadData(); }
+  onSearch(): void { this.currentPage.set(1); this.loadData(); }
+  onClear(): void { this.filterForm.reset(); this.activeTab.set('ALL'); this.onSearch(); }
+  onExportExcel(): void { /* API export + download */ }
+  onTabChange(tab: string): void { this.activeTab.set(tab); this.onSearch(); }
+  onPageChange(e: {page: number; size: number}): void {
+    this.currentPage.set(e.page); this.pageSize.set(e.size); this.loadData();
   }
 }
 ```
 
-**Màu sắc status tabs theo module:**
+---
 
-| Module | Tabs | Màu sắc badge |
-|---|---|---|
-| Inventory (Xuất/Nhập kho) | Tất cả \| Chờ duyệt \| Đã duyệt \| Hoàn thành \| Từ chối \| Đã hủy | theo `$approval-*` |
-| Device | Tất cả \| Trong kho \| Xuất kho \| Đang hoạt động \| Điều chuyển \| Sửa chữa \| Thanh lý | theo `$status-*` |
-| Assignment | Tất cả \| Đang cấp phát \| Đã thu hồi \| Điều chuyển | |
-| Merchant | Tất cả \| Đang hoạt động \| Tạm dừng \| Chờ duyệt | |
-| Approval Inbox | Tất cả \| Cần duyệt \| Đã duyệt \| Đã từ chối | |
+## 5. Dashboard — Chi Tiết
 
-### 6.4 Khung Dưới (List Zone) — Quy Tắc Chi Tiết
+### 5.1 Layout (Từ Ảnh Chuẩn)
 
 ```
-BẮT BUỘC:
-✅ Toolbar đầu bảng (trong card, trước table):
-   - Trái: [+ Thêm mới] hoặc [+ Tạo yêu cầu] (tuỳ theo nghiệp vụ màn)
-   - Phải: Dropdown [⚙ Chọn cột hiển thị] — cho phép ẩn/hiện từng cột
+ROW 1 — 5 KPI Cards lớn (gradient, min-height 120px):
+  [BLUE: Tổng thiết bị 1,245]   [GREEN: Tồn kho 423]
+  [INDIGO: Đang triển khai 756] [AMBER: Đang sửa 42] [RED: Thanh lý 24]
 
-✅ Table:
-   - Checkbox chọn nhiều (cột đầu tiên)
-   - STT cột thứ 2 (số thứ tự, bắt đầu từ 1)
-   - Cột Hành Động (Actions) nằm CUỐI cùng
-   - Actions tuỳ màn: [Xem] [Sửa] [Duyệt] [Từ chối] [...]
-   - Empty state: icon + "Không có dữ liệu. Vui lòng thay đổi điều kiện tìm kiếm"
-   - Loading state: skeleton rows trong khi đang fetch
+ROW 2 — 3 KPI Cards nhỏ (bg card thường):
+  [Merchant Active 238]  [Tổng TID 892]  [Chờ phê duyệt 8]
 
-✅ Pagination:
-   - Hiển thị: "Hiển thị {from}-{to} của {total} kết quả"
-   - Page size selector: [10] [20] [50] [100]
-   - Previous / Next / page numbers
-   - Disabled prev khi trang 1, disabled next khi trang cuối
+ROW 3 — 2 Charts (50/50):
+  Bar "Nhập/Xuất kho theo tháng" (2 series: blue + green, 12 tháng)
+  Donut "Phân bổ thiết bị theo trạng thái" (4 colors)
 
-✅ Dropdown Chọn Cột:
-   - Danh sách checkbox tất cả cột có thể hiện/ẩn
-   - Lưu preference vào localStorage theo route
-   - Tối thiểu 3 cột luôn visible (không ẩn được): STT, [main field], Hành Động
+ROW 4 — 2 sections (50/50):
+  Horizontal Bar "Top 5 Kho tồn nhiều nhất"
+  Activity Feed "Hoạt động gần đây" (avatar + text + time, 10 items)
 ```
 
-### 6.5 Angular Component Structure (theo chuẩn này)
+### 5.2 KPI Card CSS
+
+```scss
+.kpi-card {
+  padding: 24px; border-radius: $radius-lg; min-height: 120px;
+  display: flex; align-items: center; gap: 20px; color: #FFFFFF;
+
+  &__icon { width: 56px; height: 56px; border-radius: $radius-lg; background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center; }
+  &__label { font-size: $text-sm; opacity: 0.85; margin-bottom: 6px; }
+  &__value { font-size: $text-3xl; font-weight: $fw-bold; line-height: 1; }
+
+  &--blue   { background: $kpi-blue; }
+  &--green  { background: $kpi-green; }
+  &--indigo { background: $kpi-indigo; }
+  &--amber  { background: $kpi-amber; }
+  &--red    { background: $kpi-red; }
+}
+```
+
+### 5.3 ApexCharts Config
 
 ```typescript
-// Mỗi màn danh sách PHẢI có:
-interface ListPageState {
-  // Filter zone
-  filters: FilterForm;
+barChartOptions: ApexCharts.ApexOptions = {
+  chart: { type: 'bar', height: 280, background: 'transparent', toolbar: { show: false } },
+  series: [{ name: 'Nhập kho', data: [] }, { name: 'Xuất kho', data: [] }],
+  colors: ['#1976D2', '#4CAF50'],
+  xaxis: { categories: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Okt','Nov','Dic'] },
+  dataLabels: { enabled: false },
+  plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } }
+};
 
-  // Status tabs (nếu có)
-  activeStatus: string;          // 'ALL' | 'PENDING' | ...
-  statusCounts: Record<string, number>;
-
-  // List zone
-  items: T[];
-  pagination: PaginationState;
-  visibleColumns: string[];      // Cột đang hiển thị (từ localStorage)
-  isLoading: boolean;
-  isEmpty: boolean;
-}
-
-// BẮT BUỘC 3 nút trong Search Zone:
-onSearch(): void    // Gọi API với filter hiện tại
-onClear(): void     // Reset tất cả filter → form.reset()
-onExportExcel(): void // Xuất Excel kết quả hiện tại
+donutChartOptions: ApexCharts.ApexOptions = {
+  chart: { type: 'donut', height: 280, background: 'transparent' },
+  labels: ['Tổng thiết bị', 'Đang kết hợp', 'Đang sửa chữa', 'Thanh lý'],
+  colors: ['#1976D2', '#4CAF50', '#FF9800', '#F44336'],
+  legend: { position: 'bottom' },
+  plotOptions: { pie: { donut: { size: '65%' } } }
+};
 ```
 
 ---
 
-## 7. Validation Nghiêm Ngặt — Áp Dụng MỌI Form/Danh Sách Nhập Liệu
+## 6. Danh Sách 38 Màn Hình
 
-> **Nguyên tắc:** Không cho phép user sang bước tiếp / submit / Enter / bấm nút khi form chưa hợp lệ.
-
-### 7.1 Quy Tắc Validate Chung
-
+### Screen 01 — Login Page
 ```
-✅ Real-time validation: Hiển thị lỗi ngay khi user blur khỏi field (không đợi submit)
-✅ Button "Tiếp theo" / "Gửi yêu cầu" / "Xác nhận":
-   - LUÔN disabled nếu form invalid
-   - Chỉ enable khi TẤT CẢ required fields hợp lệ
-✅ Phím Enter trong input: KHÔNG cho submit nếu form invalid
-✅ Error message: hiển thị ngay dưới field bị lỗi, màu $error (#F44336), font 12px
-✅ Field bị lỗi: border màu $error, highlight nhẹ
+URL: /login (full screen, NO sidebar/header)
+Background: gradient #0D1B2A to #1E3A5F
+Card center: glassmorphism (rgba + blur + border)
+Form: [Username] [Password + toggle] [Dang nhap PRIMARY full-width]
+Errors: "Sai mat khau" / "Tai khoan bi tam khoa..."
+Footer: "He thong Quan ly POS — Danh cho noi bo ngan hang"
 ```
 
-### 7.2 Validate Danh Sách Động (Dynamic List — VD: Danh sách TID)
-
-Khi form có danh sách dòng được thêm động (ví dụ: thêm nhiều TID, thêm nhiều thiết bị):
-
+### Screen 02 — Main Layout (Shell)
 ```
-QUY TẮC:
-✅ Nếu đã nhập dòng thứ 2 (hoặc bất kỳ dòng mới nào):
-   - Tất cả trường required của dòng đó PHẢI được điền đầy đủ và hợp lệ
-   - Nếu có BẤT KỲ trường nào trống hoặc invalid → KHÔNG cho sang bước tiếp
-   - KHÔNG cho bấm Enter để thêm dòng mới
-   - Button "Thêm dòng" bị disabled khi dòng hiện tại chưa hợp lệ
-   - Button "Tiếp theo" bị disabled
-
-✅ Visual feedback:
-   - Dòng chưa hoàn thiện: highlight border đỏ
-   - Tooltip khi hover button disabled: "Vui lòng điền đầy đủ thông tin dòng hiện tại"
-
-✅ Angular implementation:
-   // FormArray với validation per-row
-   get isRowValid(): boolean {
-     return this.tidFormArray.controls.every(ctrl => ctrl.valid);
-   }
-   // [disabled]="!isRowValid" trên button Thêm dòng / Tiếp theo
+Components: app-main-layout, app-sidebar, app-header, <router-outlet>
+ThemeService: currentTheme signal<'light'|'dark'>, toggle() -> body class + localStorage
+Sidebar: isSidebarCollapsed signal, 280px expanded / 64px collapsed (icon+tooltip)
 ```
 
-### 7.3 Validate Theo Loại Dữ Liệu
+### Screen 03 — User Management
+```
+URL: /admin/users
+Filters: Status | Role | Business Unit | Keyword
+Columns: STT | Ho ten | Username | Email | Role | BU | Trang thai | Lan dang nhap | Actions
+Actions: [Xem] [Sua] [...] -> Khoa/Mo khoa | Dat lai mat khau
+Dialog: Ho ten | Username | Email | Mat khau | Role (multi-select) | Business Unit
+```
 
-| Trường | Validate | Error message |
+### Screen 04 — Role & Permission Management
+```
+URL: /admin/roles
+Tab 1 Roles: STT | Ten | Mo ta | So user | [Sua]
+Tab 2 Permission Matrix:
+  Role (rows) x Permission (cols: View/Create/Update/Delete/Approve) x Module
+  Checkbox tuong tac, auto-save
+  Modules: CATALOG | INVENTORY | MERCHANT | DEVICE | ASSIGNMENT | APPROVAL | ADMIN
+```
+
+### Screen 05 — Device Category
+```
+URL: /catalog/device-categories
+Filters: Keyword | Status
+Columns: STT | Code | Ten | So loai | Trang thai | Actions
+Dialog: Code (UPPERCASE) | Ten | Mo ta
+Rule: KHONG deactivate khi con Device Type active
+```
+
+### Screen 06 — Device Type
+```
+URL: /catalog/device-types
+Filters: Keyword | Category | Status
+Columns: STT | Code | Ten loai | Danh muc | So model | Trang thai | Actions
+Dialog: Code | Ten | Danh muc (dropdown) | Mo ta
+```
+
+### Screen 07 — Device Model
+```
+URL: /catalog/device-models
+Filters: Keyword | Device Type | Vendor | Status
+Columns: STT | Code | Ten model | Loai | Vendor | Thong so | Trang thai | Actions
+Dialog: Code | Ten | Loai (dropdown) | Vendor (dropdown) | Specs | Serial Prefix
+Rule: KHONG deactivate khi co Device INSTOCK/DEPLOYED/REPAIRING
+```
+
+### Screen 08 — Vendor
+```
+URL: /catalog/vendors
+Columns: STT | Code | Ten | Email | SDT | So model | Trang thai | Actions
+Dialog: Code | Ten | Email (RFC) | SDT | Website | Ghi chu
+```
+
+### Screen 09 — MCC
+```
+URL: /catalog/mcc
+Columns: STT | MCC Code | Ten nganh | Danh muc | So Merchant | Trang thai | Actions
+Dialog: MCC Code (4 digits) | Ten nganh | Danh muc | Mo ta
+```
+
+### Screen 10 — Fee Policy
+```
+URL: /catalog/fee-policies
+Columns: STT | Code | Ten | Ty le (%) | Phi co dinh | Ngay hieu luc | Trang thai | Actions
+Dialog: Code | Ten | Ty le % | Phi co dinh | Min/Max | Ngay hieu luc | Mo ta
+```
+
+### Screen 11 — Business Unit
+```
+URL: /organization/business-units
+Columns: STT | Code | Ten | Khu vuc | So kho | So merchant | So user | Trang thai | Actions
+Dialog: Code | Ten | Khu vuc | Mo ta | Manager (dropdown user)
+```
+
+### Screen 12 — Warehouse
+```
+URL: /organization/warehouses
+Filters: Keyword | Business Unit | Status
+Columns: STT | Code | Ten | Don vi KD | Dia chi | Ton kho | Trang thai | Actions
+Dialog: Code | Ten | Business Unit | Dia chi | Quan ly kho (user)
+```
+
+### Screen 13 — Purchase Order List
+```
+URL: /inventory/purchase-orders
+Filters: Keyword | Vendor | Kho | Status | Date range
+Status Tabs: Tat ca | DRAFT | Submitted | Approved | Received | Closed
+Columns: STT | So PO | Vendor | Kho nhan | SL | SL nhan | Trang thai | Ngay tao | Actions
+Actions: [Xem] [Sua-chiDRAFT] [...] -> Submit | Approve | Nhap kho | Dong PO
+```
+
+### Screen 14 — Purchase Order Create & Detail
+```
+URL: /inventory/purchase-orders/new | /:id
+CREATE (3 steps):
+  Step 1: Vendor (required) | Kho nhan (required) | Ghi chu
+  Step 2: Dynamic table: Model | Vendor | SL du kien | Don gia | [Xoa]
+          [+ Them dong] DISABLED neu row hien tai chua valid
+  Step 3: Summary + checkbox xac nhan + [Gui yeu cau]
+DETAIL:
+  Header + Status + Actions theo status
+  Tab Thong tin | Tab Items | Tab Timeline
+```
+
+### Screen 15 — Nhap Kho
+```
+URL: /inventory/imports/new
+Step 1: Chon PO (autocomplete)
+Step 2: Nhap serial (thu cong hoac paste bulk)
+        Validate real-time: OK(xanh) / Error(do)
+Step 3: Summary SL hop le / SL loi
+        [Xac nhan] chi enabled khi SL loi = 0
+```
+
+### Screen 16 — Ton Kho
+```
+URL: /inventory/stock
+KPI Cards: Tong ton | Ha Noi | HCM | Da Nang | Khac
+Columns: STT | Kho | Model | Vendor | INSTOCK | DEPLOYED | REPAIRING | DISPOSED | Tong
+Click row -> Modal danh sach serial + export
+```
+
+### Screen 17 — Xuat Kho
+```
+URL: /inventory/exports (list) | /new (create)
+CREATE: Kho nguon | Muc dich | Don vi nhan | Multi-select thiet bi INSTOCK
+        [Gui yeu cau] -> Approval Request
+LIST: Filters + Status Tabs + Table
+```
+
+### Screen 18 — Dieu Chuyen Kho
+```
+URL: /inventory/transfers (list) | /new (create)
+CREATE: Kho nguon -> Kho dich (khac nhau) | Danh sach serial | Ly do
+LIST: Filters + Status Tabs + Table
+```
+
+### Screen 19 — Danh Sach Merchant (Chuan tu anh)
+```
+URL: /merchant/merchants
+Search Zone (2 rows, tu anh chuan):
+  Row 1: [Nhap ma, ten, so thue...] | [Trang thai] | [Loai merchant] | [Ngay tao tu] [den]
+  Row 2: [Khu vuc] | [Don vi kinh doanh] | [Nguoi phu trach]
+  Buttons: [Tim kiem] [Clear] [Xuat Excel]
+Status Tabs: Tat ca (120) | Cho Duyet (8) | Da Duyet (45) | Tu choi (3)
+Toolbar: [+ Them moi] [Chon cot]                          [Lam moi]
+Columns: STT | Ma merchant | Ten merchant | Loai | Khu vuc | Don vi KD | Trang thai | Ngay tao | Actions
+Pagination: Hien thi 1-20 cua 120 | [10][20][50][100] | [< 1 2 3 ... 6 >]
+```
+
+### Screen 20 — Chi Tiet Merchant (4 Tabs)
+```
+URL: /merchant/merchants/:id
+Header: MID | Status | [Sua] [Kich hoat/Dinh chi]
+Tab 1 Thong tin: grid 2 cot all fields
+Tab 2 TID: [+ Them TID] + Table TID | Status | Thiet bi | Actions
+Tab 3 Lich su trang thai: Timeline (ngay | cu->moi | nguoi | ly do)
+Tab 4 Chinh sach phi: [+ Gan chinh sach] + Table fee assignments
+```
+
+### Screen 21 — Quan Ly TID
+```
+URL: /merchant/terminals
+Filters: TID | Merchant | Status
+Columns: STT | TID | Merchant | MID | Trang thai | Thiet bi | Ngay hieu luc | Actions
+```
+
+### Screen 22 — Tra Cuu Thiet Bi
+```
+URL: /device/search
+Prominent: [Tim theo Serial Number - full width]
+Advanced filters (collapsible): Model | Vendor | Status (multi) | Warehouse | Merchant
+Status Tabs: Tat ca | Trong kho | Xuat kho | Dang trien khai | Sua chua | Thanh ly
+Columns: STT | Serial | Model | Vendor | Kho | Trang thai | Merchant | TID | Bao hanh | Actions
+Row click -> /device/:serial  |  Toolbar: [Xuat CSV]
+```
+
+### Screen 23 — Chi Tiet Thiet Bi (8 Tabs)
+```
+URL: /device/:serial
+Header: Serial [Copy] | [Status Badge lon] | Model | Vendor | Kho
+Actions theo status:
+  INSTOCK -> [Xuat kho] [Thanh ly]
+  DEPLOYED -> [Thu hoi]
+  RETURNED -> [Nhap lai kho] [Tao don sua chua]
+  REPAIRING -> [Nghiem thu] [De nghi thanh ly]
+
+Tab 1 Thong tin chung: grid 2 cot (Serial|Model|Vendor|Danh muc|Kho|Ngay nhap|Bao hanh|Firmware|Ghi chu)
+Tab 2 Trang thai: Status badge + FSM Diagram visual + allowed transitions buttons
+Tab 3 Merchant: Card (neu DEPLOYED) hoac "Chua cap phat"
+Tab 4 Vong doi Timeline: moc su kien tung trang thai
+Tab 5 Assignment History: table (Merchant|MID|TID|Ngay cap|Ngay thu|Nguoi|Ghi chu)
+Tab 6 Sua chua: table (So don|Ngay|Mo ta loi|Don vi|Trang thai|Ket qua|Ngay xong)
+Tab 7 Lich su kho: table (Thoi gian|Loai|Kho tu|Kho den|Phieu|Nguoi)
+Tab 8 Audit Log: table (Thoi gian|User|Hanh dong|Chi tiet)
+```
+
+### Screen 24 — Quan Ly Don Sua Chua
+```
+URL: /repairs
+Status Tabs: Tat ca | Dang sua | Hoan thanh | That bai
+Columns: STT | So don | Serial | Model | Mo ta loi | Don vi | Trang thai | Ngay tao | Actions
+Form Tao: Serial(readonly) | Mo ta loi | Don vi | Chi phi | Ghi chu
+Form Nghiem Thu: Ket qua (Dat/Khong dat) | Mo ta | Ngay | Chi phi thuc te
+  Neu Khong dat: [De nghi thanh ly] -> tao phieu thanh ly
+```
+
+### Screen 25 — Cap Phat Thiet Bi
+```
+URL: /assignment/create
+Step 1: Chon thiet bi (search autocomplete INSTOCK or table chon)
+Step 2: Chon Merchant (autocomplete) + TID (dropdown filter theo Merchant) + Ghi chu
+Step 3: Summary + checkbox "Toi xac nhan..." + [Xac nhan cap phat] (loading)
+Success: ASG ID + info + [Xem Assignment] [Cap phat tiep]
+```
+
+### Screen 26 — Danh Sach Assignment
+```
+URL: /assignment/list
+Status Tabs: Tat ca | Dang cap phat | Da thu hoi | Dieu chuyen
+Columns: STT | Ma | Serial | Model | Merchant | MID | TID | Ngay cap | Ngay thu | Nguoi | Status | Actions
+Quick: [Thu hoi] chi ACTIVE
+```
+
+### Screen 27 — Lich Su Assignment
+```
+URL: /assignment/history
+Columns: STT | Ma ASG | Serial | Merchant | TID | Loai | Ngay | Nguoi | Ghi chu
+Toggle Table/Timeline view
+```
+
+### Screen 28 — Hop Viec Can Duyet (Inbox)
+```
+URL: /approval/inbox
+Stats: [Cho duyet: 8] [Da duyet hom nay: 12] [Bi tu choi: 2]
+Tabs: Tat ca | Xuat kho | Thu hoi | Dieu chuyen | Thanh ly
+Items (card list):
+  [Icon type]  Ten phieu  [Status badge]
+  Mo ta ngan
+  Nguoi tao + Thoi gian
+  [Xem chi tiet]  [Phe duyet V dropdown -> Duyet|Tu choi|Yeu cau bo sung]
+```
+
+### Screen 29 — Chi Tiet Phieu Phe Duyet
+```
+URL: /approval/:id
+Header: So phieu | Status | Loai
+Section 1 Thong tin phieu (theo loai: Xuat kho/Thu hoi/Dieu chuyen/Thanh ly)
+Section 2 Approval Timeline component
+Section 3 Form hanh dong (khi pending + co quyen):
+  Textarea y kien | [Phe duyet][Tu choi][Yeu cau bo sung] - all loading state
+Section 4 Lich su: Thoi gian | Nguoi | Hanh dong | Y kien
+```
+
+### Screen 30 — Yeu Cau Toi Da Tao
+```
+URL: /approval/my-requests
+Status Tabs: Tat ca | Cho duyet | Da duyet | Tu choi | Da huy
+Columns: STT | So phieu | Loai | Tom tat | Trang thai | Ngay tao | Cap duyet | Actions [Xem][Huy-chiDRAFT]
+```
+
+### Screen 31 — Tat Ca Yeu Cau (Admin)
+```
+URL: /approval/all
+Nhu Screen 30 + filter Nguoi tao | Business Unit + col Nguoi tao | Nguoi duyet
+```
+
+### Screen 32 — Lich Su Phe Duyet
+```
+URL: /approval/history
+Filters: Loai | Ket qua | Date range | Nguoi duyet
+Columns: STT | So phieu | Loai | Ket qua | Nguoi duyet | Ngay duyet | Y kien
+```
+
+### Screen 33 — Outbox Events Monitor
+```
+URL: /monitoring/outbox
+KPI: [PENDING: X] [SENT: Y] [FAILED: Z]
+[Toggle Kafka DOWN/UP] - chaos button (red warning)
+Columns: STT | Event ID | Loai | Aggregate ID | Trang thai | Retry | Thoi gian | [Retry]
+```
+
+### Screen 34 — Main Dashboard
+```
+URL: /dashboard (xem Section 5)
+API: GET /api/v1/dashboard/summary
+```
+
+### Screen 35 — Giam Sat He Thong POS
+```
+URL: /monitoring/pos
+Filters: Business Unit | Merchant | Model
+Auto-refresh 30s (countdown + toggle tat)
+Search serial real-time
+Card grid (4-6 cols): Serial | Model | Merchant | TID | Online/Offline
+Online -> green border; Offline -> red border
+```
+
+### Screen 36 — Audit Log
+```
+URL: /monitoring/audit
+Filters: User | Action type | Resource type | Date range
+Columns: STT | Thoi gian | User | Hanh dong | Resource | IP | Actions
+Row click -> Modal JSON diff (old/new side-by-side, green add / red remove)
+[Xuat CSV]
+```
+
+### Screen 37 — Bao Cao
+```
+URL: /reports
+Left sidebar: chon loai bao cao (4 loai)
+Date range (max 1 nam)
+[Xem bao cao] -> Chart + Table
+[Xuat PDF] [Xuat Excel]
+```
+
+### Screen 38 — Notification Center
+```
+URL: /notifications
+Header "Thong bao" + [Danh dau tat ca da doc]
+Tabs: Tat ca | Chua doc | Da doc
+Items: [dot xanh] [Icon] Tieu de / Noi dung / Time
+Click: APPROVAL_REQUIRED->/approval/inbox | APPROVAL_RESULT->/approval/my-requests | SYSTEM->/dashboard
+Load more 20/trang
+Empty: "Ban da doc het thong bao"
+```
+
+---
+
+## 7. Angular Naming Convention
+
+| Loai | File | Selector |
 |---|---|---|
-| TID | 8 ký tự số, unique trong danh sách | "TID phải là 8 ký tự số" / "TID đã tồn tại" |
-| MID | 15 ký tự, unique | "MID không hợp lệ" |
-| Serial Number | Theo format của Model | "Serial không đúng định dạng model" |
-| Số điện thoại | 10-11 số, bắt đầu 0 | "Số điện thoại không hợp lệ" |
-| Email | RFC format | "Email không đúng định dạng" |
-| Ngày | dd/MM/yyyy, không tương lai nếu historical | "Ngày không hợp lệ" |
-| Số tiền | Dương, tối đa 15 chữ số | "Số tiền phải lớn hơn 0" |
-| Code (các loại mã) | Không dấu, không space, uppercase | "Mã chỉ được chứa chữ hoa, số và dấu _" |
+| Page | `merchant-list.page.ts` | `app-merchant-list-page` |
+| Feature Component | `approval-timeline.component.ts` | `app-approval-timeline` |
+| Shared | `status-badge.component.ts` | `app-status-badge` |
+| Dialog | `assign-device.dialog.ts` | `app-assign-device-dialog` |
+| API Service | `merchant-api.service.ts` | - |
+| Pipe | `device-status.pipe.ts` | `deviceStatus` |
 
----
-
-## 8. Luồng Nghiệp Vụ Gửi Yêu Cầu — Chuẩn Wizard Multi-Step
-
-> Áp dụng cho: Tạo yêu cầu cấp phát thiết bị, Tạo yêu cầu xuất kho, Tạo yêu cầu phê duyệt...
-
-### 8.1 Cấu Trúc Wizard Chuẩn (Multi-Step Form)
-
+**3 file bat buoc moi component:**
 ```
-BƯỚC ĐI QUA:
-  [1] Thông Tin MID → [2] Thông Tin TID → [3] Tài Khoản → [4] Tài Liệu Đính Kèm → [5] Xác Nhận & Gửi
-
-Hiển thị:
-  ┌──────────────────────────────────────────────────────────────────┐
-  │  ● Thông Tin MID  ─── ● Thông Tin TID  ─── ○ Tài Khoản  ─── ... │
-  │  (completed)          (active)               (pending)            │
-  └──────────────────────────────────────────────────────────────────┘
-```
-
-### 8.2 Step 1 — Thông Tin MID
-
-```
-Content:
-  - Tìm/chọn Merchant (autocomplete)
-  - Hiển thị thông tin Merchant: Tên, MCC, Business Unit
-  - Chọn MID từ danh sách MID của Merchant (dropdown)
-  - Hoặc tạo MID mới (inline form nếu có quyền)
-
-Validate trước khi sang Step 2:
-  ✅ Đã chọn Merchant
-  ✅ Đã chọn MID
-```
-
-### 8.3 Step 2 — Thông Tin TID
-
-```
-Content:
-  - Danh sách TID của MID đã chọn (bảng)
-  - Chọn TID hoặc thêm TID mới
-  - VALIDATE NGHIÊM NGẶT (áp dụng section 7.2):
-    * Mỗi dòng TID phải điền đầy đủ trước khi thêm dòng mới
-    * Button "Thêm TID" disabled khi dòng hiện tại chưa valid
-
-Validate trước khi sang Step 3:
-  ✅ Ít nhất 1 TID được chọn/thêm
-  ✅ TẤT CẢ dòng TID hợp lệ
-```
-
-### 8.4 Step 3 — Tài Khoản
-
-```
-Content:
-  - Tài khoản thanh toán / tài khoản liên kết
-  - Số tài khoản, tên chủ tài khoản, ngân hàng
-  - Tích hợp T24: verify tài khoản realtime (có indicator loading)
-
-Validate trước khi sang Step 4:
-  ✅ Tài khoản được điền đầy đủ và verified
-```
-
-### 8.5 Step 4 — Tài Liệu Đính Kèm
-
-```
-Content:
-  - Upload file (PDF, JPG, PNG — tối đa 10MB/file)
-  - Danh sách loại tài liệu bắt buộc (nếu có)
-  - Preview thumbnail cho ảnh, icon PDF cho file
-
-Validate trước khi sang Step 5:
-  ✅ Tất cả tài liệu bắt buộc đã upload
-  ✅ Không có file lỗi (size/type)
-```
-
-### 8.6 Step 5 — Xác Nhận & Gửi Yêu Cầu
-
-```
-Content:
-  - Tóm tắt đầy đủ tất cả thông tin đã nhập (read-only)
-  - Accordion: MID Info | TID Info | Tài Khoản | Tài Liệu
-  - Checkbox "Tôi xác nhận thông tin trên là chính xác"
-  - [← Quay lại]   [Gửi Yêu Cầu →] (disabled cho đến khi tick checkbox)
-
-Sau khi Gửi:
-  - Loading spinner trên button
-  - Success: Toast "Yêu cầu #REQ-001 đã được gửi thành công"
-  - Navigate → /approvals/my-requests
-  - Error: Toast error + giữ nguyên form để sửa
-```
-
-### 8.7 Navigation Controls (Wizard Navigation)
-
-```
-[← Quay Lại]  (ghost button — quay bước trước, KHÔNG xóa data đã nhập)
-               ↔
-[Tiếp Theo →] (primary button — sang bước sau — DISABLED nếu step invalid)
-
-KHI Ở BƯỚC CUỐI:
-[← Quay Lại]  ↔  [Gửi Yêu Cầu]  (primary, loading state khi đang submit)
+merchant-list/
+ merchant-list.page.ts    (logic)
+ merchant-list.page.html  (template)
+ merchant-list.page.scss  (styles - NO inline)
 ```
 
 ---
 
-## 9. Cấu Trúc Folder Backend — I18N & OpenAPI
-
-> Áp dụng cho backend Spring Boot (`pos-core/src/main/resources/`)
-
-### 9.1 Cấu Trúc Resources
+## 8. Validation Rules
 
 ```
-pos-core/src/main/resources/
-├── application.yml                      # Main config
-├── application-dev.yml                  # Dev profile
-├── application-prod.yml                 # Prod profile
-│
-├── db/migration/                        # Flyway migrations
-│   ├── V1__init_base_schema.sql
-│   ├── V2__create_identity_tables.sql
-│   ├── V3__add_metadata_version_and_catalog_schema.sql
-│   └── V4__merchant_tid_mid_schema.sql
-│
-├── i18n/                                # Internationalization messages
-│   ├── messages.properties              # Default (Vietnamese)
-│   ├── messages_vi.properties           # Vietnamese explicit
-│   └── messages_en.properties           # English
-│
-└── openapi/                             # OpenAPI/Swagger specs
-    ├── api-1.yml                        # Main API spec (v1)
-    ├── components/                      # Reusable schemas
-    │   ├── auth-schemas.yml
-    │   ├── catalog-schemas.yml
-    │   ├── device-schemas.yml
-    │   └── merchant-schemas.yml
-    └── paths/                           # API paths by module
-        ├── auth-paths.yml
-        ├── catalog-paths.yml
-        └── device-paths.yml
+Real-time: loi hien sau blur
+Submit/Next: LUON disabled khi form invalid
+Dynamic list: [Them dong] disabled khi row hien tai chua valid
+Error: mau #F44336, 12px, duoi field
 ```
 
-### 9.2 I18N — Cấu Trúc Messages
+| Truong | Validate |
+|---|---|
+| TID | 8 ky tu so |
+| Email | RFC format |
+| SDT | 10-11 so, bat dau 0 |
+| Code | UPPERCASE, no space/dau |
+| Serial | theo format model |
 
-```properties
-# messages.properties (Vietnamese default)
+---
 
-# ─── Validation messages ───────────────────────────────
-validation.required=Trường này không được để trống
-validation.min-length={0} phải có ít nhất {1} ký tự
-validation.max-length={0} không được vượt quá {1} ký tự
-validation.pattern={0} không đúng định dạng
-validation.unique={0} đã tồn tại trong hệ thống
+## 9. Multi-Step Wizard
 
-# ─── Error messages ────────────────────────────────────
-error.pos-1001=Tên đăng nhập hoặc mật khẩu không đúng
-error.pos-1002=Tài khoản bị tạm khóa. Vui lòng thử lại sau 30 phút
-error.pos-2008=Không thể vô hiệu hóa Model — còn thiết bị đang hoạt động
-
-# ─── Business labels ───────────────────────────────────
-label.device-status.instock=Trong kho
-label.device-status.deployed=Đang hoạt động
-label.device-status.returned=Đã thu hồi
-label.device-status.repairing=Đang sửa chữa
-label.device-status.disposed=Đã thanh lý
-label.device-status.out_of_warehouse=Xuất kho
 ```
+Step indicator (horizontal, top):
+  [1 completed] --- [2 active] --- [3 pending]
 
-### 9.3 OpenAPI — api-1.yml (Template)
+Navigation:
+  [Quay Lai] ghost (KHONG xoa data)  <->  [Tiep Theo] primary (DISABLED neu invalid)
+  Buoc cuoi: [Quay Lai]  <->  [Gui Yeu Cau] (loading)
 
-```yaml
-# openapi/api-1.yml
-openapi: "3.1.0"
-info:
-  title: POS Management System API
-  version: "1.0.0"
-  description: |
-    API cho hệ thống quản lý vòng đời thiết bị POS và Merchant.
-    Tích hợp WAY4 Card Management và Temenos T24 Core Banking.
-  contact:
-    name: POS Management Team
-    email: pos-team@bank.vn
-
-servers:
-  - url: http://localhost:8080
-    description: Local Development
-  - url: https://pos-api.bank.vn
-    description: Production
-
-security:
-  - BearerAuth: []
-
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  responses:
-    BadRequest:
-      description: Dữ liệu đầu vào không hợp lệ
-    Unauthorized:
-      description: Chưa xác thực / Token hết hạn
-    Forbidden:
-      description: Không có quyền thực hiện thao tác
-    NotFound:
-      description: Không tìm thấy tài nguyên
-
-paths:
-  # Auth
-  /api/v1/auth/login:
-    $ref: './paths/auth-paths.yml#/login'
-  /api/v1/auth/refresh:
-    $ref: './paths/auth-paths.yml#/refresh'
-  /api/v1/auth/logout:
-    $ref: './paths/auth-paths.yml#/logout'
-
-  # Catalog
-  /api/v1/catalog/device-categories:
-    $ref: './paths/catalog-paths.yml#/deviceCategories'
+After success: Toast + navigate
+After error: Toast + giu form nguyen
 ```
 
 ---
 
-*Tài liệu cập nhật lần cuối: 2026-10-02. Áp dụng cho tất cả 38 màn hình.*
+*Cap nhat: 2026-10-03. Calibrated tu anh chuan UI Light + Dark Mode.*

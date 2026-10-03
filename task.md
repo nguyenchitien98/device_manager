@@ -1,6 +1,18 @@
 # POS Management System — Progress Tracker (Task.md)
 
 > Cập nhật file này sau mỗi task hoàn thành. Format: `[x]` done, `[/]` in progress, `[ ]` todo.
+> **Quy tắc AI Agent:** Đọc file này TRƯỚC, xác định task `[ ]` tiếp theo, đọc docs tương ứng rồi mới code.
+
+---
+
+## TRẠNG THÁI HIỆN TẠI
+
+```
+Phase 0 (Sprint 00):    8/9   tasks  [ 89%]  ← ĐÃ XONG HẦU HẾT
+Phase 1 (Sprint 01):    0/23  tasks  [  0%]  ← ĐANG LÀM
+Phase 2+ (Sprint 02+):  0/...                ← CHỜ
+OVERALL: 8/195 tasks (4%)
+```
 
 ---
 
@@ -20,251 +32,550 @@
 
 ## 🔐 Sprint 01 — Auth, RBAC & Admin Layout
 
-- `[ ]` Flyway V2: `users`, `roles`, `permissions`, `user_roles`, `role_permissions`, `refresh_tokens`, `auth_audit_logs`
-- `[ ]` Seed: 9 roles mặc định + admin user (`admin@pos.vn` / `Admin@123`)
-- `[ ]` JWT generation: Access Token 15m + Refresh Token 7d
-- `[ ]` Refresh Token Rotation (Redis + DB)
-- `[ ]` Rate limit login (5 lần/phút) + Account Lock (30 phút sau 5 sai)
-- `[ ]` Spring Security 6 filter chain (`JwtAuthenticationFilter`)
-- `[ ]` Data Scope Service (inject businessUnitId vào mọi list query)
-- `[ ]` @PreAuthorize cơ bản
-- `[ ]` APIs: `POST /api/v1/auth/login`, `/refresh`, `/logout`
-- `[ ]` APIs: `GET /api/v1/admin/users`, `POST`, `PATCH /{id}/lock`
-- `[ ]` APIs: `GET /api/v1/admin/roles`, `POST`, `PUT /{id}/permissions`
-- `[ ]` Audit log: LOGIN_SUCCESS, LOGIN_FAILED, LOGOUT
-- `[ ]` **Angular — Login Page** (tách `.ts`, `.html`, `.scss`)
-- `[ ]` **Angular — Auth Service + Token Service** (Signal-based)
-- `[ ]` **Angular — JWT Interceptor + Error Interceptor**
-- `[ ]` **Angular — Auth Guard + Permission Guard**
-- `[ ]` **Angular — Main Layout** (Header + Sidebar + Content area)
-- `[ ]` **Angular — Sidebar** với đầy đủ menu items theo role
-- `[ ]` **Angular — User Management Page**
-- `[ ]` **Angular — Role & Permission Matrix Page**
-- `[ ]` Test: Login success, sai pass, account lock, token rotation (Compile 100% SUCCESS)
+### Backend
+
+- `[ ]` Flyway V2: Tạo `V2__create_identity_tables.sql`
+  - Tables: `users`, `roles`, `permissions`, `user_roles`, `role_permissions`, `refresh_tokens`, `auth_audit_logs`
+  - Seed: 9 roles mặc định (SUPER_ADMIN, INVENTORY_MANAGER, INVENTORY_STAFF, MERCHANT_MANAGER, DEVICE_OPERATOR, ASSIGNMENT_OPERATOR, FEE_MANAGER, AUDITOR, VIEWER)
+  - Seed: user `admin@pos.vn` / `Admin@123` với role SUPER_ADMIN
+- `[ ]` Domain: `User`, `Role`, `Permission` entities + Spring Security UserDetails
+- `[ ]` JWT: Access Token 15m (HS256) + Refresh Token 7d
+- `[ ]` Refresh Token Rotation: lưu Redis + DB, vô hiệu hóa token cũ khi refresh
+- `[ ]` Rate limit: max 5 login/phút/IP → Account Lock 30 phút sau 5 sai
+- `[ ]` `JwtAuthenticationFilter`: validate token mọi request
+- `[ ]` `@PreAuthorize` cơ bản cho admin endpoints
+- `[ ]` `DataScopeService`: inject `businessUnitId` vào mọi list query
+- `[ ]` API `POST /api/v1/auth/login` → trả `{accessToken, refreshToken, user}`
+- `[ ]` API `POST /api/v1/auth/refresh` → Refresh Token Rotation
+- `[ ]` API `POST /api/v1/auth/logout` → invalidate tokens
+- `[ ]` API `GET /api/v1/admin/users` + `POST` + `PATCH /{id}/lock`
+- `[ ]` API `GET /api/v1/admin/roles` + `POST` + `PUT /{id}/permissions`
+- `[ ]` Audit log: LOGIN_SUCCESS, LOGIN_FAILED, LOGOUT, USER_CREATED, USER_LOCKED
+- `[ ]` Health check: `GET /api/v1/health` → `{status: "UP"}`
+
+### Frontend — Setup
+
+- `[ ]` Install Angular Material + NgRx + ApexCharts
+- `[ ]` Cấu hình `environment.ts` với API_BASE_URL
+- `[ ]` Setup global `styles.scss` với CSS variables dual theme (Light + Dark)
+- `[ ]` Cài Google Fonts Inter trong `index.html`
+- `[ ]` Cấu hình `angular.json` SCSS paths và assets
+
+### Frontend — Core Services & Guards
+
+- `[ ]` `ThemeService` (`theme.service.ts`):
+  - `currentTheme = signal<'light'|'dark'>('light')`
+  - `toggle()`: cập nhật `body.className` + `localStorage('theme')`
+  - Khởi tạo từ localStorage khi app load
+- `[ ]` `AuthService` (`auth.service.ts`):
+  - `currentUser = signal<UserInfo | null>(null)`
+  - `login(username, password)`: POST + lưu tokens
+  - `logout()`: POST + clear tokens
+  - `isAuthenticated = computed(() => currentUser() !== null)`
+- `[ ]` `TokenService` (`token.service.ts`):
+  - `saveTokens(access, refresh)`, `getAccessToken()`, `getRefreshToken()`, `clearTokens()`
+  - Lưu trong localStorage (KHÔNG sessionStorage)
+- `[ ]` `JwtInterceptor` (`jwt.interceptor.ts`):
+  - Gắn `Authorization: Bearer {accessToken}` vào mọi request
+  - 401 → gọi `refreshToken()`, retry request; nếu refresh fail → logout
+- `[ ]` `ErrorInterceptor` (`error.interceptor.ts`):
+  - 401 (sau refresh fail) → navigate `/login`
+  - 403 → hiển thị Toast "Bạn không có quyền thực hiện thao tác này"
+  - 500 → Toast "Lỗi hệ thống. Vui lòng thử lại sau."
+- `[ ]` `AuthGuard` (`auth.guard.ts`): redirect `/login` nếu chưa đăng nhập
+- `[ ]` `PermissionGuard` (`permission.guard.ts`): kiểm tra role từ route data
+- `[ ]` `IdempotencyInterceptor` (`idempotency.interceptor.ts`):
+  - Tự động generate `X-Idempotency-Key: UUID()` cho mọi POST/PATCH request
+
+### Frontend — Pages
+
+- `[ ]` **Login Page** (`login.page.ts/html/scss`):
+  - Full screen, không sidebar/header
+  - Background gradient `#0D1B2A → #1E3A5F`
+  - Center card glassmorphism
+  - Form: username + password (toggle show/hide) + [Đăng nhập] (loading spinner)
+  - Error alerts: sai mật khẩu / tài khoản khóa
+  - Footer: "Hệ thống Quản lý POS — Dành cho nội bộ ngân hàng"
+  - Sau login thành công → navigate `/dashboard`
+
+- `[ ]` **Main Layout** (`main-layout.component.ts/html/scss`):
+  - Flex layout: sidebar (280px) + main area (flex-1)
+  - Header top (64px fixed)
+  - `<router-outlet>` trong main content area
+
+- `[ ]` **Header Component** (`header.component.ts/html/scss`):
+  - LEFT: Hamburger toggle | Logo + "POS Management" | current page title
+  - RIGHT: ThemeToggle | Language "VIE" | Bell+badge | Avatar+dropdown
+  - Avatar dropdown: Hồ sơ | Đổi mật khẩu | Đăng xuất
+  - Dùng CSS variables `var(--bg-header)`, `var(--border-color)`
+
+- `[ ]` **Sidebar Component** (`sidebar.component.ts/html/scss`):
+  - Width 280px → 64px (collapsed)
+  - Menu items đúng theo structure trong `07_UI_UX_Standard.md Section 0.2`
+  - Section labels (TỔNG QUAN, QUẢN LÝ DANH MỤC...)
+  - Collapsible accordion groups (click toggle)
+  - Active item highlight `var(--sidebar-active-bg)`
+  - Badge counter đỏ trên "Hộp việc cần duyệt"
+  - Dùng `RouterLinkActive` directive
+  - `isSidebarCollapsed = signal<boolean>(false)`, lưu localStorage
+
+- `[ ]` **Breadcrumb Component** (`breadcrumb.component.ts/html/scss`):
+  - Đọc route data để generate breadcrumb
+  - Font 13px, màu `var(--text-secondary)`, separator "›"
+  - Không hiện trên `/dashboard`
+  - Click link navigate về parent route
+
+- `[ ]` **User Management Page** (`/admin/users`):
+  - Layout 2 khung (Search Zone + List Zone)
+  - Search: Keyword + Status + Role + Business Unit
+  - Table: STT | Họ tên | Username | Email | Role | BU | Trạng thái | Lần đăng nhập cuối | Actions
+  - Dialog tạo/sửa user (form validate đầy đủ)
+  - Actions: Khóa/Mở khóa (confirm dialog) + Đặt lại mật khẩu
+
+- `[ ]` **Role & Permission Page** (`/admin/roles`):
+  - Tab 1: Danh sách roles + dialog tạo role
+  - Tab 2: Permission Matrix (checkbox grid Role × Permission × Module)
+  - Auto-save khi thay đổi checkbox
+
+- `[ ]` Test: Login success, sai pass, account lock, token rotation (ng build SUCCESS)
 
 ---
 
 ## 📂 Sprint 02 — Catalog & Organization
 
-- `[ ]` Flyway V3: `device_categories`, `device_types`, `device_models`, `vendors`
-- `[ ]` Flyway V3: `mcc_codes`, `fee_policies`
-- `[ ]` Flyway V3: `business_units`, `warehouses`
-- `[ ]` Flyway V3 seed: Dữ liệu mẫu đầy đủ (3 BU, 4 Kho, PAX/Ingenico/Verifone, A920/iCT220...)
-- `[ ]` CRUD APIs: Device Category, Device Type, Device Model, Vendor (pagination + filter)
-- `[ ]` CRUD APIs: MCC, Fee Policy (effective dating)
-- `[ ]` CRUD APIs: Business Unit, Warehouse
-- `[ ]` Validate hierarchy: Model → Type → Category
-- `[ ]` Soft delete với data validation
-- `[ ]` **Angular — Reusable DataTableComponent** (server-side pagination, sort, filter)
-- `[ ]` **Angular — ConfirmDialogComponent**
-- `[ ]` **Angular — Device Category Page**
-- `[ ]` **Angular — Device Type Page**
-- `[ ]` **Angular — Device Model Page**
-- `[ ]` **Angular — Vendor Page**
-- `[ ]` **Angular — MCC Page**
-- `[ ]` **Angular — Fee Policy Page**
-- `[ ]` **Angular — Business Unit Page**
-- `[ ]` **Angular — Warehouse Page**
-- `[ ]` Test: CRUD tất cả catalog, validate hierarchy (Compile 100% SUCCESS)
+> **Đọc trước:** `docs/06_Database_Schema.md`, `docs/07_UI_UX_Standard.md` sections 3–4
+
+### Backend
+
+- `[ ]` Flyway V3: `V3__create_catalog_tables.sql`
+  - Tables: `device_categories`, `device_types`, `device_models`, `vendors`, `mcc_codes`, `fee_policies`
+  - Seed: 3 device categories (POS, mPOS, SoftPOS), vendors (PAX, Ingenico, Verifone), device types
+- `[ ]` Flyway V4: `V4__create_organization_tables.sql`
+  - Tables: `business_units`, `warehouses`
+  - Seed: 3 BU (Hà Nội, HCM, Đà Nẵng), 4 kho
+- `[ ]` CRUD API: `GET/POST /api/v1/catalog/device-categories`, `GET/PUT/DELETE /{id}` (pagination, sort, filter)
+- `[ ]` CRUD API: Device Type (tương tự)
+- `[ ]` CRUD API: Device Model (tương tự, kèm validate hierarchy Model→Type→Category)
+- `[ ]` CRUD API: Vendor
+- `[ ]` CRUD API: MCC (search by code/name)
+- `[ ]` CRUD API: Fee Policy (với effective dating)
+- `[ ]` CRUD API: Business Unit
+- `[ ]` CRUD API: Warehouse (filter theo Business Unit)
+- `[ ]` Validate hierarchy: không orphan (Type phải thuộc Category, Model phải thuộc Type)
+- `[ ]` Soft delete: deactivate thay vì xóa khi có data liên quan
+- `[ ]` `@PreAuthorize` theo permission cho từng endpoint
+
+### Frontend — Reusable Components (BUILD TRƯỚC)
+
+- `[ ]` `DataTableComponent<T>` (`shared/components/data-table/`):
+  - Inputs: columns, data signal, totalItems, isLoading, pageSize
+  - Outputs: pageChange, sortChange, rowClick, selectionChange, actionClick
+  - Checkbox "chọn tất cả" + per-row checkbox
+  - Loading state: 5 skeleton rows (shimmer animation)
+  - Empty state: icon + message
+  - Pagination footer: "Hiển thị X-Y của Z" + size selector + page buttons
+- `[ ]` `ConfirmDialogComponent` (`shared/components/confirm-dialog/`):
+  - type: 'danger' | 'warning' | 'info'
+  - title, message, confirmText, cancelText
+  - Events: confirmed, cancelled
+- `[ ]` `StatusBadgeComponent` (`shared/components/status-badge/`):
+  - Input: status (string), label (string)
+  - CSS classes theo tất cả status values (xem `07_UI_UX_Standard.md Section 3.1`)
+- `[ ]` `SearchZoneComponent` (hoặc pattern trong mỗi page):
+  - Grid filter inputs
+  - 3 nút: [Tìm kiếm][Clear][Xuất Excel]
+  - Emit events: search, clear, export
+
+### Frontend — Pages (Catalog)
+
+- `[ ]` **Device Category Page** (`/catalog/device-categories`):
+  - Layout 2 khung chuẩn (Section 4 `07_UI_UX_Standard.md`)
+  - Columns: STT | Code | Tên | Số loại | Trạng thái | Actions
+  - Dialog Add/Edit: Code (UPPERCASE, validate unique) | Tên | Mô tả
+  - Deactivate: ConfirmDialog, BE validate không còn Device Type active
+
+- `[ ]` **Device Type Page** (`/catalog/device-types`):
+  - Filter: Keyword + Device Category dropdown
+  - Columns: STT | Code | Tên loại | Danh mục | Số model | Trạng thái | Actions
+  - Dialog: Code | Tên | Danh mục (dropdown load từ API)
+
+- `[ ]` **Device Model Page** (`/catalog/device-models`):
+  - Filter: Keyword + Device Type + Vendor
+  - Columns: STT | Code | Tên | Loại | Vendor | Thông số | Trạng thái | Actions
+  - Dialog: Code | Tên | Loại (dropdown) | Vendor (dropdown) | Specs (key-value editor) | Serial Prefix
+
+- `[ ]` **Vendor Page** (`/catalog/vendors`):
+  - Columns: STT | Code | Tên | Email | SĐT | Số model | Trạng thái | Actions
+  - Dialog: Code | Tên | Email | SĐT | Website | Ghi chú
+
+- `[ ]` **MCC Page** (`/catalog/mcc`):
+  - Search: code hoặc tên ngành
+  - Columns: STT | MCC Code | Tên ngành | Danh mục | Số Merchant | Trạng thái | Actions
+
+- `[ ]` **Fee Policy Page** (`/catalog/fee-policies`):
+  - Columns: STT | Code | Tên | Tỷ lệ % | Phí cố định | Ngày hiệu lực | Trạng thái | Actions
+  - Dialog: Code | Tên | Tỷ lệ % | Phí min/max | Ngày hiệu lực (date picker)
+
+- `[ ]` **Business Unit Page** (`/organization/business-units`):
+  - Columns: STT | Code | Tên | Khu vực | Số kho | Số merchant | Số user | Trạng thái | Actions
+
+- `[ ]` **Warehouse Page** (`/organization/warehouses`):
+  - Filter: Keyword + Business Unit
+  - Columns: STT | Code | Tên | Đơn vị KD | Địa chỉ | Tồn kho | Trạng thái | Actions
+
+- `[ ]` Test: CRUD tất cả catalog, validate hierarchy (ng build SUCCESS)
 
 ---
 
 ## 📦 Sprint 03 — Inventory: Nhập Kho
 
-- `[ ]` Flyway V4: `purchase_orders`, `purchase_order_items`, `devices`, `stock_transactions`, `outbox_events`
+> **Đọc trước:** `docs/11_Business_Flow.md` section Nhập Kho, `docs/06_Database_Schema.md`
+
+### Backend
+
+- `[ ]` Flyway V5: `V5__create_inventory_tables.sql`
+  - Tables: `purchase_orders`, `purchase_order_items`, `devices`, `stock_transactions`, `outbox_events`
+  - Tables: `stock_export_requests`, `stock_export_items`, `stock_transfer_requests`, `stock_transfer_items`
 - `[ ]` Purchase Order Lifecycle: DRAFT → SUBMITTED → APPROVED → RECEIVED → CLOSED
-- `[ ]` Stock Ledger: `stock_transactions` append-only (IMPORT type)
-- `[ ]` Nhập kho từ PO: Tạo Device record per serial + IMPORT stock_transaction + Outbox Event
-- `[ ]` Unique constraint: `serial_number` trong `devices`
-- `[ ]` Outbox Pattern: `DeviceReceivedEvent` publisher
-- `[ ]` OutboxPollingService: `@Scheduled(fixedDelay = 2000)` đẩy events lên Kafka
-- `[ ]` APIs: Purchase Order CRUD + lifecycle transitions
-- `[ ]` APIs: `POST /api/v1/inventory/imports`, `GET /api/v1/inventory/stock`, `GET /api/v1/inventory/transactions`
-- `[ ]` **Angular — Purchase Order List Page**
-- `[ ]` **Angular — Purchase Order Create/Detail Page**
-- `[ ]` **Angular — Nhập Kho Page** (bulk serial input, validation)
-- `[ ]` **Angular — Tồn Kho (Stock Overview) Page**
-- `[ ]` Test: Nhập 50 thiết bị, duplicate serial rejected, outbox event SENT (Compile 100% SUCCESS)
+- `[ ]` Stock Ledger: `stock_transactions` append-only (type: IMPORT/EXPORT/TRANSFER/RETURN)
+- `[ ]` Nhập kho từ PO: tạo `Device` record per serial + ghi IMPORT vào stock_transactions + ghi Outbox
+- `[ ]` Unique constraint: `serial_number` trong `devices` (409 khi duplicate)
+- `[ ]` `OutboxPollingService`: `@Scheduled(fixedDelay=2000)` đẩy events lên Kafka
+- `[ ]` API: PO CRUD + lifecycle transitions (Submit, Approve, Receive, Close)
+- `[ ]` API: `POST /api/v1/inventory/imports` (nhập kho từ PO + danh sách serial)
+- `[ ]` API: `GET /api/v1/inventory/stock` (tổng hợp tồn kho)
+- `[ ]` API: `GET /api/v1/inventory/transactions` (Stock Ledger)
+
+### Frontend
+
+- `[ ]` **Purchase Order List Page** (`/inventory/purchase-orders`):
+  - Status Tabs: Tất cả | DRAFT | Submitted | Approved | Received | Closed
+  - Columns + Status badges theo màu (xem `07_UI_UX_Standard.md Screen 13`)
+  - Actions: Submit / Approve / Nhập kho / Đóng PO (theo status)
+
+- `[ ]` **Purchase Order Create Page** (`/inventory/purchase-orders/new`):
+  - Multi-step 3 bước (step indicator visible)
+  - Step 1: Vendor + Kho nhận + Ghi chú
+  - Step 2: Dynamic table items (Model + SL), [+ Thêm dòng] disabled khi row chưa valid
+  - Step 3: Summary read-only + checkbox xác nhận + [Gửi]
+
+- `[ ]` **Purchase Order Detail Page** (`/inventory/purchase-orders/:id`):
+  - Header: Số PO + Status + Actions (theo status)
+  - Tab 1 Thông tin | Tab 2 Items | Tab 3 Timeline
+
+- `[ ]` **Nhập Kho Page** (`/inventory/imports/new`):
+  - Chọn PO → nhập serial (thủ công hoặc paste bulk) → validate real-time → confirm
+  - Bảng serial: Serial | Model | Vendor | Tình trạng (OK/Lỗi)
+  - Summary: SL hợp lệ / SL lỗi / Tổng
+  - [Xác nhận] chỉ enabled khi 0 lỗi
+
+- `[ ]` **Tồn Kho Page** (`/inventory/stock`):
+  - KPI Cards: Tổng tồn + theo khu vực
+  - Bảng: Kho | Model | Vendor | INSTOCK | DEPLOYED | REPAIRING | DISPOSED | Tổng
+  - Click row → Modal chi tiết serial
+
+- `[ ]` Test: Nhập 50 thiết bị, duplicate serial rejected, outbox events (ng build SUCCESS)
 
 ---
 
 ## 📤 Sprint 04 — Inventory: Xuất Kho & Điều Chuyển
 
-- `[ ]` Flyway V5: `stock_export_requests`, `stock_transfer_requests`, `approval_requests` (basic)
-- `[ ]` Approval basic (1-level): DRAFT → PENDING_APPROVAL → APPROVED/REJECTED → EXECUTING → COMPLETED
-- `[ ]` Xuất kho: Device INSTOCK → OUT_OF_WAREHOUSE (sau khi approved)
-- `[ ]` Điều chuyển: Device giữ INSTOCK, đổi warehouse
-- `[ ]` Stock Ledger: EXPORT, TRANSFER_OUT, TRANSFER_IN transactions
-- `[ ]` Device Lifecycle History: ghi khi status thay đổi
-- `[ ]` **Angular — Xuất Kho Page** (multi-select devices)
-- `[ ]` **Angular — Điều Chuyển Kho Page**
-- `[ ]` **Angular — Approval Basic Page** (danh sách phiếu chờ duyệt, detail + action)
-- `[ ]` Test: Xuất kho → duyệt → Device OUT_OF_WAREHOUSE (Compile 100% SUCCESS)
+### Backend
+
+- `[ ]` Flyway V6 (nếu cần): `approval_requests` basic structure
+- `[ ]` Approval basic: DRAFT → PENDING_APPROVAL → APPROVED/REJECTED → EXECUTING → COMPLETED
+- `[ ]` Xuất kho: Device INSTOCK → OUT_OF_WAREHOUSE (sau approved)
+- `[ ]` Điều chuyển: Device giữ INSTOCK, đổi warehouse_id
+- `[ ]` Stock Ledger: ghi EXPORT, TRANSFER_OUT, TRANSFER_IN transactions
+- `[ ]` Device Status State Machine: validate allowed transitions trước khi execute
+
+### Frontend
+
+- `[ ]` **Xuất Kho Create Page** (`/inventory/exports/new`):
+  - Kho nguồn → Multi-select thiết bị INSTOCK → Đơn vị nhận → Ghi chú
+  - Submit → tạo Approval Request → redirect phiếu phê duyệt
+
+- `[ ]` **Xuất Kho List Page** (`/inventory/exports`):
+  - Status Tabs + Filters + Table
+
+- `[ ]` **Điều Chuyển Create Page** (`/inventory/transfers/new`):
+  - Kho nguồn → Kho đích → Multi-select serial → Lý do
+
+- `[ ]` **Điều Chuyển List Page** (`/inventory/transfers`)
+
+- `[ ]` **Approval Basic Page** (`/approval/inbox`):
+  - Danh sách phiếu chờ duyệt
+  - Click → Detail page với Approve/Reject buttons
+
+- `[ ]` Test: Xuất kho → duyệt → Device OUT_OF_WAREHOUSE (ng build SUCCESS)
 
 ---
 
 ## 🏪 Sprint 05 — Merchant & TID
 
-- `[ ]` Flyway V6: `merchants`, `terminals`, `merchant_fee_assignments`
-- `[ ]` Auto-generate MerchantCode (M + 6 digits), TID (T + 6 digits)
+### Backend
+
+- `[ ]` Flyway V6 (hoặc V7): `merchants`, `terminals`, `merchant_status_history`, `terminal_status_history`, `merchant_fee_assignments`
+- `[ ]` Auto-generate MerchantCode: M + 6 digits
+- `[ ]` Auto-generate TID: T + 6 digits
 - `[ ]` Merchant Lifecycle: PENDING → ACTIVE → INACTIVE → SUSPENDED
-- `[ ]` Fee Policy Effective Dating: Unique partial index (1 active policy/merchant)
-- `[ ]` Data Scope: Merchant filter theo Business Unit
-- `[ ]` APIs: Merchant CRUD + lifecycle transitions + fee policy
-- `[ ]` APIs: Terminal CRUD + status management
-- `[ ]` **Angular — Merchant List Page**
-- `[ ]` **Angular — Merchant Detail Page** (4 tabs)
-- `[ ]` **Angular — TID Management Page**
-- `[ ]` Test: Tạo merchant, thay đổi trạng thái, gắn fee policy (Compile 100% SUCCESS)
+- `[ ]` Fee Policy Effective Dating: chỉ 1 ACTIVE policy/merchant tại 1 thời điểm
+- `[ ]` Data Scope: filter Merchant theo Business Unit của user
+- `[ ]` API: Merchant CRUD + lifecycle + fee policy assignment
+- `[ ]` API: Terminal CRUD + status management
+
+### Frontend
+
+- `[ ]` **Merchant List Page** (xem Screen 19 trong `07_UI_UX_Standard.md`):
+  - Search Zone 2 rows ĐÚNG như ảnh chuẩn
+  - Status Tabs: Tất cả | Chờ Duyệt | Đã Duyệt | Từ chối
+  - Toolbar + Table + Pagination đúng chuẩn
+
+- `[ ]` **Merchant Create Page** (`/merchant/merchants/new`):
+  - Form tạo merchant (auto-gen code hiển thị, có thể override)
+
+- `[ ]` **Merchant Detail Page** (`/merchant/merchants/:id`) - 4 Tabs:
+  - Header: MID + Status + Action buttons
+  - Tab 1 Thông tin | Tab 2 TID | Tab 3 Lịch sử | Tab 4 Chính sách phí
+
+- `[ ]` **TID Management Page** (`/merchant/terminals`):
+  - Filter + Table TID toàn hệ thống
+
+- `[ ]` Test: Tạo merchant, thay đổi trạng thái, gắn fee policy (ng build SUCCESS)
 
 ---
 
 ## 📱 Sprint 06 — Device Lifecycle & Detail
 
+### Backend
+
 - `[ ]` Flyway V7: `device_lifecycle_history` (append-only)
 - `[ ]` Device Status State Machine (enum với allowed transitions)
-- `[ ]` DeviceLifecycleHistoryService (ghi mỗi khi status thay đổi)
-- `[ ]` Redis cache: `device:status:{serial}` (TTL 60s) + evict on update
-- `[ ]` APIs: `GET /api/v1/devices` (search/filter/paginate), `GET /api/v1/devices/{serial}`, `GET /api/v1/devices/{serial}/lifecycle`
-- `[ ]` **Angular — Device Search Page**
-- `[ ]` **Angular — Device Detail Page** (8 tabs đầy đủ)
-  - Tab 1: Thông tin chung
-  - Tab 2: Trạng thái + FSM visualization
-  - Tab 3: Merchant hiện tại
-  - Tab 4: Lịch sử vòng đời (timeline)
-  - Tab 5: Lịch sử Assignment
-  - Tab 6: Lịch sử sửa chữa
-  - Tab 7: Lịch sử kho
-  - Tab 8: Audit Log
-- `[ ]` **Angular — Device Status Badge Component** (reusable)
-- `[ ]` **Angular — Lifecycle Timeline Component** (reusable)
-- `[ ]` Test: Search, detail 8 tabs, FSM invalid transition rejected (Compile 100% SUCCESS)
+- `[ ]` `DeviceLifecycleHistoryService`: ghi lịch sử mỗi khi status thay đổi
+- `[ ]` Redis cache: `device:status:{serial}` TTL 60s, evict on update
+- `[ ]` API: `GET /api/v1/devices` (search/filter/paginate)
+- `[ ]` API: `GET /api/v1/devices/{serial}` (full detail)
+- `[ ]` API: `GET /api/v1/devices/{serial}/lifecycle`
+
+### Frontend
+
+- `[ ]` `DeviceStatusBadgeComponent` (reusable)
+- `[ ]` `LifecycleTimelineComponent` (reusable)
+- `[ ]` **Device Search Page** (`/device/search`):
+  - Prominent serial search + advanced filters
+  - Status Tabs: 6 trạng thái
+  - Table + [Xuất CSV]
+
+- `[ ]` **Device Detail Page** (`/device/:serial`) - 8 Tabs:
+  - Header: Serial [Copy] + Status Badge lớn + Actions theo status
+  - Tab 1 Thông tin chung
+  - Tab 2 Trạng thái + FSM Diagram visual
+  - Tab 3 Merchant (card hoặc empty state)
+  - Tab 4 Vòng đời Timeline
+  - Tab 5 Assignment History table
+  - Tab 6 Sửa chữa table
+  - Tab 7 Lịch sử kho table
+  - Tab 8 Audit Log table
+
+- `[ ]` Test: Search, detail 8 tabs, FSM invalid transition rejected (ng build SUCCESS)
 
 ---
 
 ## 🔧 Sprint 07 — Repair Management
 
-- `[ ]` Flyway V8: `repair_orders`
+### Backend
+
+- `[ ]` Flyway V7 (bổ sung): `repair_orders`
 - `[ ]` Repair Order Lifecycle: CREATED → IN_PROGRESS → COMPLETED/FAILED
 - `[ ]` Repair complete → Device REPAIRING → INSTOCK
-- `[ ]` Repair fail → Tạo phiếu thanh lý (qua Approval)
+- `[ ]` Repair fail → tạo phiếu thanh lý (qua Approval)
 - `[ ]` Thanh lý: INSTOCK → DISPOSED (qua Approval)
-- `[ ]` APIs: Repair Order CRUD + lifecycle
-- `[ ]` APIs: `POST /api/v1/devices/{serial}/dispose` (tạo phiếu thanh lý)
-- `[ ]` **Angular — Repair Order Management Page**
-- `[ ]` **Angular — Form Nghiệm Thu**
-- `[ ]` Test: RETURNED → Repair → INSTOCK; fail → Dispose (Compile 100% SUCCESS)
+- `[ ]` API: Repair Order CRUD + lifecycle
+- `[ ]` API: `POST /api/v1/devices/{serial}/dispose`
+
+### Frontend
+
+- `[ ]` **Repair Management Page** (`/repairs`):
+  - Status Tabs + Table
+  - Dialog tạo đơn sửa (từ Device Detail) + Form nghiệm thu
+
+- `[ ]` Test: RETURNED → Repair → INSTOCK; fail → Dispose (ng build SUCCESS)
 
 ---
 
 ## 🔗 Sprint 08 — Assignment & Concurrency
 
-- `[ ]` Flyway V9: `assignments` (với @Version), `assignment_history`
-- `[ ]` Partial unique index: `assignments(device_id) WHERE status = 'ACTIVE'`
-- `[ ]` Optimistic Lock trên DeviceJpaEntity (`@Version`) + Retry 3 lần
+### Backend
+
+- `[ ]` Flyway V8: `assignments` (với @Version), `assignment_history`
+- `[ ]` Partial unique index: `ON assignments(device_id) WHERE status = 'ACTIVE'`
+- `[ ]` Optimistic Lock trên `DeviceJpaEntity` (`@Version`) + Retry 3 lần
 - `[ ]` Idempotency: `X-Idempotency-Key` header + Redis SETNX
-- `[ ]` @Transactional: Tạo Assignment + Update Device → DEPLOYED + History + Outbox
-- `[ ]` APIs: `POST /api/v1/assignments` (idempotent), `GET`, `GET /{id}`, `GET /devices/{serial}/assignments`
-- `[ ]` **Angular — Idempotency Interceptor** (auto-generate UUID cho POST/PATCH)
-- `[ ]` **Angular — Assignment Create Page** (multi-step form)
-- `[ ]` **Angular — Assignment List Page**
-- `[ ]` Test: Assign success, 2 concurrent → chỉ 1 thành công, duplicate click idempotent (Compile 100% SUCCESS)
+- `[ ]` @Transactional: Assignment + Device → DEPLOYED + History + Outbox
+- `[ ]` API: `POST /api/v1/assignments` (idempotent)
+- `[ ]` API: `GET /api/v1/assignments` + `GET /{id}` + `GET /devices/{serial}/assignments`
+
+### Frontend
+
+- `[ ]` **Assignment Create Page** (`/assignment/create`) — Multi-step:
+  - Step 1: Chọn thiết bị INSTOCK (search hoặc bảng)
+  - Step 2: Chọn Merchant + TID
+  - Step 3: Confirm + checkbox + [Xác nhận] + Success card
+
+- `[ ]` **Assignment List Page** (`/assignment/list`):
+  - Status Tabs + Filter + Table
+  - [Thu hồi] button trên ACTIVE rows
+
+- `[ ]` Test: Assign success, concurrent → chỉ 1 thành công, idempotent (ng build SUCCESS)
 
 ---
 
 ## ↩️ Sprint 09 — Return & Transfer
 
-- `[ ]` Return device: Assignment → RETURNED, Device → RETURNED, Outbox
-- `[ ]` Transfer device: atomic return + re-assign (cùng @Transactional)
-- `[ ]` APIs: `POST /api/v1/assignments/{id}/return`, `POST /api/v1/assignments/{id}/transfer`
-- `[ ]` **Angular — Thu Hồi Modal** (confirm + lý do)
-- `[ ]` **Angular — Assignment History Page** (timeline)
-- `[ ]` Test: Return, Transfer atomic, history immutable (Compile 100% SUCCESS)
+### Backend
+
+- `[ ]` Return: Assignment → RETURNED, Device → RETURNED, Outbox
+- `[ ]` Transfer: atomic return + re-assign (cùng @Transactional)
+- `[ ]` API: `POST /api/v1/assignments/{id}/return`
+- `[ ]` API: `POST /api/v1/assignments/{id}/transfer`
+
+### Frontend
+
+- `[ ]` **Thu Hồi Modal** (confirm + lý do + loading)
+- `[ ]` **Assignment History Page** (`/assignment/history`):
+  - Table + Timeline view toggle
+
+- `[ ]` Test: Return, Transfer atomic, history immutable (ng build SUCCESS)
 
 ---
 
 ## ✅ Sprint 10 — Approval Workflow Full
 
-- `[ ]` Flyway V10: `approval_requests`, `approval_steps`, `approval_configs`
-- `[ ]` Full Approval States: DRAFT → PENDING_APPROVAL → PENDING_LEVEL_2 → APPROVED → EXECUTING → COMPLETED (+ REJECTED, RETURNED_FOR_EDIT, CANCELLED)
+### Backend
+
+- `[ ]` Flyway V9: `approval_requests` (full schema), `approval_steps`, `approval_configs`
+- `[ ]` Full Approval States: DRAFT → PENDING_APPROVAL → PENDING_LEVEL_2 → APPROVED → EXECUTING → COMPLETED + REJECTED, RETURNED_FOR_EDIT, CANCELLED
 - `[ ]` Business rule: Người tạo KHÔNG tự duyệt
 - `[ ]` Optimistic Lock trên `approval_requests`
-- `[ ]` Configurable levels per request type
-- `[ ]` Tích hợp Inventory, Assignment, Device execute khi APPROVED
-- `[ ]` Kafka: `approval.submitted` → notify người duyệt
-- `[ ]` APIs: Full approval actions + `/inbox` + `/my-requests` + `/all`
-- `[ ]` **Angular — Approval Inbox Page** (Hộp việc cần duyệt)
-- `[ ]` **Angular — Approval Detail Page** (timeline + actions)
-- `[ ]` **Angular — My Requests Page**
-- `[ ]` **Angular — All Requests Page**
-- `[ ]` **Angular — Approval History Page**
-- `[ ]` **Angular — Badge counter trên Sidebar** (real-time unread count)
-- `[ ]` **Angular — Approval Timeline Component** (reusable)
-- `[ ]` Test: 2-level approval, reject, return for edit, người tạo không tự duyệt (Compile 100% SUCCESS)
+- `[ ]` Configurable: 1 hoặc 2 cấp tùy loại request
+- `[ ]` Execute business logic khi APPROVED
+- `[ ]` Kafka event: `approval.submitted` → notify người duyệt
+- `[ ]` API: `POST /api/v1/approvals/{id}/submit`, `/approve`, `/reject`, `/return-for-edit`, `/cancel`
+- `[ ]` API: `GET /api/v1/approvals/inbox`, `/my-requests`, `/all`
+
+### Frontend
+
+- `[ ]` `ApprovalTimelineComponent` (reusable)
+- `[ ]` **Inbox Page** (`/approval/inbox`):
+  - Stats cards + Tabs + Card list với quick actions
+  - Badge counter trên Sidebar menu
+
+- `[ ]` **Approval Detail Page** (`/approval/:id`):
+  - Sections: Thông tin + Timeline + Form hành động + Lịch sử
+  - Action buttons với loading state
+
+- `[ ]` **My Requests Page** (`/approval/my-requests`)
+- `[ ]` **All Requests Page** (`/approval/all`)
+- `[ ]` **Approval History Page** (`/approval/history`)
+
+- `[ ]` Test: 2-level approval, reject, return for edit, không tự duyệt (ng build SUCCESS)
 
 ---
 
 ## 🔔 Sprint 11 — Notification
 
-- `[ ]` Flyway V10: `notifications`
+### Backend
+
+- `[ ]` Flyway V10: `notifications`, `audit_logs`, `outbox_events`
 - `[ ]` Kafka Consumer: `@KafkaListener` trên approval events
 - `[ ]` Idempotent Consumer: Redis key `consumed_event:{eventId}` (TTL 1h)
-- `[ ]` Mock Email Sender + Mock Push Sender
-- `[ ]` APIs: `GET /api/v1/notifications`, `/unread-count`, `PATCH /{id}/read`, `PATCH /read-all`
-- `[ ]` **Angular — Notification Badge** trên Header
-- `[ ]` **Angular — Notification Panel/Dropdown**
-- `[ ]` Test: Kafka event → Redis check → Notification ghi DB → Badge update (Compile 100% SUCCESS)
+- `[ ]` API: `GET /api/v1/notifications`, `/unread-count`, `PATCH /{id}/read`, `PATCH /read-all`
+
+### Frontend
+
+- `[ ]` **Notification Badge** trên Header (auto-refresh 30s)
+- `[ ]` **Notification Dropdown** (trong Header)
+- `[ ]` **Notification Center Page** (`/notifications`)
+
+- `[ ]` Test: Kafka event → Redis check → Notification → Badge update (ng build SUCCESS)
 
 ---
 
 ## ⚡ Sprint 12 — Kafka & Outbox Hardening
 
-- `[ ]` OutboxPollingService: `FOR UPDATE SKIP LOCKED` (tránh duplicate publish)
-- `[ ]` Retry max 5 lần → FAILED
-- `[ ]` Dead Letter Topic: `device-assigned.DLT`, `stock-issued.DLT`
-- `[ ]` Idempotent Consumer pattern cho tất cả consumers
-- `[ ]` Event ordering: serialNumber/deviceId làm Kafka partition key
-- `[ ]` Chaos toggle: bật/tắt Kafka giả lập
-- `[ ]` APIs: `GET /api/v1/outbox/events`, `POST /api/v1/outbox/events/{id}/retry`, `POST /api/v1/outbox/chaos/toggle-kafka`
-- `[ ]` **Angular — Outbox Events Monitor Page**
-- `[ ]` Test: Kafka DOWN → DB commit OK → Events PENDING → Kafka UP → SENT (Compile 100% SUCCESS)
+### Backend
+
+- `[ ]` OutboxPollingService: `FOR UPDATE SKIP LOCKED`
+- `[ ]` Retry max 5 → FAILED
+- `[ ]` Dead Letter Topics
+- `[ ]` Idempotent Consumer cho tất cả consumers
+- `[ ]` Event ordering: serialNumber làm Kafka partition key
+- `[ ]` Chaos toggle
+- `[ ]` API: `GET /api/v1/outbox/events`, `/retry/{id}`, `/chaos/toggle-kafka`
+
+### Frontend
+
+- `[ ]` **Outbox Events Monitor Page** (`/monitoring/outbox`):
+  - KPI: PENDING/SENT/FAILED + [Toggle Kafka] chaos button
+  - Table events + [Retry] cho FAILED
+
+- `[ ]` Test: Kafka DOWN → DB commit OK → Events PENDING → Kafka UP → SENT (ng build SUCCESS)
 
 ---
 
 ## 📊 Sprint 13 — Dashboard & POS Monitoring
 
+### Backend
+
 - `[ ]` API: `GET /api/v1/dashboard/summary` — aggregate KPIs
-- `[ ]` API: `GET /api/v1/monitoring/pos-status` — DEPLOYED devices realtime
-- `[ ]` **Angular — Main Dashboard Page** (KPI cards + Bar chart + Donut chart + Top 5 kho + Activity feed)
-- `[ ]` **Angular — Giám Sát POS Page** (Grid thiết bị, auto-refresh 30s)
-- `[ ]` Test: Dashboard KPIs chính xác (Compile 100% SUCCESS)
+- `[ ]` API: `GET /api/v1/monitoring/pos-status` — real-time DEPLOYED devices
+
+### Frontend
+
+- `[ ]` **Main Dashboard Page** (`/dashboard`):
+  - Row 1: 5 KPI Cards lớn (gradient colors)
+  - Row 2: 3 KPI Cards nhỏ (Merchant Active, TID, Chờ duyệt)
+  - Row 3: Bar Chart (Nhập/Xuất kho) + Donut Chart (phân bổ thiết bị)
+  - Row 4: Top 5 Kho (horizontal bar) + Activity Feed (10 items)
+  - Dùng ApexCharts với config từ `07_UI_UX_Standard.md Section 5.3`
+
+- `[ ]` **Giám Sát POS Page** (`/monitoring/pos`):
+  - Grid thiết bị DEPLOYED, auto-refresh 30s countdown
+  - Search + filter + Online/Offline status
+
+- `[ ]` Test: Dashboard KPIs chính xác (ng build SUCCESS)
 
 ---
 
 ## 📝 Sprint 14 — Audit Log & Reports
 
-- `[ ]` Flyway V11: `audit_logs` (append-only)
+### Backend
+
 - `[ ]` `@Audit` AOP annotation tự động ghi log
 - `[ ]` Report APIs: tồn kho, thiết bị, assignment, merchant
-- `[ ]` **Angular — Audit Log Page** (table + filter + modal diff)
-- `[ ]` **Angular — Reports Page** (date picker + chart + export)
-- `[ ]` Test: Audit log ghi đủ, export hoạt động (Compile 100% SUCCESS)
+
+### Frontend
+
+- `[ ]` **Audit Log Page** (`/monitoring/audit`):
+  - Filter + Table + Modal JSON diff
+  - [Xuất CSV]
+
+- `[ ]` **Reports Page** (`/reports`):
+  - Left sidebar chọn loại + Date range + Chart + Table + Export
+
+- `[ ]` Test: Audit log ghi đủ, export hoạt động (ng build SUCCESS)
 
 ---
 
 ## 🛡️ Sprint 15 — Hardening & Production Ready
 
 - `[ ]` Redis cache: device status, approval inbox count, merchant info
-- `[ ]` Cache eviction policy cho mọi resource
-- `[ ]` OpenAPI 3 config + @Tag/@Operation trên tất cả controllers
-- `[ ]` Swagger UI tại `/swagger-ui/index.html`
-- `[ ]` Resilience4j: Circuit Breaker + Retry
-- `[ ]` Prometheus custom metrics: assignments/hour, approval processing time
-- `[ ]` Grafana dashboard cho POS Management
-- `[ ]` Docker Compose optimization: healthcheck, resource limits
-- `[ ]` **Angular — Swagger UI link** trong sidebar
-- `[ ]` Load test k6: concurrent assignment, approval throughput
-- `[ ]` Test: Circuit Breaker trip to OPEN, fallback, metrics visible in Grafana (Compile 100% SUCCESS)
+- `[ ]` Cache eviction policy
+- `[ ]` OpenAPI 3 Swagger UI tại `/swagger-ui/index.html`
+- `[ ]` Resilience4j Circuit Breaker + Retry
+- `[ ]` Prometheus custom metrics
+- `[ ]` Grafana dashboard
+- `[ ]` Load test k6
 
 ---
 
@@ -273,7 +584,7 @@
 ```
 Phase 0 (Sprint 00):    8/9   tasks  [ 89%]
 Phase 1 (Sprint 01):    0/23  tasks  [  0%]
-Phase 2 (Sprint 02):    0/19  tasks  [  0%]
+Phase 2 (Sprint 02):    0/20  tasks  [  0%]
 Phase 3 (Sprint 03):    0/15  tasks  [  0%]
 Phase 4 (Sprint 04):    0/11  tasks  [  0%]
 Phase 5 (Sprint 05):    0/12  tasks  [  0%]
@@ -287,8 +598,7 @@ Phase 12 (Sprint 12):   0/10  tasks  [  0%]
 Phase 13 (Sprint 13):   0/6   tasks  [  0%]
 Phase 14 (Sprint 14):   0/7   tasks  [  0%]
 Phase 15 (Sprint 15):   0/12  tasks  [  0%]
-
-OVERALL: 8/195 tasks completed (4% — Sprint 00 infrastructure done!)
+OVERALL: 8/196 tasks (4%)
 ```
 
 ---
@@ -299,3 +609,6 @@ OVERALL: 8/195 tasks completed (4% — Sprint 00 infrastructure done!)
 
 - [2026-10-01] Khởi tạo dự án POS Management — Planning & Documentation phase
 - [2026-10-01] Đã tạo đầy đủ bộ tài liệu docs (00 → 07), prompt.md, task.md, architecture_diagrams.md
+- [2026-10-03] Cập nhật task.md với chi tiết coding steps từng Sprint
+- [2026-10-03] Cập nhật 07_UI_UX_Standard.md: thêm Dual Theme, Sidebar structure từ ảnh chuẩn
+- [2026-10-03] Tạo CODING_AGENT_GUIDE.md — quy trình làm việc chi tiết cho AI Agent
