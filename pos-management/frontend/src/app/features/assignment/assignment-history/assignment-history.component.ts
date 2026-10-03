@@ -1,11 +1,14 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  PosButtonComponent, PosInputComponent, PosSelectComponent,
+  PosButtonComponent, PosInputComponent,
   PosBadgeComponent, PosTableComponent, PosPaginationComponent,
   PosDropdownComponent, TableColumn, DropdownItem
 } from '@shared';
+import { AssignmentApiService } from '../../../core/services/api/assignment-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface AssignmentHistoryRecord {
   id: string;
@@ -31,12 +34,19 @@ export interface AssignmentHistoryRecord {
   templateUrl: './assignment-history.component.html',
   styleUrl: './assignment-history.component.scss'
 })
-export class AssignmentHistoryPageComponent {
+export class AssignmentHistoryPageComponent implements OnInit {
+  private readonly assignmentApi = inject(AssignmentApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly searchAssignmentCode = signal('');
   readonly searchMerchant = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(2);
+  readonly sortField = signal('eventDate');
+  readonly sortOrder = signal<'asc' | 'desc'>('desc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -79,11 +89,50 @@ export class AssignmentHistoryPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.assignmentApi.getAssignmentHistory({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      code: this.searchAssignmentCode()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.historyRecords.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchAssignmentCode.set('');
     this.searchMerchant.set('');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -96,6 +145,8 @@ export class AssignmentHistoryPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất báo cáo nhật ký bàn giao terminal thành công!');
+    this.fileExport.downloadExcel('/assignments/history/export', 'Nhat_Ky_Terminal_Assignment.xlsx', {
+      code: this.searchAssignmentCode()
+    });
   }
 }

@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  PosButtonComponent, PosInputComponent, PosSelectComponent,
-  PosBadgeComponent, PosTableComponent, TableColumn
+  PosButtonComponent, PosSelectComponent, PosTableComponent, TableColumn
 } from '@shared';
+import { InventoryApiService } from '../../../core/services/api/inventory-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface InventoryReportRow {
   warehouseName: string;
@@ -24,13 +26,16 @@ export interface InventoryReportRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, FormsModule,
-    PosButtonComponent, PosInputComponent, PosSelectComponent,
-    PosBadgeComponent, PosTableComponent
+    PosButtonComponent, PosSelectComponent, PosTableComponent
   ],
   templateUrl: './report-inventory.component.html',
   styleUrl: './report-inventory.component.scss'
 })
-export class ReportInventoryPageComponent {
+export class ReportInventoryPageComponent implements OnInit {
+  private readonly inventoryApi = inject(InventoryApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly selectedWarehouse = signal('');
   readonly selectedType = signal('');
   readonly loading = signal(false);
@@ -78,11 +83,37 @@ export class ReportInventoryPageComponent {
     });
   });
 
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.inventoryApi.getInventoryStock({
+      warehouseId: this.selectedWarehouse(),
+      deviceType: this.selectedType()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.reportRows.set(res.data.content);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
   onExportExcel(): void {
-    // Export Excel action simulation
+    this.fileExport.downloadExcel('/reports/inventory/export', 'Bao_Cao_Ton_Kho_POS.xlsx', {
+      warehouseId: this.selectedWarehouse(),
+      deviceType: this.selectedType()
+    });
   }
 
   onExportPdf(): void {
-    // Export PDF action simulation
+    this.toast.info('Đang tạo báo cáo PDF tồn kho...');
+    this.fileExport.downloadExcel('/reports/inventory/export-pdf', 'Bao_Cao_Ton_Kho_POS.pdf', {
+      warehouseId: this.selectedWarehouse()
+    });
   }
 }

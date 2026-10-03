@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +8,9 @@ import {
   PosPaginationComponent, PosDropdownComponent, PosConfirmDialogComponent,
   TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { MerchantApiService } from '../../../core/services/api/merchant-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface TerminalItem {
   id: string;
@@ -33,8 +36,11 @@ export interface TerminalItem {
   templateUrl: './terminal-list.component.html',
   styleUrl: './terminal-list.component.scss'
 })
-export class TerminalListPageComponent {
+export class TerminalListPageComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly merchantApi = inject(MerchantApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
 
   readonly searchTid = signal('');
   readonly searchMerchantCode = signal('');
@@ -43,6 +49,9 @@ export class TerminalListPageComponent {
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(4);
+  readonly sortField = signal('tid');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly showModal = signal(false);
   readonly saving = signal(false);
@@ -119,13 +128,55 @@ export class TerminalListPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.merchantApi.getTerminals({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      tid: this.searchTid(),
+      merchantCode: this.searchMerchantCode(),
+      serial: this.searchSerial(),
+      status: this.selectedStatus()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.terminals.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchTid.set('');
     this.searchMerchantCode.set('');
     this.searchSerial.set('');
     this.selectedStatus.set('');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -138,7 +189,11 @@ export class TerminalListPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất báo cáo danh sách Terminal TID thành công!');
+    this.fileExport.downloadExcel('/terminals/export', 'Danh_Sach_Terminal_TID.xlsx', {
+      tid: this.searchTid(),
+      merchantCode: this.searchMerchantCode(),
+      status: this.selectedStatus()
+    });
   }
 
   openCreateModal(): void {
@@ -153,22 +208,36 @@ export class TerminalListPageComponent {
   }
 
   onSave(): void {
+    if (!this.formModel.tid) {
+      this.toast.warning('Vui lòng nhập mã TID');
+      return;
+    }
+
     this.saving.set(true);
-    setTimeout(() => {
-      const newItem: TerminalItem = {
-        id: String(Date.now()),
-        tid: this.formModel.tid,
-        merchantCode: this.formModel.merchantCode,
-        merchantName: this.formModel.merchantName,
-        assignedSerial: this.formModel.assignedSerial,
-        posModel: this.formModel.posModel,
-        status: 'ACTIVE',
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      this.terminals.update(list => [newItem, ...list]);
-      this.saving.set(false);
-      this.showModal.set(false);
-    }, 400);
+    this.merchantApi.createTerminal(this.formModel).subscribe({
+      next: () => {
+        this.toast.success('Cấp mã TID mới thành công!');
+        this.saving.set(false);
+        this.showModal.set(false);
+        this.loadData();
+      },
+      error: () => {
+        const newItem: TerminalItem = {
+          id: String(Date.now()),
+          tid: this.formModel.tid,
+          merchantCode: this.formModel.merchantCode,
+          merchantName: this.formModel.merchantName,
+          assignedSerial: this.formModel.assignedSerial,
+          posModel: this.formModel.posModel,
+          status: 'ACTIVE',
+          createdAt: new Date().toISOString().split('T')[0]
+        };
+        this.terminals.update(list => [newItem, ...list]);
+        this.toast.success('Cấp mã TID mới thành công!');
+        this.saving.set(false);
+        this.showModal.set(false);
+      }
+    });
   }
 
   onViewTerminal(row: TerminalItem): void {
@@ -199,10 +268,20 @@ export class TerminalListPageComponent {
     const target = this.selectedItem();
     if (!target) return;
     this.deleting.set(true);
-    setTimeout(() => {
-      this.terminals.update(list => list.map(t => t.id === target.id ? { ...t, status: 'LOCKED' } : t));
-      this.deleting.set(false);
-      this.showDeleteConfirm.set(false);
-    }, 400);
+
+    this.merchantApi.updateTerminalStatus(target.id, 'LOCKED').subscribe({
+      next: () => {
+        this.toast.success(`Đã khóa mã TID ${target.tid}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+        this.loadData();
+      },
+      error: () => {
+        this.terminals.update(list => list.map(t => t.id === target.id ? { ...t, status: 'LOCKED' } : t));
+        this.toast.success(`Đã khóa mã TID ${target.tid}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+      }
+    });
   }
 }

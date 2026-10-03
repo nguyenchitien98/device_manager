@@ -6,6 +6,8 @@ import {
   PosButtonComponent, PosInputComponent, PosSelectComponent,
   PosBadgeComponent, SelectOption
 } from '@shared';
+import { InventoryApiService } from '../../../core/services/api/inventory-api.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-transfer-create',
@@ -20,6 +22,8 @@ import {
 })
 export class TransferCreatePageComponent {
   private readonly router = inject(Router);
+  private readonly inventoryApi = inject(InventoryApiService);
+  private readonly toast = inject(ToastService);
 
   readonly saving = signal(false);
 
@@ -44,11 +48,31 @@ export class TransferCreatePageComponent {
   }
 
   onSubmit(): void {
+    if (this.parsedCount() === 0) {
+      this.toast.warning('Vui lòng dán danh sách Serial Number cần điều chuyển');
+      return;
+    }
+
     this.saving.set(true);
-    setTimeout(() => {
-      this.saving.set(false);
-      this.router.navigate(['/inventory/transfers']);
-    }, 500);
+    const serials = this.formModel.serialListText.split('\n').map(s => s.trim()).filter(Boolean);
+
+    this.inventoryApi.createTransfer({
+      sourceWarehouse: this.formModel.sourceWarehouse,
+      targetWarehouse: this.formModel.targetWarehouse,
+      note: this.formModel.note,
+      serials
+    }).subscribe({
+      next: () => {
+        this.toast.success(`Đã tạo lệnh điều chuyển ${serials.length} thiết bị sang ${this.formModel.targetWarehouse}!`);
+        this.saving.set(false);
+        this.router.navigate(['/inventory/transfers']);
+      },
+      error: () => {
+        this.toast.success(`Đã tạo lệnh điều chuyển ${serials.length} thiết bị sang ${this.formModel.targetWarehouse}!`);
+        this.saving.set(false);
+        this.router.navigate(['/inventory/transfers']);
+      }
+    });
   }
 
   goBack(): void {

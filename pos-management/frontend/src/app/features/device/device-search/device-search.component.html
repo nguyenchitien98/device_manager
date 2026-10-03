@@ -67,7 +67,7 @@
       </div>
     </div>
 
-    <pos-table [columns]="visibleColumns()" [data]="filteredDevices()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredDevices()" [loading]="loading()" (sortChange)="onSortChange($event)">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'serialNumber') {
           <span class="code-badge">{{ row.serialNumber }}</span>

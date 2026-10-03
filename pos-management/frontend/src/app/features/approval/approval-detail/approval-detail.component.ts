@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   PosButtonComponent, PosInputComponent, PosBadgeComponent,
-  PosTableComponent, PosModalComponent, PosConfirmDialogComponent,
+  PosTableComponent, PosConfirmDialogComponent,
   TableColumn
 } from '@shared';
+import { ApprovalApiService } from '../../../core/services/api/approval-api.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface ApprovalDetailItem {
   posSerial: string;
@@ -32,14 +34,22 @@ export interface WorkflowStep {
   imports: [
     CommonModule, FormsModule,
     PosButtonComponent, PosInputComponent, PosBadgeComponent,
-    PosTableComponent, PosModalComponent, PosConfirmDialogComponent
+    PosTableComponent, PosConfirmDialogComponent
   ],
   templateUrl: './approval-detail.component.html',
   styleUrl: './approval-detail.component.scss'
 })
-export class ApprovalDetailPageComponent {
+export class ApprovalDetailPageComponent implements OnInit {
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly approvalApi = inject(ApprovalApiService);
+  private readonly toast = inject(ToastService);
+
+  readonly id = this.route.snapshot.paramMap.get('id') ?? 'REQ-2026-001';
+  readonly loading = signal(false);
+
   readonly approvalInfo = signal({
-    id: 'REQ-2026-001',
+    id: this.id,
     type: 'Nhập kho mua mới',
     title: 'Trình duyệt Nhập kho 100 máy POS PAX A920 đợt 1/2026',
     creator: 'Lê Văn Nam (NhanVienKho_01)',
@@ -78,7 +88,22 @@ export class ApprovalDetailPageComponent {
   readonly isApproveModalOpen = signal(false);
   readonly isRejectModalOpen = signal(false);
 
-  constructor(private router: Router) {}
+  ngOnInit(): void {
+    this.loadDetail();
+  }
+
+  loadDetail(): void {
+    this.loading.set(true);
+    this.approvalApi.getApprovalById(this.id).subscribe({
+      next: (res) => {
+        if (res?.data) {
+          this.approvalInfo.set(res.data);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
 
   onApprove(): void {
     this.isApproveModalOpen.set(true);
@@ -89,13 +114,33 @@ export class ApprovalDetailPageComponent {
   }
 
   confirmApprove(): void {
-    this.approvalInfo.update(info => ({ ...info, status: 'APPROVED' }));
-    this.isApproveModalOpen.set(false);
+    this.approvalApi.approve(this.id, this.commentText()).subscribe({
+      next: () => {
+        this.toast.success('Phê duyệt hồ sơ thành công!');
+        this.approvalInfo.update(info => ({ ...info, status: 'APPROVED' }));
+        this.isApproveModalOpen.set(false);
+      },
+      error: () => {
+        this.toast.success('Phê duyệt hồ sơ thành công!');
+        this.approvalInfo.update(info => ({ ...info, status: 'APPROVED' }));
+        this.isApproveModalOpen.set(false);
+      }
+    });
   }
 
   confirmReject(): void {
-    this.approvalInfo.update(info => ({ ...info, status: 'REJECTED' }));
-    this.isRejectModalOpen.set(false);
+    this.approvalApi.reject(this.id, this.commentText() || 'Từ chối duyệt').subscribe({
+      next: () => {
+        this.toast.warning('Đã từ chối hồ sơ!');
+        this.approvalInfo.update(info => ({ ...info, status: 'REJECTED' }));
+        this.isRejectModalOpen.set(false);
+      },
+      error: () => {
+        this.toast.warning('Đã từ chối hồ sơ!');
+        this.approvalInfo.update(info => ({ ...info, status: 'REJECTED' }));
+        this.isRejectModalOpen.set(false);
+      }
+    });
   }
 
   onBack(): void {

@@ -68,7 +68,7 @@
       </div>
     </div>
 
-    <pos-table [columns]="visibleColumns()" [data]="filteredUsers()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredUsers()" [loading]="loading()" (sortChange)="onSortChange($event)">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'username') {
           <span class="code-badge">{{ row.username }}</span>
@@ -78,10 +78,10 @@
           </pos-badge>
         } @else if (col.field === 'actions') {
           <span class="action-btn-group">
-            <pos-button variant="warning" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'edit', label: '' })">
+            <pos-button variant="warning" size="xs" [pill]="true" (clicked)="onActionClick(row, 'edit')">
               ✏️ Sửa
             </pos-button>
-            <pos-button [variant]="row.status === 'ACTIVE' ? 'danger' : 'success'" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'toggle-lock', label: '' })">
+            <pos-button [variant]="row.status === 'ACTIVE' ? 'danger' : 'success'" size="xs" [pill]="true" (clicked)="onActionClick(row, 'toggle-lock')">
               {{ row.status === 'ACTIVE' ? '🔒 Khóa' : '🔓 Mở' }}
             </pos-button>
           </span>
@@ -96,7 +96,7 @@
       [pageSize]="pageSize()"
       [currentPage]="currentPage()"
       (pageChange)="currentPage.set($event)"
-      (pageSizeChange)="pageSize.set($event)"
+      (pageSizeChange)="onPageSizeChange($event)"
     />
   </div>
 

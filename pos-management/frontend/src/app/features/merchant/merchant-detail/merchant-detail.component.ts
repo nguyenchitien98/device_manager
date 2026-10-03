@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   PosButtonComponent, PosBadgeComponent, PosTableComponent,
   TableColumn
 } from '@shared';
+import { MerchantApiService } from '../../../core/services/api/merchant-api.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface MerchantTerminal {
   tid: string;
@@ -25,9 +27,11 @@ export interface MerchantTerminal {
   templateUrl: './merchant-detail.component.html',
   styleUrl: './merchant-detail.component.scss'
 })
-export class MerchantDetailPageComponent {
+export class MerchantDetailPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly merchantApi = inject(MerchantApiService);
+  private readonly toast = inject(ToastService);
 
   readonly merchantId = this.route.snapshot.paramMap.get('id') ?? '101';
 
@@ -61,6 +65,19 @@ export class MerchantDetailPageComponent {
     { tid: 'TID_8802', posSerial: 'PAX-A920-998823', posModel: 'PAX A920 Pro Smart POS', feePolicyName: 'Gói Phí Thẻ Napas Mẫu Chuẩn', status: 'ACTIVE', installedDate: '2026-01-10' },
     { tid: 'TID_8803', posSerial: 'ING-DX8-771199', posModel: 'Ingenico AXIUM DX8000', feePolicyName: 'Gói Phí Thẻ Quốc Tế Visa/Mastercard', status: 'ACTIVE', installedDate: '2026-02-01' }
   ]);
+
+  ngOnInit(): void {
+    if (this.merchantId) {
+      this.merchantApi.getMerchantById(this.merchantId).subscribe({
+        next: (res) => {
+          if (res?.data) {
+            this.merchantDetail.set(res.data);
+          }
+        },
+        error: () => {}
+      });
+    }
+  }
 
   goBack(): void {
     this.router.navigate(['/merchant/merchants']);

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,6 +7,9 @@ import {
   PosBadgeComponent, PosTableComponent, PosPaginationComponent,
   PosDropdownComponent, TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { AssignmentApiService } from '../../../core/services/api/assignment-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface AssignmentItem {
   id: string;
@@ -32,8 +35,11 @@ export interface AssignmentItem {
   templateUrl: './assignment-list.component.html',
   styleUrl: './assignment-list.component.scss'
 })
-export class AssignmentListPageComponent {
+export class AssignmentListPageComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly assignmentApi = inject(AssignmentApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
 
   readonly searchAssignmentCode = signal('');
   readonly searchMerchant = signal('');
@@ -41,6 +47,9 @@ export class AssignmentListPageComponent {
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(2);
+  readonly sortField = signal('assignmentCode');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -75,10 +84,6 @@ export class AssignmentListPageComponent {
     { field: 'status', header: 'Trạng Thái', width: '150px', align: 'center' }
   ];
 
-  readonly actionItems: DropdownItem[] = [
-    { id: 'view', label: 'Xem chi tiết lệnh', icon: 'visibility' }
-  ];
-
   readonly assignments = signal<AssignmentItem[]>([
     { id: '1', assignmentCode: 'ASN-2026-001', actionType: 'ASSIGN', merchantName: 'WinMart Thăng Long', tid: 'TID_8801', posSerial: 'PAX-A920-998822', status: 'COMPLETED', createdByName: 'Nguyễn Văn Hải', createdDate: '2026-01-10' },
     { id: '2', assignmentCode: 'ASN-2026-002', actionType: 'REPLACE', merchantName: 'Phúc Long Coffee & Tea', tid: 'TID_8803', posSerial: 'ING-DX8-771199', status: 'PENDING_APPROVAL', createdByName: 'Trần Thị Thu', createdDate: '2026-03-01' }
@@ -96,12 +101,52 @@ export class AssignmentListPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.assignmentApi.getAssignments({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      code: this.searchAssignmentCode(),
+      type: this.selectedType()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.assignments.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchAssignmentCode.set('');
     this.searchMerchant.set('');
     this.selectedType.set('');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -114,16 +159,21 @@ export class AssignmentListPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất báo cáo danh sách lệnh Assignment thành công!');
+    this.fileExport.downloadExcel('/assignments/export', 'Danh_Sach_Lenh_Assignment.xlsx', {
+      code: this.searchAssignmentCode(),
+      type: this.selectedType()
+    });
   }
 
   openCreatePage(): void {
     this.router.navigate(['/assignment/create']);
   }
 
-  onActionClick(row: AssignmentItem, item: DropdownItem): void {
-    if (item.id === 'view') {
-      alert(`Chi tiết lệnh assignment ${row.assignmentCode}`);
+  onActionClick(row: AssignmentItem, action: string): void {
+    if (action === 'view') {
+      this.toast.info(`Xem chi tiết lệnh assignment: ${row.assignmentCode}`);
+    } else if (action === 'edit') {
+      this.toast.info(`Chỉnh sửa lệnh assignment: ${row.assignmentCode}`);
     }
   }
 }

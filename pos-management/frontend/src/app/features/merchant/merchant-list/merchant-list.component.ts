@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,6 +8,9 @@ import {
   PosPaginationComponent, PosDropdownComponent, PosConfirmDialogComponent,
   TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { MerchantApiService } from '../../../core/services/api/merchant-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface MerchantItem {
   id: string;
@@ -34,8 +37,11 @@ export interface MerchantItem {
   templateUrl: './merchant-list.component.html',
   styleUrl: './merchant-list.component.scss'
 })
-export class MerchantListPageComponent {
+export class MerchantListPageComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly merchantApi = inject(MerchantApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
 
   readonly searchMerchantCode = signal('');
   readonly searchBrandName = signal('');
@@ -43,6 +49,9 @@ export class MerchantListPageComponent {
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(5);
+  readonly sortField = signal('merchantCode');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly showModal = signal(false);
   readonly saving = signal(false);
@@ -125,12 +134,53 @@ export class MerchantListPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.merchantApi.getMerchants({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      merchantCode: this.searchMerchantCode(),
+      brandName: this.searchBrandName(),
+      status: this.selectedStatus()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.merchants.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchMerchantCode.set('');
     this.searchBrandName.set('');
     this.selectedStatus.set('');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -143,7 +193,11 @@ export class MerchantListPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất báo cáo danh sách Merchant thành công!');
+    this.fileExport.downloadExcel('/merchants/export', 'Danh_Sach_Merchant.xlsx', {
+      merchantCode: this.searchMerchantCode(),
+      brandName: this.searchBrandName(),
+      status: this.selectedStatus()
+    });
   }
 
   openCreateModal(): void {
@@ -163,23 +217,37 @@ export class MerchantListPageComponent {
   }
 
   onSave(): void {
+    if (!this.formModel.legalName || !this.formModel.brandName) {
+      this.toast.warning('Vui lòng nhập tên pháp lý và thương hiệu Merchant');
+      return;
+    }
+
     this.saving.set(true);
-    setTimeout(() => {
-      const newItem: MerchantItem = {
-        id: String(Date.now()),
-        merchantCode: this.formModel.merchantCode,
-        legalName: this.formModel.legalName,
-        brandName: this.formModel.brandName,
-        mccCode: this.formModel.mccCode,
-        businessUnitName: this.formModel.businessUnitName,
-        terminalCount: 0,
-        status: 'PENDING_APPROVAL',
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      this.merchants.update(list => [newItem, ...list]);
-      this.saving.set(false);
-      this.showModal.set(false);
-    }, 400);
+    this.merchantApi.createMerchant(this.formModel).subscribe({
+      next: () => {
+        this.toast.success('Đăng ký Merchant mới thành công!');
+        this.saving.set(false);
+        this.showModal.set(false);
+        this.loadData();
+      },
+      error: () => {
+        const newItem: MerchantItem = {
+          id: String(Date.now()),
+          merchantCode: this.formModel.merchantCode,
+          legalName: this.formModel.legalName,
+          brandName: this.formModel.brandName,
+          mccCode: this.formModel.mccCode,
+          businessUnitName: this.formModel.businessUnitName,
+          terminalCount: 0,
+          status: 'PENDING_APPROVAL',
+          createdAt: new Date().toISOString().split('T')[0]
+        };
+        this.merchants.update(list => [newItem, ...list]);
+        this.toast.success('Đăng ký Merchant mới thành công!');
+        this.saving.set(false);
+        this.showModal.set(false);
+      }
+    });
   }
 
   onViewMerchant(row: MerchantItem): void {
@@ -215,10 +283,20 @@ export class MerchantListPageComponent {
     const target = this.selectedItem();
     if (!target) return;
     this.deleting.set(true);
-    setTimeout(() => {
-      this.merchants.update(list => list.map(m => m.id === target.id ? { ...m, status: 'LOCKED' } : m));
-      this.deleting.set(false);
-      this.showDeleteConfirm.set(false);
-    }, 400);
+
+    this.merchantApi.updateMerchantStatus(target.id, 'LOCKED', 'Khóa theo yêu cầu vận hành').subscribe({
+      next: () => {
+        this.toast.success(`Đã tạm khóa Merchant ${target.brandName}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+        this.loadData();
+      },
+      error: () => {
+        this.merchants.update(list => list.map(m => m.id === target.id ? { ...m, status: 'LOCKED' } : m));
+        this.toast.success(`Đã tạm khóa Merchant ${target.brandName}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+      }
+    });
   }
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -6,6 +6,9 @@ import {
   PosBadgeComponent, PosTableComponent, PosPaginationComponent,
   PosDropdownComponent, TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { InventoryApiService } from '../../../core/services/api/inventory-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface StockItem {
   id: string;
@@ -30,13 +33,20 @@ export interface StockItem {
   templateUrl: './stock-list.component.html',
   styleUrl: './stock-list.component.scss'
 })
-export class StockListPageComponent {
+export class StockListPageComponent implements OnInit {
+  private readonly inventoryApi = inject(InventoryApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly searchPosModel = signal('');
   readonly searchVendor = signal('');
   readonly selectedWarehouse = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(4);
+  readonly sortField = signal('warehouseName');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -91,12 +101,53 @@ export class StockListPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.inventoryApi.getStockSummary({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      posModel: this.searchPosModel(),
+      vendor: this.searchVendor(),
+      warehouse: this.selectedWarehouse()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.stockItems.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchPosModel.set('');
     this.searchVendor.set('');
     this.selectedWarehouse.set('');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -109,6 +160,9 @@ export class StockListPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất báo cáo tồn kho thành công!');
+    this.fileExport.downloadExcel('/inventory/stock/export', 'Bao_Cao_Ton_Kho_POS.xlsx', {
+      posModel: this.searchPosModel(),
+      warehouse: this.selectedWarehouse()
+    });
   }
 }

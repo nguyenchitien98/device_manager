@@ -60,7 +60,13 @@
       </div>
     </div>
 
-    <pos-table [columns]="visibleColumns()" [data]="filteredExports()" [loading]="loading()">
+    <pos-table
+      [columns]="visibleColumns()"
+      [data]="filteredExports()"
+      [loading]="loading()"
+      [sortField]="sortField()"
+      [sortOrder]="sortOrder()"
+      (sortChange)="onSortChange($event)">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'exportCode') {
           <span class="code-badge">{{ row.exportCode }}</span>
@@ -88,11 +94,12 @@
     </pos-table>
 
     <pos-pagination
-      [totalItems]="filteredExports().length"
+      [totalItems]="totalItems()"
       [pageSize]="pageSize()"
       [currentPage]="currentPage()"
-      (pageChange)="currentPage.set($event)"
-      (pageSizeChange)="pageSize.set($event)"
+      (pageChange)="currentPage.set($event); loadData()"
+      (pageSizeChange)="onPageSizeChange($event)"
     />
+
   </div>
 </div>

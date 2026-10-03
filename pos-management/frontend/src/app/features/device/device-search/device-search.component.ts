@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,6 +7,9 @@ import {
   PosBadgeComponent, PosTableComponent, PosPaginationComponent,
   PosDropdownComponent, TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { DeviceApiService } from '../../../core/services/api/device-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface DeviceItem {
   id: string;
@@ -31,8 +34,11 @@ export interface DeviceItem {
   templateUrl: './device-search.component.html',
   styleUrl: './device-search.component.scss'
 })
-export class DeviceSearchPageComponent {
+export class DeviceSearchPageComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly deviceApi = inject(DeviceApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
 
   readonly searchSerial = signal('');
   readonly searchModel = signal('');
@@ -41,6 +47,9 @@ export class DeviceSearchPageComponent {
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(5);
+  readonly sortField = signal('serialNumber');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -101,13 +110,55 @@ export class DeviceSearchPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.deviceApi.searchDevices({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      serialNumber: this.searchSerial(),
+      posModel: this.searchModel(),
+      tid: this.searchTid(),
+      status: this.selectedStatus()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.devices.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchSerial.set('');
     this.searchModel.set('');
     this.searchTid.set('');
     this.selectedStatus.set('');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -120,7 +171,10 @@ export class DeviceSearchPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất báo cáo tra cứu thiết bị POS thành công!');
+    this.fileExport.downloadExcel('/devices/export', 'Danh_Sach_Thiet_Bi_POS.xlsx', {
+      serialNumber: this.searchSerial(),
+      status: this.selectedStatus()
+    });
   }
 
   onActionClick(row: DeviceItem, item: DropdownItem): void {

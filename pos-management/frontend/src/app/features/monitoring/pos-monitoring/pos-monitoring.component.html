@@ -82,7 +82,7 @@
     </div>
 
     <div class="list-card-body">
-      <pos-table [columns]="columns" [data]="filteredDevices()" [loading]="loading()">
+      <pos-table [columns]="columns" [data]="filteredDevices()" [loading]="loading()" (sortChange)="onSortChange($event)">
         <ng-template #cellTemplate let-item let-field="field">
           <ng-container [ngSwitch]="field">
             <span *ngSwitchCase="'serialNumber'" class="font-mono text-primary font-bold">
@@ -111,7 +111,8 @@
         [totalItems]="filteredDevices().length"
         [pageSize]="pageSize()"
         [currentPage]="currentPage()"
-        (pageChange)="currentPage.set($event)">
+        (pageChange)="currentPage.set($event)"
+        (pageSizeChange)="onPageSizeChange($event)">
       </pos-pagination>
     </div>
   </div>

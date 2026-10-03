@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -6,6 +6,9 @@ import {
   PosBadgeComponent, PosTableComponent, PosPaginationComponent,
   PosDropdownComponent, TableColumn, DropdownItem
 } from '@shared';
+import { SystemApiService } from '../../../core/services/api/system-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface AuditLog {
   id: string;
@@ -31,7 +34,11 @@ export interface AuditLog {
   templateUrl: './audit-log-list.component.html',
   styleUrl: './audit-log-list.component.scss'
 })
-export class AuditLogListPageComponent {
+export class AuditLogListPageComponent implements OnInit {
+  private readonly systemApi = inject(SystemApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly searchUsername = signal('');
   readonly searchAction = signal('');
   readonly selectedModule = signal('');
@@ -39,6 +46,9 @@ export class AuditLogListPageComponent {
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(3);
+  readonly sortField = signal('timestamp');
+  readonly sortOrder = signal<'asc' | 'desc'>('desc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -103,13 +113,54 @@ export class AuditLogListPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.systemApi.getAuditLogs({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      username: this.searchUsername(),
+      module: this.selectedModule(),
+      status: this.selectedStatus()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.logs.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchUsername.set('');
     this.searchAction.set('');
     this.selectedModule.set('');
     this.selectedStatus.set('');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -122,6 +173,9 @@ export class AuditLogListPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất nhật ký Audit Logs thành công!');
+    this.fileExport.downloadExcel('/monitoring/audit-logs/export', 'Nhat_Ky_Audit_Logs.xlsx', {
+      username: this.searchUsername(),
+      module: this.selectedModule()
+    });
   }
 }

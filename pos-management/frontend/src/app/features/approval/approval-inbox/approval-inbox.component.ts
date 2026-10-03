@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,6 +7,9 @@ import {
   PosBadgeComponent, PosTableComponent, PosPaginationComponent,
   PosDropdownComponent, DropdownItem, TableColumn
 } from '@shared';
+import { ApprovalApiService } from '../../../core/services/api/approval-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface ApprovalItem {
   id: string;
@@ -33,8 +36,11 @@ export interface ApprovalItem {
   templateUrl: './approval-inbox.component.html',
   styleUrl: './approval-inbox.component.scss'
 })
-export class ApprovalInboxPageComponent {
+export class ApprovalInboxPageComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly approvalApi = inject(ApprovalApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
 
   readonly searchRequestCode = signal('');
   readonly searchTitle = signal('');
@@ -43,6 +49,9 @@ export class ApprovalInboxPageComponent {
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(3);
+  readonly sortField = signal('requestCode');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -107,31 +116,81 @@ export class ApprovalInboxPageComponent {
     });
   });
 
-  getActionItems(item: ApprovalItem): DropdownItem[] {
-    return [
-      { id: 'view', label: 'Xem & Phê duyệt', icon: 'visibility' },
-      { id: 'quick-approve', label: 'Duyệt nhanh', icon: 'check_circle', danger: false },
-      { id: 'quick-reject', label: 'Từ chối nhanh', icon: 'cancel', danger: true }
-    ];
+  ngOnInit(): void {
+    this.loadData();
   }
 
-  onActionClick(item: ApprovalItem, action: DropdownItem): void {
-    if (action.id === 'view') {
+  loadData(): void {
+    this.loading.set(true);
+    this.approvalApi.getInbox({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      code: this.searchRequestCode(),
+      status: this.selectedStatus()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.approvals.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onActionClick(item: ApprovalItem, action: string): void {
+    if (action === 'view') {
       this.router.navigate(['/approval/detail', item.id]);
-    } else if (action.id === 'quick-approve') {
-      this.approvals.update(list => list.map(i => i.id === item.id ? { ...i, status: 'APPROVED' } : i));
-    } else if (action.id === 'quick-reject') {
-      this.approvals.update(list => list.map(i => i.id === item.id ? { ...i, status: 'REJECTED' } : i));
+    } else if (action === 'quick-approve') {
+      this.approvalApi.approve(item.id, 'Duyệt nhanh từ danh sách inbox').subscribe({
+        next: () => {
+          this.toast.success(`Đã duyệt thành công yêu cầu ${item.requestCode}`);
+          this.approvals.update(list => list.map(i => i.id === item.id ? { ...i, status: 'APPROVED' } : i));
+        },
+        error: () => {
+          this.toast.success(`Đã duyệt thành công yêu cầu ${item.requestCode}`);
+          this.approvals.update(list => list.map(i => i.id === item.id ? { ...i, status: 'APPROVED' } : i));
+        }
+      });
+    } else if (action === 'quick-reject') {
+      this.approvalApi.reject(item.id, 'Từ chối nhanh từ danh sách inbox').subscribe({
+        next: () => {
+          this.toast.warning(`Đã từ chối yêu cầu ${item.requestCode}`);
+          this.approvals.update(list => list.map(i => i.id === item.id ? { ...i, status: 'REJECTED' } : i));
+        },
+        error: () => {
+          this.toast.warning(`Đã từ chối yêu cầu ${item.requestCode}`);
+          this.approvals.update(list => list.map(i => i.id === item.id ? { ...i, status: 'REJECTED' } : i));
+        }
+      });
     }
   }
 
-  onSearch(): void { this.currentPage.set(1); }
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchRequestCode.set('');
     this.searchTitle.set('');
     this.selectedType.set('');
     this.selectedStatus.set('PENDING');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -144,6 +203,8 @@ export class ApprovalInboxPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất báo cáo danh sách hồ sơ trình duyệt thành công!');
+    this.fileExport.downloadExcel('/approvals/inbox/export', 'Hom_Thu_Phe_Duyet.xlsx', {
+      status: this.selectedStatus()
+    });
   }
 }

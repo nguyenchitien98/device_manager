@@ -1,10 +1,13 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   PosButtonComponent, PosInputComponent, PosSelectComponent,
   PosBadgeComponent, PosTableComponent, TableColumn
 } from '@shared';
+import { MerchantApiService } from '../../../core/services/api/merchant-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface MerchantReportRow {
   merchantName: string;
@@ -30,7 +33,11 @@ export interface MerchantReportRow {
   templateUrl: './report-merchant.component.html',
   styleUrl: './report-merchant.component.scss'
 })
-export class ReportMerchantPageComponent {
+export class ReportMerchantPageComponent implements OnInit {
+  private readonly merchantApi = inject(MerchantApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly keyword = signal('');
   readonly selectedCity = signal('');
   readonly selectedRating = signal('');
@@ -80,6 +87,37 @@ export class ReportMerchantPageComponent {
     });
   });
 
-  onExportExcel(): void {}
-  onExportPdf(): void {}
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.merchantApi.getMerchants({
+      name: this.keyword(),
+      city: this.selectedCity()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.reportRows.set(res.data.content);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onExportExcel(): void {
+    this.fileExport.downloadExcel('/reports/merchants/export', 'Bao_Cao_Hieu_Qua_Merchant.xlsx', {
+      name: this.keyword(),
+      city: this.selectedCity()
+    });
+  }
+
+  onExportPdf(): void {
+    this.toast.info('Đang xuất báo cáo PDF Merchant...');
+    this.fileExport.downloadExcel('/reports/merchants/export-pdf', 'Bao_Cao_Hieu_Qua_Merchant.pdf', {
+      name: this.keyword()
+    });
+  }
 }

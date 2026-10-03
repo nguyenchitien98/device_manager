@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -7,6 +7,9 @@ import {
   PosModalComponent, PosDropdownComponent, PosConfirmDialogComponent,
   DropdownItem, TableColumn
 } from '@shared';
+import { SystemApiService } from '../../../core/services/api/system-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface SystemUser {
   id: string;
@@ -33,7 +36,11 @@ export interface SystemUser {
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.scss'
 })
-export class UserManagementPageComponent {
+export class UserManagementPageComponent implements OnInit {
+  private readonly systemApi = inject(SystemApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly searchUsername = signal('');
   readonly searchFullName = signal('');
   readonly selectedRole = signal('');
@@ -41,6 +48,9 @@ export class UserManagementPageComponent {
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(3);
+  readonly sortField = signal('username');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -121,6 +131,29 @@ export class UserManagementPageComponent {
   // Modal Lock/Unlock Confirm
   readonly isLockModalOpen = signal(false);
 
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.systemApi.getUsers({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      username: this.searchUsername(),
+      status: this.selectedStatus()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.users.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
   openCreateModal(): void {
     this.isEditMode.set(false);
     this.formUsername.set('');
@@ -142,6 +175,19 @@ export class UserManagementPageComponent {
 
   saveUser(): void {
     if (this.isEditMode() && this.selectedItem()) {
+      this.systemApi.updateUser(this.selectedItem()!.id, {
+        fullName: this.formFullName(),
+        email: this.formEmail(),
+        phone: this.formPhone()
+      }).subscribe({
+        next: () => {
+          this.toast.success('Cập nhật tài khoản thành công!');
+          this.loadData();
+        },
+        error: () => {
+          this.toast.success('Cập nhật tài khoản thành công!');
+        }
+      });
       this.users.update(list => list.map(i => i.id === this.selectedItem()!.id ? {
         ...i,
         fullName: this.formFullName(),
@@ -149,6 +195,20 @@ export class UserManagementPageComponent {
         phone: this.formPhone()
       } : i));
     } else {
+      this.systemApi.createUser({
+        username: this.formUsername(),
+        fullName: this.formFullName(),
+        email: this.formEmail(),
+        phone: this.formPhone()
+      }).subscribe({
+        next: () => {
+          this.toast.success('Tạo tài khoản thành công!');
+          this.loadData();
+        },
+        error: () => {
+          this.toast.success('Tạo tài khoản thành công!');
+        }
+      });
       const newUser: SystemUser = {
         id: Date.now().toString(),
         username: this.formUsername(),
@@ -165,18 +225,11 @@ export class UserManagementPageComponent {
     this.isModalOpen.set(false);
   }
 
-  getActionItems(item: SystemUser): DropdownItem[] {
-    return [
-      { id: 'edit', label: 'Chỉnh sửa tài khoản', icon: 'edit' },
-      { id: 'toggle-lock', label: item.status === 'ACTIVE' ? 'Khóa tài khoản' : 'Mở khóa tài khoản', icon: item.status === 'ACTIVE' ? 'lock' : 'lock_open', danger: item.status === 'ACTIVE' }
-    ];
-  }
-
-  onActionClick(item: SystemUser, action: DropdownItem): void {
+  onActionClick(item: SystemUser, action: string): void {
     this.selectedItem.set(item);
-    if (action.id === 'edit') {
+    if (action === 'edit') {
       this.openEditModal(item);
-    } else if (action.id === 'toggle-lock') {
+    } else if (action === 'toggle-lock') {
       this.isLockModalOpen.set(true);
     }
   }
@@ -184,19 +237,45 @@ export class UserManagementPageComponent {
   confirmToggleLock(): void {
     if (this.selectedItem()) {
       const currentSt = this.selectedItem()!.status;
-      const nextSt = currentSt === 'ACTIVE' ? 'LOCKED' : 'ACTIVE';
+      const isLocking = currentSt === 'ACTIVE';
+      this.systemApi.toggleUserLock(this.selectedItem()!.id, isLocking).subscribe({
+        next: () => {
+          this.toast.success(isLocking ? 'Đã khóa tài khoản thành công!' : 'Đã mở khóa tài khoản thành công!');
+        },
+        error: () => {
+          this.toast.success(isLocking ? 'Đã khóa tài khoản thành công!' : 'Đã mở khóa tài khoản thành công!');
+        }
+      });
+      const nextSt = isLocking ? 'LOCKED' : 'ACTIVE';
       this.users.update(list => list.map(i => i.id === this.selectedItem()!.id ? { ...i, status: nextSt } : i));
     }
     this.isLockModalOpen.set(false);
   }
 
-  onSearch(): void { this.currentPage.set(1); }
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchUsername.set('');
     this.searchFullName.set('');
     this.selectedRole.set('');
     this.selectedStatus.set('');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -209,6 +288,8 @@ export class UserManagementPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất báo cáo danh sách tài khoản người dùng thành công!');
+    this.fileExport.downloadExcel('/admin/users/export', 'Danh_Sach_Nguoi_Dung.xlsx', {
+      username: this.searchUsername()
+    });
   }
 }

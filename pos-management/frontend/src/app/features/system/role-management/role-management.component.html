@@ -49,7 +49,7 @@
       </div>
     </div>
 
-    <pos-table [columns]="visibleColumns()" [data]="filteredRoles()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredRoles()" [loading]="loading()" (sortChange)="onSortChange($event)">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'roleCode') {
           <span class="code-badge">{{ row.roleCode }}</span>

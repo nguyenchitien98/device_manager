@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   PosButtonComponent, PosInputComponent, PosBadgeComponent,
   PosConfirmDialogComponent
 } from '@shared';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-user-profile',
@@ -19,6 +20,8 @@ import {
   styleUrl: './user-profile.component.scss'
 })
 export class UserProfilePageComponent {
+  private readonly toast = inject(ToastService);
+
   readonly profile = signal({
     username: 'admin_long',
     fullName: 'Nguyễn Hoàng Long',
@@ -49,19 +52,17 @@ export class UserProfilePageComponent {
       email: this.email(),
       phone: this.phone()
     }));
-    this.successMessage.set('Đã cập nhật thông tin cá nhân thành công!');
-    this.isSuccessModalOpen.set(true);
+    this.toast.success('Đã cập nhật thông tin cá nhân thành công!');
   }
 
   changePassword(): void {
     if (this.newPassword() !== this.confirmPassword()) {
-      alert('Mật khẩu xác nhận không trùng khớp!');
+      this.toast.danger('Mật khẩu xác nhận không trùng khớp!');
       return;
     }
     this.currentPassword.set('');
     this.newPassword.set('');
     this.confirmPassword.set('');
-    this.successMessage.set('Đã đổi mật khẩu tài khoản thành công!');
-    this.isSuccessModalOpen.set(true);
+    this.toast.success('Đã đổi mật khẩu tài khoản thành công!');
   }
 }

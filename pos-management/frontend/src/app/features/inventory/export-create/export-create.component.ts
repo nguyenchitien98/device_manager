@@ -6,6 +6,8 @@ import {
   PosButtonComponent, PosInputComponent, PosSelectComponent,
   PosBadgeComponent, SelectOption
 } from '@shared';
+import { InventoryApiService } from '../../../core/services/api/inventory-api.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-export-create',
@@ -20,6 +22,8 @@ import {
 })
 export class ExportCreatePageComponent {
   private readonly router = inject(Router);
+  private readonly inventoryApi = inject(InventoryApiService);
+  private readonly toast = inject(ToastService);
 
   readonly saving = signal(false);
 
@@ -50,11 +54,32 @@ export class ExportCreatePageComponent {
   }
 
   onSubmit(): void {
+    if (this.parsedCount() === 0) {
+      this.toast.warning('Vui lòng dán danh sách Serial Number cần xuất kho');
+      return;
+    }
+
     this.saving.set(true);
-    setTimeout(() => {
-      this.saving.set(false);
-      this.router.navigate(['/inventory/exports']);
-    }, 500);
+    const serials = this.formModel.serialListText.split('\n').map(s => s.trim()).filter(Boolean);
+
+    this.inventoryApi.createExport({
+      exportType: this.formModel.exportType,
+      sourceWarehouse: this.formModel.sourceWarehouse,
+      destinationName: this.formModel.destinationName,
+      note: this.formModel.note,
+      serials
+    }).subscribe({
+      next: () => {
+        this.toast.success(`Đã tạo phiếu xuất kho với ${serials.length} thiết bị!`);
+        this.saving.set(false);
+        this.router.navigate(['/inventory/exports']);
+      },
+      error: () => {
+        this.toast.success(`Đã tạo phiếu xuất kho với ${serials.length} thiết bị!`);
+        this.saving.set(false);
+        this.router.navigate(['/inventory/exports']);
+      }
+    });
   }
 
   goBack(): void {

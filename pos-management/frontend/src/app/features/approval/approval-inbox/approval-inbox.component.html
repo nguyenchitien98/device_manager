@@ -67,7 +67,7 @@
       </div>
     </div>
 
-    <pos-table [columns]="visibleColumns()" [data]="filteredApprovals()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredApprovals()" [loading]="loading()" (sortChange)="onSortChange($event)">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'requestCode') {
           <span class="code-badge">{{ row.requestCode }}</span>
@@ -81,14 +81,14 @@
           </pos-badge>
         } @else if (col.field === 'actions') {
           <span class="action-btn-group">
-            <pos-button variant="info" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'view', label: '' })">
+            <pos-button variant="info" size="xs" [pill]="true" (clicked)="onActionClick(row, 'view')">
               👁️ Xem
             </pos-button>
             @if (row.status === 'PENDING') {
-              <pos-button variant="success" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'quick-approve', label: '' })">
+              <pos-button variant="success" size="xs" [pill]="true" (clicked)="onActionClick(row, 'quick-approve')">
                 ✓ Duyệt
               </pos-button>
-              <pos-button variant="danger" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'quick-reject', label: '' })">
+              <pos-button variant="danger" size="xs" [pill]="true" (clicked)="onActionClick(row, 'quick-reject')">
                 ✕ Từ chối
               </pos-button>
             }
@@ -104,7 +104,7 @@
       [pageSize]="pageSize()"
       [currentPage]="currentPage()"
       (pageChange)="currentPage.set($event)"
-      (pageSizeChange)="pageSize.set($event)"
+      (pageSizeChange)="onPageSizeChange($event)"
     />
   </div>
 </div>

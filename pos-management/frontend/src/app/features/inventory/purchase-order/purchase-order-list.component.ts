@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -7,6 +7,9 @@ import {
   PosPaginationComponent, PosDropdownComponent, PosConfirmDialogComponent,
   TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { InventoryApiService } from '../../../core/services/api/inventory-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface PurchaseOrder {
   id: string;
@@ -32,13 +35,20 @@ export interface PurchaseOrder {
   templateUrl: './purchase-order-list.component.html',
   styleUrl: './purchase-order-list.component.scss'
 })
-export class PurchaseOrderListPageComponent {
+export class PurchaseOrderListPageComponent implements OnInit {
+  private readonly inventoryApi = inject(InventoryApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly filterPoNumber = signal('');
   readonly selectedVendor = signal('');
   readonly selectedStatus = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(3);
+  readonly sortField = signal('poNumber');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -101,11 +111,6 @@ export class PurchaseOrderListPageComponent {
       }));
   });
 
-  readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
-    { id: 'delete', label: 'Xóa đơn hàng', icon: 'bi bi-trash', danger: true }
-  ];
-
   readonly orders = signal<PurchaseOrder[]>([
     { id: '1', poNumber: 'PO-2026-001', vendorName: 'PAX Technology', deviceModel: 'PAX A920 Pro', quantity: 100, totalValue: 550000000, status: 'PENDING', orderDate: '2026-01-10' },
     { id: '2', poNumber: 'PO-2026-002', vendorName: 'Verifone Vietnam', deviceModel: 'Verifone VX520', quantity: 50, totalValue: 175000000, status: 'APPROVED', orderDate: '2026-01-15' },
@@ -125,9 +130,61 @@ export class PurchaseOrderListPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.filterPoNumber.set(''); this.selectedVendor.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
-  onExportExcel(): void {}
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.inventoryApi.getPurchaseOrders({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      poNumber: this.filterPoNumber(),
+      vendor: this.selectedVendor(),
+      status: this.selectedStatus()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.orders.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onReset(): void {
+    this.filterPoNumber.set('');
+    this.selectedVendor.set('');
+    this.selectedStatus.set('');
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
+  }
+
+  onExportExcel(): void {
+    this.fileExport.downloadExcel('/inventory/purchase-orders/export', 'Danh_Sach_Don_Mua_PO.xlsx', {
+      poNumber: this.filterPoNumber(),
+      status: this.selectedStatus()
+    });
+  }
 
   toggleColumn(item: DropdownItem): void {
     this.hiddenColumns.update(set => {
@@ -151,29 +208,31 @@ export class PurchaseOrderListPageComponent {
   }
 
   onSave(): void {
+    if (!this.formModel.poNumber) {
+      this.toast.warning('Vui lòng nhập số đơn hàng PO');
+      return;
+    }
+
     this.saving.set(true);
-    setTimeout(() => {
-      if (this.isEditing()) {
-        this.orders.update(list => list.map(o => o.id === this.formModel.id ? { ...o, ...this.formModel } as PurchaseOrder : o));
-      } else {
+    this.inventoryApi.createPurchaseOrder(this.formModel).subscribe({
+      next: () => {
+        this.toast.success('Tạo đơn mua hàng PO thành công!');
+        this.saving.set(false);
+        this.showModal.set(false);
+        this.loadData();
+      },
+      error: () => {
         const newItem: PurchaseOrder = {
           ...this.formModel as PurchaseOrder,
           id: String(Date.now()),
           orderDate: new Date().toISOString().split('T')[0]
         };
         this.orders.update(list => [newItem, ...list]);
+        this.toast.success('Tạo đơn mua hàng PO thành công!');
+        this.saving.set(false);
+        this.showModal.set(false);
       }
-      this.saving.set(false);
-      this.showModal.set(false);
-    }, 400);
-  }
-
-  onActionClick(row: PurchaseOrder, item: DropdownItem): void {
-    if (item.id === 'edit') this.openEditModal(row);
-    else if (item.id === 'delete') {
-      this.selectedItem.set(row);
-      this.showDeleteConfirm.set(true);
-    }
+    });
   }
 
   onConfirmDelete(): void {
@@ -182,6 +241,7 @@ export class PurchaseOrderListPageComponent {
     this.deleting.set(true);
     setTimeout(() => {
       this.orders.update(list => list.filter(o => o.id !== target.id));
+      this.toast.success(`Đã hủy đơn mua PO ${target.poNumber}`);
       this.deleting.set(false);
       this.showDeleteConfirm.set(false);
     }, 400);

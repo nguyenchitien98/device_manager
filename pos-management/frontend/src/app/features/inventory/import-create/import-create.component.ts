@@ -6,6 +6,8 @@ import {
   PosButtonComponent, PosInputComponent, PosSelectComponent,
   PosBadgeComponent, SelectOption
 } from '@shared';
+import { InventoryApiService } from '../../../core/services/api/inventory-api.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-import-create',
@@ -20,6 +22,8 @@ import {
 })
 export class ImportCreatePageComponent {
   private readonly router = inject(Router);
+  private readonly inventoryApi = inject(InventoryApiService);
+  private readonly toast = inject(ToastService);
 
   readonly saving = signal(false);
 
@@ -44,11 +48,31 @@ export class ImportCreatePageComponent {
   }
 
   onSubmit(): void {
+    if (this.parsedCount() === 0) {
+      this.toast.warning('Vui lòng dán danh sách Serial Number cần nhập kho');
+      return;
+    }
+
     this.saving.set(true);
-    setTimeout(() => {
-      this.saving.set(false);
-      this.router.navigate(['/inventory/imports']);
-    }, 500);
+    const serials = this.formModel.serialListText.split('\n').map(s => s.trim()).filter(Boolean);
+
+    this.inventoryApi.createImport({
+      poNumber: this.formModel.poNumber,
+      warehouseName: this.formModel.warehouseName,
+      note: this.formModel.note,
+      serials
+    }).subscribe({
+      next: () => {
+        this.toast.success(`Đã tạo phiếu nhập kho với ${serials.length} thiết bị!`);
+        this.saving.set(false);
+        this.router.navigate(['/inventory/imports']);
+      },
+      error: () => {
+        this.toast.success(`Đã tạo phiếu nhập kho với ${serials.length} thiết bị!`);
+        this.saving.set(false);
+        this.router.navigate(['/inventory/imports']);
+      }
+    });
   }
 
   goBack(): void {

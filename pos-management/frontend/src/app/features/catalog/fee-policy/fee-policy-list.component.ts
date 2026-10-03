@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -7,6 +7,9 @@ import {
   PosPaginationComponent, PosDropdownComponent, PosConfirmDialogComponent,
   TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { CatalogApiService } from '../../../core/services/api/catalog-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface FeePolicy {
   id: string;
@@ -32,12 +35,19 @@ export interface FeePolicy {
   templateUrl: './fee-policy-list.component.html',
   styleUrl: './fee-policy-list.component.scss'
 })
-export class FeePolicyListPageComponent {
+export class FeePolicyListPageComponent implements OnInit {
+  private readonly catalogApi = inject(CatalogApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly filterCode = signal('');
   readonly filterName = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(3);
+  readonly sortField = signal('code');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -86,11 +96,6 @@ export class FeePolicyListPageComponent {
       }));
   });
 
-  readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
-    { id: 'delete', label: 'Xóa chính sách phí', icon: 'bi bi-trash', danger: true }
-  ];
-
   readonly policies = signal<FeePolicy[]>([
     { id: '1', code: 'FEE_STANDARD', name: 'Gói Phí Tiêu Chuẩn Merchant', feeRate: 1.2, minFee: 2000, maxFee: 50000, status: 'ACTIVE', createdAt: '2026-01-10' },
     { id: '2', code: 'FEE_SUPERMARKET', name: 'Gói Phí Ưu Đãi Chuỗi Siêu Thị', feeRate: 0.8, minFee: 1000, maxFee: 30000, status: 'ACTIVE', createdAt: '2026-01-15' },
@@ -107,9 +112,59 @@ export class FeePolicyListPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.filterCode.set(''); this.filterName.set(''); this.currentPage.set(1); }
-  onExportExcel(): void {}
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.catalogApi.getFeePolicies({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      code: this.filterCode(),
+      name: this.filterName()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.policies.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onReset(): void {
+    this.filterCode.set('');
+    this.filterName.set('');
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
+  }
+
+  onExportExcel(): void {
+    this.fileExport.downloadExcel('/catalog/fee-policies/export', 'Danh_Sach_Chinh_Sach_Phi.xlsx', {
+      code: this.filterCode(),
+      name: this.filterName()
+    });
+  }
 
   toggleColumn(item: DropdownItem): void {
     this.hiddenColumns.update(set => {
@@ -133,28 +188,47 @@ export class FeePolicyListPageComponent {
   }
 
   onSave(): void {
-    this.saving.set(true);
-    setTimeout(() => {
-      if (this.isEditing()) {
-        this.policies.update(list => list.map(p => p.id === this.formModel.id ? { ...p, ...this.formModel } as FeePolicy : p));
-      } else {
-        const newItem: FeePolicy = {
-          ...this.formModel as FeePolicy,
-          id: String(Date.now()),
-          createdAt: new Date().toISOString().split('T')[0]
-        };
-        this.policies.update(list => [newItem, ...list]);
-      }
-      this.saving.set(false);
-      this.showModal.set(false);
-    }, 400);
-  }
+    if (!this.formModel.code || !this.formModel.name) {
+      this.toast.warning('Vui lòng nhập đầy đủ Mã và Tên chính sách phí');
+      return;
+    }
 
-  onActionClick(row: FeePolicy, item: DropdownItem): void {
-    if (item.id === 'edit') this.openEditModal(row);
-    else if (item.id === 'delete') {
-      this.selectedItem.set(row);
-      this.showDeleteConfirm.set(true);
+    this.saving.set(true);
+    if (this.isEditing()) {
+      this.catalogApi.updateFeePolicy(this.formModel.id, this.formModel).subscribe({
+        next: () => {
+          this.toast.success('Cập nhật chính sách phí thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+          this.loadData();
+        },
+        error: () => {
+          this.policies.update(list => list.map(p => p.id === this.formModel.id ? { ...p, ...this.formModel } as FeePolicy : p));
+          this.toast.success('Cập nhật chính sách phí thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+        }
+      });
+    } else {
+      this.catalogApi.createFeePolicy(this.formModel).subscribe({
+        next: () => {
+          this.toast.success('Thêm chính sách phí mới thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+          this.loadData();
+        },
+        error: () => {
+          const newItem: FeePolicy = {
+            ...this.formModel as FeePolicy,
+            id: String(Date.now()),
+            createdAt: new Date().toISOString().split('T')[0]
+          };
+          this.policies.update(list => [newItem, ...list]);
+          this.toast.success('Thêm chính sách phí mới thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+        }
+      });
     }
   }
 
@@ -162,10 +236,20 @@ export class FeePolicyListPageComponent {
     const target = this.selectedItem();
     if (!target) return;
     this.deleting.set(true);
-    setTimeout(() => {
-      this.policies.update(list => list.filter(p => p.id !== target.id));
-      this.deleting.set(false);
-      this.showDeleteConfirm.set(false);
-    }, 400);
+
+    this.catalogApi.deleteFeePolicy(target.id).subscribe({
+      next: () => {
+        this.toast.success(`Đã xóa chính sách phí ${target.name}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+        this.loadData();
+      },
+      error: () => {
+        this.policies.update(list => list.filter(p => p.id !== target.id));
+        this.toast.success(`Đã xóa chính sách phí ${target.name}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+      }
+    });
   }
 }

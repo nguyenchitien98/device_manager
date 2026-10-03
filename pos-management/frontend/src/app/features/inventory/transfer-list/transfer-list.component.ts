@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,6 +7,9 @@ import {
   PosBadgeComponent, PosTableComponent, PosPaginationComponent,
   PosDropdownComponent, TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { InventoryApiService } from '../../../core/services/api/inventory-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface TransferOrder {
   id: string;
@@ -31,8 +34,11 @@ export interface TransferOrder {
   templateUrl: './transfer-list.component.html',
   styleUrl: './transfer-list.component.scss'
 })
-export class TransferListPageComponent {
+export class TransferListPageComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly inventoryApi = inject(InventoryApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
 
   readonly searchTransferCode = signal('');
   readonly searchWarehouse = signal('');
@@ -40,6 +46,9 @@ export class TransferListPageComponent {
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(2);
+  readonly sortField = signal('transferCode');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -98,12 +107,53 @@ export class TransferListPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.inventoryApi.getTransfers({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      transferCode: this.searchTransferCode(),
+      warehouse: this.searchWarehouse(),
+      status: this.selectedStatus()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.transfers.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchTransferCode.set('');
     this.searchWarehouse.set('');
     this.selectedStatus.set('');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -116,7 +166,10 @@ export class TransferListPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất báo cáo danh sách Điều Chuyển Kho thành công!');
+    this.fileExport.downloadExcel('/inventory/transfers/export', 'Danh_Sach_Dieu_Chuyen_Kho.xlsx', {
+      transferCode: this.searchTransferCode(),
+      status: this.selectedStatus()
+    });
   }
 
   openCreatePage(): void {
@@ -125,7 +178,7 @@ export class TransferListPageComponent {
 
   onActionClick(row: TransferOrder, item: DropdownItem): void {
     if (item.id === 'view') {
-      alert(`Chi tiết điều chuyển ${row.transferCode}`);
+      this.toast.info(`Phiếu điều chuyển ${row.transferCode}: từ ${row.sourceWarehouse} đến ${row.targetWarehouse}`);
     }
   }
 }

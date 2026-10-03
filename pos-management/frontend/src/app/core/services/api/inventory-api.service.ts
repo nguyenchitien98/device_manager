@@ -53,6 +53,10 @@ export class InventoryApiService extends BaseApiService {
   }
 
   // Stock Summary & Ledger
+  getInventoryStock(params?: QueryParams): Observable<ApiResponse<PageResponse<any>>> {
+    return this.getPage('/inventory/stock', params);
+  }
+
   getStockSummary(params?: QueryParams): Observable<ApiResponse<PageResponse<any>>> {
     return this.getPage('/inventory/stock', params);
   }

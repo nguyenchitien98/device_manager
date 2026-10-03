@@ -67,7 +67,7 @@
       </div>
     </div>
 
-    <pos-table [columns]="visibleColumns()" [data]="filteredLogs()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredLogs()" [loading]="loading()" (sortChange)="onSortChange($event)">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'timestamp') {
           <span class="font-mono text-muted text-sm">{{ row.timestamp }}</span>
@@ -88,7 +88,7 @@
       [pageSize]="pageSize()"
       [currentPage]="currentPage()"
       (pageChange)="currentPage.set($event)"
-      (pageSizeChange)="pageSize.set($event)"
+      (pageSizeChange)="onPageSizeChange($event)"
     />
   </div>
 </div>

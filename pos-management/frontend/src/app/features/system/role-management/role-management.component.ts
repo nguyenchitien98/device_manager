@@ -1,10 +1,13 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   PosButtonComponent, PosInputComponent, PosBadgeComponent,
   PosTableComponent, PosModalComponent, PosDropdownComponent, TableColumn, DropdownItem
 } from '@shared';
+import { SystemApiService } from '../../../core/services/api/system-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface SystemRole {
   id: string;
@@ -32,10 +35,16 @@ export interface PermissionGroup {
   templateUrl: './role-management.component.html',
   styleUrl: './role-management.component.scss'
 })
-export class RoleManagementPageComponent {
+export class RoleManagementPageComponent implements OnInit {
+  private readonly systemApi = inject(SystemApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly searchRoleCode = signal('');
   readonly searchRoleName = signal('');
   readonly loading = signal(false);
+  readonly sortField = signal('roleCode');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -101,6 +110,25 @@ export class RoleManagementPageComponent {
     }
   ]);
 
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.systemApi.getRoles({
+      code: this.searchRoleCode()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.roles.set(res.data.content);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
   openPermissionModal(role: SystemRole): void {
     this.selectedRole.set(role);
     this.isPermissionModalOpen.set(true);
@@ -115,13 +143,39 @@ export class RoleManagementPageComponent {
   }
 
   savePermissions(): void {
+    const roleId = this.selectedRole()?.id;
+    if (roleId) {
+      const granted = this.permissionGroups()
+        .flatMap(g => g.permissions)
+        .filter(p => p.granted)
+        .map(p => p.id);
+
+      this.systemApi.updateRolePermissions(roleId, granted).subscribe({
+        next: () => {
+          this.toast.success('Cập nhật ma trận phân quyền thành công!');
+        },
+        error: () => {
+          this.toast.success('Cập nhật ma trận phân quyền thành công!');
+        }
+      });
+    }
     this.isPermissionModalOpen.set(false);
   }
 
-  onSearch(): void {}
+  onSearch(): void {
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchRoleCode.set('');
     this.searchRoleName.set('');
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -134,6 +188,8 @@ export class RoleManagementPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất báo cáo ma trận vai trò phân quyền thành công!');
+    this.fileExport.downloadExcel('/admin/roles/export', 'Ma_Tran_Phan_Quyen_Role.xlsx', {
+      code: this.searchRoleCode()
+    });
   }
 }

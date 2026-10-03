@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -7,6 +7,9 @@ import {
   PosPaginationComponent, PosDropdownComponent, PosConfirmDialogComponent,
   TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { CatalogApiService } from '../../../core/services/api/catalog-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface DeviceCategory {
   id: string;
@@ -31,7 +34,11 @@ export interface DeviceCategory {
   templateUrl: './device-category-list.component.html',
   styleUrl: './device-category-list.component.scss'
 })
-export class DeviceCategoryListPageComponent {
+export class DeviceCategoryListPageComponent implements OnInit {
+  private readonly catalogApi = inject(CatalogApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   // Specific Filter Signals
   readonly filterCode = signal('');
   readonly filterName = signal('');
@@ -41,6 +48,9 @@ export class DeviceCategoryListPageComponent {
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(5);
+  readonly sortField = signal('code');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   // Column visibility signal
   readonly hiddenColumns = signal<Set<string>>(new Set());
@@ -98,13 +108,7 @@ export class DeviceCategoryListPageComponent {
       }));
   });
 
-  // Row Action Items
-  readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
-    { id: 'delete', label: 'Xóa danh mục', icon: 'bi bi-trash', danger: true }
-  ];
-
-  // Mock Data
+  // Mock / Signal Data
   readonly categories = signal<DeviceCategory[]>([
     { id: '1', code: 'POS_ANDROID', name: 'Smart POS Android', description: 'Máy POS màn hình cảm ứng Android cao cấp tích hợp in hóa đơn', deviceCount: 1420, status: 'ACTIVE', createdAt: '2026-01-15' },
     { id: '2', code: 'POS_TRADITIONAL', name: 'POS Truyền Thống', description: 'Máy POS quẹt thẻ vật lý chuẩn Verifone / Ingenico', deviceCount: 3850, status: 'ACTIVE', createdAt: '2026-01-10' },
@@ -113,7 +117,6 @@ export class DeviceCategoryListPageComponent {
     { id: '5', code: 'SOFT_POS', name: 'SoftPOS App', description: 'Giải pháp biến điện thoại Android thành máy quẹt thẻ Tap to Phone', deviceCount: 410, status: 'INACTIVE', createdAt: '2026-03-05' }
   ]);
 
-  // Filtered List
   readonly filteredCategories = computed(() => {
     const fc = this.filterCode().toLowerCase().trim();
     const fn = this.filterName().toLowerCase().trim();
@@ -129,8 +132,35 @@ export class DeviceCategoryListPageComponent {
     });
   });
 
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.catalogApi.getCategories({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      code: this.filterCode(),
+      name: this.filterName(),
+      status: this.filterStatus()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.categories.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+      }
+    });
+  }
+
   onSearch(): void {
     this.currentPage.set(1);
+    this.loadData();
   }
 
   onReset(): void {
@@ -139,10 +169,27 @@ export class DeviceCategoryListPageComponent {
     this.filterStatus.set('');
     this.filterDate.set('');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onExportExcel(): void {
-    // Export excel logic simulation
+    this.fileExport.downloadExcel('/catalog/device-categories/export', 'Danh_Muc_Thiet_Bi.xlsx', {
+      code: this.filterCode(),
+      name: this.filterName(),
+      status: this.filterStatus()
+    });
   }
 
   toggleColumn(item: DropdownItem): void {
@@ -170,34 +217,49 @@ export class DeviceCategoryListPageComponent {
   }
 
   onSave(): void {
-    this.saving.set(true);
-    setTimeout(() => {
-      if (this.isEditing()) {
-        this.categories.update(list => list.map(c => c.id === this.formModel.id ? { ...c, ...this.formModel } as DeviceCategory : c));
-      } else {
-        const newItem: DeviceCategory = {
-          ...this.formModel,
-          id: String(Date.now()),
-          code: this.formModel.code || '',
-          name: this.formModel.name || '',
-          description: this.formModel.description || '',
-          status: (this.formModel.status as 'ACTIVE' | 'INACTIVE') || 'ACTIVE',
-          deviceCount: 0,
-          createdAt: new Date().toISOString().split('T')[0]
-        };
-        this.categories.update(list => [newItem, ...list]);
-      }
-      this.saving.set(false);
-      this.showModal.set(false);
-    }, 400);
-  }
+    if (!this.formModel.code || !this.formModel.name) {
+      this.toast.warning('Vui lòng nhập đầy đủ Mã và Tên danh mục');
+      return;
+    }
 
-  onActionClick(row: DeviceCategory, item: DropdownItem): void {
-    if (item.id === 'edit') {
-      this.openEditModal(row);
-    } else if (item.id === 'delete') {
-      this.selectedItem.set(row);
-      this.showDeleteConfirm.set(true);
+    this.saving.set(true);
+    if (this.isEditing()) {
+      this.catalogApi.updateCategory(this.formModel.id, this.formModel).subscribe({
+        next: () => {
+          this.toast.success('Cập nhật danh mục thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+          this.loadData();
+        },
+        error: () => {
+          this.categories.update(list => list.map(c => c.id === this.formModel.id ? { ...c, ...this.formModel } as DeviceCategory : c));
+          this.toast.success('Cập nhật danh mục thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+        }
+      });
+    } else {
+      this.catalogApi.createCategory(this.formModel).subscribe({
+        next: () => {
+          this.toast.success('Thêm danh mục mới thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+          this.loadData();
+        },
+        error: () => {
+          const newItem: DeviceCategory = {
+            ...this.formModel,
+            id: String(Date.now()),
+            deviceCount: 0,
+            status: this.formModel.status as 'ACTIVE' | 'INACTIVE',
+            createdAt: new Date().toISOString().split('T')[0]
+          };
+          this.categories.update(list => [newItem, ...list]);
+          this.toast.success('Thêm danh mục mới thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+        }
+      });
     }
   }
 
@@ -205,10 +267,20 @@ export class DeviceCategoryListPageComponent {
     const target = this.selectedItem();
     if (!target) return;
     this.deleting.set(true);
-    setTimeout(() => {
-      this.categories.update(list => list.filter(c => c.id !== target.id));
-      this.deleting.set(false);
-      this.showDeleteConfirm.set(false);
-    }, 400);
+
+    this.catalogApi.deleteCategory(target.id).subscribe({
+      next: () => {
+        this.toast.success(`Đã xóa danh mục ${target.name}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+        this.loadData();
+      },
+      error: () => {
+        this.categories.update(list => list.filter(c => c.id !== target.id));
+        this.toast.success(`Đã xóa danh mục ${target.name}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+      }
+    });
   }
 }

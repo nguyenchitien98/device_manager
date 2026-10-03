@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -6,6 +6,9 @@ import {
   PosBadgeComponent, PosTableComponent, PosPaginationComponent,
   TableColumn
 } from '@shared';
+import { DeviceApiService } from '../../../core/services/api/device-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface PosMonitorDevice {
   id: string;
@@ -33,13 +36,20 @@ export interface PosMonitorDevice {
   templateUrl: './pos-monitoring.component.html',
   styleUrl: './pos-monitoring.component.scss'
 })
-export class PosMonitoringPageComponent {
+export class PosMonitoringPageComponent implements OnInit {
+  private readonly deviceApi = inject(DeviceApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly keyword = signal('');
   readonly selectedStatus = signal('');
   readonly selectedConnection = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(3);
+  readonly sortField = signal('serialNumber');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly statusOptions = [
     { label: 'Tất cả trạng thái kết nối', value: '' },
@@ -91,6 +101,58 @@ export class PosMonitoringPageComponent {
   readonly offlineCount = computed(() => this.devices().filter(d => d.status === 'OFFLINE').length);
   readonly warningCount = computed(() => this.devices().filter(d => d.status === 'WARNING').length);
 
-  onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedStatus.set(''); this.selectedConnection.set(''); this.currentPage.set(1); }
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.deviceApi.searchDevices({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      keyword: this.keyword(),
+      status: this.selectedStatus()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.devices.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onReset(): void {
+    this.keyword.set('');
+    this.selectedStatus.set('');
+    this.selectedConnection.set('');
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
+  }
+
+  exportExcel(): void {
+    this.fileExport.downloadExcel('/devices/monitoring/export', 'Bao_Cao_Giam_Sat_POS.xlsx', {
+      keyword: this.keyword(),
+      status: this.selectedStatus()
+    });
+  }
 }

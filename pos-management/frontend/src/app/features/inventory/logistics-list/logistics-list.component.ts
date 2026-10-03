@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -6,6 +6,9 @@ import {
   PosBadgeComponent, PosTableComponent, PosPaginationComponent,
   PosDropdownComponent, TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { InventoryApiService } from '../../../core/services/api/inventory-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface LogisticsTracking {
   id: string;
@@ -30,13 +33,20 @@ export interface LogisticsTracking {
   templateUrl: './logistics-list.component.html',
   styleUrl: './logistics-list.component.scss'
 })
-export class LogisticsListPageComponent {
+export class LogisticsListPageComponent implements OnInit {
+  private readonly inventoryApi = inject(InventoryApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly searchTrackingNumber = signal('');
   readonly searchCarrier = signal('');
   readonly selectedStatus = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(3);
+  readonly sortField = signal('trackingNumber');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -96,12 +106,53 @@ export class LogisticsListPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.inventoryApi.getLogisticsList({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      trackingNumber: this.searchTrackingNumber(),
+      carrier: this.searchCarrier(),
+      status: this.selectedStatus()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.trackings.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
   onReset(): void {
     this.searchTrackingNumber.set('');
     this.searchCarrier.set('');
     this.selectedStatus.set('');
     this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
   }
 
   onColumnToggle(item: DropdownItem): void {
@@ -114,12 +165,15 @@ export class LogisticsListPageComponent {
   }
 
   exportExcel(): void {
-    alert('Xuất báo cáo danh sách vận đơn Logistics thành công!');
+    this.fileExport.downloadExcel('/logistics/shipments/export', 'Danh_Sach_Van_Don_Logistics.xlsx', {
+      trackingNumber: this.searchTrackingNumber(),
+      status: this.selectedStatus()
+    });
   }
 
   onActionClick(row: LogisticsTracking, item: DropdownItem): void {
     if (item.id === 'view') {
-      alert(`Hành trình vận chuyển mã ${row.trackingNumber} qua đơn vị ${row.carrierName}`);
+      this.toast.info(`Vận đơn ${row.trackingNumber} (${row.carrierName}): Dự kiến giao ${row.estimatedDeliveryDate}`);
     }
   }
 }

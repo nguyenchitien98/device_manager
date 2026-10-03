@@ -30,6 +30,10 @@ export class ToastService {
     return this.show('error', title, message, duration);
   }
 
+  danger(message: string, title = 'Lỗi hệ thống', duration = 5000): string {
+    return this.error(message, title, duration);
+  }
+
   warning(message: string, title = 'Cảnh báo', duration = 4000): string {
     return this.show('warning', title, message, duration);
   }

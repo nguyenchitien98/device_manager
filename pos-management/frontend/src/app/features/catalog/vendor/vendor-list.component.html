@@ -65,7 +65,13 @@
     </div>
 
     <div class="list-card-body p-0">
-      <pos-table [columns]="visibleColumns()" [data]="filteredVendors()" [loading]="loading()">
+      <pos-table
+        [columns]="visibleColumns()"
+        [data]="filteredVendors()"
+        [loading]="loading()"
+        [sortField]="sortField()"
+        [sortOrder]="sortOrder()"
+        (sortChange)="onSortChange($event)">
         <ng-template #cellTemplate let-item let-field="field">
           <ng-container [ngSwitch]="field">
             <span *ngSwitchCase="'code'" class="font-mono text-primary font-bold">
@@ -92,12 +98,14 @@
 
     <div class="list-card-footer">
       <pos-pagination
-        [totalItems]="filteredVendors().length"
+        [totalItems]="totalItems()"
         [pageSize]="pageSize()"
         [currentPage]="currentPage()"
-        (pageChange)="currentPage.set($event)">
+        (pageChange)="currentPage.set($event); loadData()"
+        (pageSizeChange)="onPageSizeChange($event)">
       </pos-pagination>
     </div>
+
   </div>
 
   <!-- Create / Edit Modal -->

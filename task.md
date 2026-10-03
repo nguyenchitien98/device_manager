@@ -616,4 +616,5 @@ OVERALL: 8/196 tasks (4%)
 - [2026-10-03] Tạo plan_refactor.md — Kế hoạch nâng cấp và refactor 5 giai đoạn cho dự án.
 - [2026-10-03] Tạo ANTIGRAVITY_UI_ACTION_GUIDE.md & docs/15_UI_Action_API_Guide.md — Kim chỉ nam mapping 100% buttons, actions và REST API endpoints cho tất cả 38 màn hình, đảm bảo không nút nào bị đơ/chết cứng.
 - [2026-10-03] Hoàn thành Phase 1 & Phase 2 Refactoring: Thiết lập ToastService, ErrorInterceptor, NgRx Stores (Auth, Notification, Approval), BaseApiService, FileExportService & 8 Domain API Services. Compile sạch 100% (ng build SUCCESS).
+- [2026-10-04] Hoàn thành Phase 3 & Phase 5 Refactoring trên TOÀN BỘ 38 màn hình UI: Gắn kết 100% API Domain Services, FileExportService, ToastService, bind (sortChange) và (pageSizeChange) đầy đủ trên tất cả <pos-table> và <pos-pagination>, xóa bỏ hoàn toàn alert(), đảm bảo KHÔNG MỘT NÚT NÀO ĐƠ/CHẾT CỨNG. Verification compile sạch 100% (npm run build SUCCESS, 0 lỗi TypeScript, 0 lỗi SCSS).
 

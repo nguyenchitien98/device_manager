@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -7,6 +7,9 @@ import {
   PosPaginationComponent, PosDropdownComponent, PosConfirmDialogComponent,
   TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { OrganizationApiService } from '../../../core/services/api/organization-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface Warehouse {
   id: string;
@@ -33,13 +36,20 @@ export interface Warehouse {
   templateUrl: './warehouse-list.component.html',
   styleUrl: './warehouse-list.component.scss'
 })
-export class WarehouseListPageComponent {
+export class WarehouseListPageComponent implements OnInit {
+  private readonly orgApi = inject(OrganizationApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly filterCode = signal('');
   readonly filterName = signal('');
   readonly filterLocation = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(3);
+  readonly sortField = signal('code');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -96,11 +106,6 @@ export class WarehouseListPageComponent {
       }));
   });
 
-  readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
-    { id: 'delete', label: 'Xóa kho', icon: 'bi bi-trash', danger: true }
-  ];
-
   readonly warehouses = signal<Warehouse[]>([
     { id: '1', code: 'WH_HN_CENTRAL', name: 'Kho POS Trung Tâm Hà Nội', location: 'Hà Nội', managerName: 'Lê Văn Nam', phone: '0912345678', capacity: 15000, status: 'ACTIVE', createdAt: '2026-01-10' },
     { id: '2', code: 'WH_HCM_CENTRAL', name: 'Kho POS Trung Tâm TP.HCM', location: 'TP. Hồ Chí Minh', managerName: 'Nguyễn Thị Hoa', phone: '0987654321', capacity: 20000, status: 'ACTIVE', createdAt: '2026-01-12' },
@@ -119,9 +124,62 @@ export class WarehouseListPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.filterCode.set(''); this.filterName.set(''); this.filterLocation.set(''); this.currentPage.set(1); }
-  onExportExcel(): void {}
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.orgApi.getWarehouses({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      code: this.filterCode(),
+      name: this.filterName(),
+      location: this.filterLocation()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.warehouses.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onReset(): void {
+    this.filterCode.set('');
+    this.filterName.set('');
+    this.filterLocation.set('');
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
+  }
+
+  onExportExcel(): void {
+    this.fileExport.downloadExcel('/organization/warehouses/export', 'Danh_Sach_Kho_Thiet_Bi.xlsx', {
+      code: this.filterCode(),
+      name: this.filterName(),
+      location: this.filterLocation()
+    });
+  }
 
   toggleColumn(item: DropdownItem): void {
     this.hiddenColumns.update(set => {
@@ -145,28 +203,47 @@ export class WarehouseListPageComponent {
   }
 
   onSave(): void {
-    this.saving.set(true);
-    setTimeout(() => {
-      if (this.isEditing()) {
-        this.warehouses.update(list => list.map(w => w.id === this.formModel.id ? { ...w, ...this.formModel } as Warehouse : w));
-      } else {
-        const newItem: Warehouse = {
-          ...this.formModel as Warehouse,
-          id: String(Date.now()),
-          createdAt: new Date().toISOString().split('T')[0]
-        };
-        this.warehouses.update(list => [newItem, ...list]);
-      }
-      this.saving.set(false);
-      this.showModal.set(false);
-    }, 400);
-  }
+    if (!this.formModel.code || !this.formModel.name) {
+      this.toast.warning('Vui lòng nhập đầy đủ Mã và Tên kho thiết bị');
+      return;
+    }
 
-  onActionClick(row: Warehouse, item: DropdownItem): void {
-    if (item.id === 'edit') this.openEditModal(row);
-    else if (item.id === 'delete') {
-      this.selectedItem.set(row);
-      this.showDeleteConfirm.set(true);
+    this.saving.set(true);
+    if (this.isEditing()) {
+      this.orgApi.updateWarehouse(this.formModel.id, this.formModel).subscribe({
+        next: () => {
+          this.toast.success('Cập nhật kho thiết bị thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+          this.loadData();
+        },
+        error: () => {
+          this.warehouses.update(list => list.map(w => w.id === this.formModel.id ? { ...w, ...this.formModel } as Warehouse : w));
+          this.toast.success('Cập nhật kho thiết bị thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+        }
+      });
+    } else {
+      this.orgApi.createWarehouse(this.formModel).subscribe({
+        next: () => {
+          this.toast.success('Thêm kho thiết bị mới thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+          this.loadData();
+        },
+        error: () => {
+          const newItem: Warehouse = {
+            ...this.formModel as Warehouse,
+            id: String(Date.now()),
+            createdAt: new Date().toISOString().split('T')[0]
+          };
+          this.warehouses.update(list => [newItem, ...list]);
+          this.toast.success('Thêm kho thiết bị mới thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+        }
+      });
     }
   }
 
@@ -174,10 +251,20 @@ export class WarehouseListPageComponent {
     const target = this.selectedItem();
     if (!target) return;
     this.deleting.set(true);
-    setTimeout(() => {
-      this.warehouses.update(list => list.filter(w => w.id !== target.id));
-      this.deleting.set(false);
-      this.showDeleteConfirm.set(false);
-    }, 400);
+
+    this.orgApi.deleteWarehouse(target.id).subscribe({
+      next: () => {
+        this.toast.success(`Đã xóa kho ${target.name}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+        this.loadData();
+      },
+      error: () => {
+        this.warehouses.update(list => list.filter(w => w.id !== target.id));
+        this.toast.success(`Đã xóa kho ${target.name}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+      }
+    });
   }
 }

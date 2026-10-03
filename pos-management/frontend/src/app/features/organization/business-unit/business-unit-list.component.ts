@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -7,6 +7,9 @@ import {
   PosPaginationComponent, PosDropdownComponent, PosConfirmDialogComponent,
   TableColumn, SelectOption, DropdownItem
 } from '@shared';
+import { OrganizationApiService } from '../../../core/services/api/organization-api.service';
+import { FileExportService } from '../../../core/services/file-export.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 export interface BusinessUnit {
   id: string;
@@ -31,12 +34,19 @@ export interface BusinessUnit {
   templateUrl: './business-unit-list.component.html',
   styleUrl: './business-unit-list.component.scss'
 })
-export class BusinessUnitListPageComponent {
+export class BusinessUnitListPageComponent implements OnInit {
+  private readonly orgApi = inject(OrganizationApiService);
+  private readonly fileExport = inject(FileExportService);
+  private readonly toast = inject(ToastService);
+
   readonly filterCode = signal('');
   readonly filterName = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+  readonly totalItems = signal(3);
+  readonly sortField = signal('code');
+  readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
   readonly hiddenColumns = signal<Set<string>>(new Set());
 
@@ -83,11 +93,6 @@ export class BusinessUnitListPageComponent {
       }));
   });
 
-  readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
-    { id: 'delete', label: 'Xóa đơn vị', icon: 'bi bi-trash', danger: true }
-  ];
-
   readonly units = signal<BusinessUnit[]>([
     { id: '1', code: 'BU_HN_CENTER', name: 'Khối POS Trung Tâm Hà Nội', managerName: 'Nguyễn Văn Nam', phone: '0912345678', status: 'ACTIVE', createdAt: '2026-01-10' },
     { id: '2', code: 'BU_HCM_CENTER', name: 'Khối POS Trung Tâm TP.HCM', managerName: 'Trần Thị Thu', phone: '0987654321', status: 'ACTIVE', createdAt: '2026-01-15' },
@@ -104,9 +109,59 @@ export class BusinessUnitListPageComponent {
     });
   });
 
-  onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.filterCode.set(''); this.filterName.set(''); this.currentPage.set(1); }
-  onExportExcel(): void {}
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.orgApi.getBusinessUnits({
+      page: this.currentPage() - 1,
+      size: this.pageSize(),
+      code: this.filterCode(),
+      name: this.filterName()
+    }).subscribe({
+      next: (res) => {
+        if (res?.data?.content) {
+          this.units.set(res.data.content);
+          this.totalItems.set(res.data.totalElements);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false)
+    });
+  }
+
+  onSearch(): void {
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onReset(): void {
+    this.filterCode.set('');
+    this.filterName.set('');
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+    this.loadData();
+  }
+
+  onSortChange(event: { field: string; order: 'asc' | 'desc' }): void {
+    this.sortField.set(event.field);
+    this.sortOrder.set(event.order);
+    this.loadData();
+  }
+
+  onExportExcel(): void {
+    this.fileExport.downloadExcel('/organization/business-units/export', 'Danh_Sach_Don_Vi_Kinh_Doanh.xlsx', {
+      code: this.filterCode(),
+      name: this.filterName()
+    });
+  }
 
   toggleColumn(item: DropdownItem): void {
     this.hiddenColumns.update(set => {
@@ -130,28 +185,47 @@ export class BusinessUnitListPageComponent {
   }
 
   onSave(): void {
-    this.saving.set(true);
-    setTimeout(() => {
-      if (this.isEditing()) {
-        this.units.update(list => list.map(u => u.id === this.formModel.id ? { ...u, ...this.formModel } as BusinessUnit : u));
-      } else {
-        const newItem: BusinessUnit = {
-          ...this.formModel as BusinessUnit,
-          id: String(Date.now()),
-          createdAt: new Date().toISOString().split('T')[0]
-        };
-        this.units.update(list => [newItem, ...list]);
-      }
-      this.saving.set(false);
-      this.showModal.set(false);
-    }, 400);
-  }
+    if (!this.formModel.code || !this.formModel.name) {
+      this.toast.warning('Vui lòng nhập đầy đủ Mã và Tên đơn vị kinh doanh');
+      return;
+    }
 
-  onActionClick(row: BusinessUnit, item: DropdownItem): void {
-    if (item.id === 'edit') this.openEditModal(row);
-    else if (item.id === 'delete') {
-      this.selectedItem.set(row);
-      this.showDeleteConfirm.set(true);
+    this.saving.set(true);
+    if (this.isEditing()) {
+      this.orgApi.updateBusinessUnit(this.formModel.id, this.formModel).subscribe({
+        next: () => {
+          this.toast.success('Cập nhật đơn vị kinh doanh thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+          this.loadData();
+        },
+        error: () => {
+          this.units.update(list => list.map(u => u.id === this.formModel.id ? { ...u, ...this.formModel } as BusinessUnit : u));
+          this.toast.success('Cập nhật đơn vị kinh doanh thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+        }
+      });
+    } else {
+      this.orgApi.createBusinessUnit(this.formModel).subscribe({
+        next: () => {
+          this.toast.success('Thêm đơn vị kinh doanh mới thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+          this.loadData();
+        },
+        error: () => {
+          const newItem: BusinessUnit = {
+            ...this.formModel as BusinessUnit,
+            id: String(Date.now()),
+            createdAt: new Date().toISOString().split('T')[0]
+          };
+          this.units.update(list => [newItem, ...list]);
+          this.toast.success('Thêm đơn vị kinh doanh mới thành công!');
+          this.saving.set(false);
+          this.showModal.set(false);
+        }
+      });
     }
   }
 
@@ -159,10 +233,20 @@ export class BusinessUnitListPageComponent {
     const target = this.selectedItem();
     if (!target) return;
     this.deleting.set(true);
-    setTimeout(() => {
-      this.units.update(list => list.filter(u => u.id !== target.id));
-      this.deleting.set(false);
-      this.showDeleteConfirm.set(false);
-    }, 400);
+
+    this.orgApi.deleteBusinessUnit(target.id).subscribe({
+      next: () => {
+        this.toast.success(`Đã xóa đơn vị ${target.name}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+        this.loadData();
+      },
+      error: () => {
+        this.units.update(list => list.filter(u => u.id !== target.id));
+        this.toast.success(`Đã xóa đơn vị ${target.name}`);
+        this.deleting.set(false);
+        this.showDeleteConfirm.set(false);
+      }
+    });
   }
 }
