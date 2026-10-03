@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { PosToastComponent } from './shared';
 
 /**
  * Root component của POS Management Application.
@@ -11,8 +12,11 @@ import { RouterOutlet } from '@angular/router';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  template: `<router-outlet />`,
+  imports: [RouterOutlet, PosToastComponent],
+  template: `
+    <router-outlet />
+    <app-pos-toast />
+  `,
   styles: [`
     :host {
       display: block;
@@ -24,3 +28,4 @@ import { RouterOutlet } from '@angular/router';
 export class AppComponent {
   title = 'POS Management System';
 }
+

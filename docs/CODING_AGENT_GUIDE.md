@@ -102,7 +102,7 @@ Từ ảnh chuẩn - 4 rows:
   standalone: true,
   templateUrl: './merchant-list.page.html',
   styleUrls: ['./merchant-list.page.scss'],
-  imports: [CommonModule, ReactiveFormsModule, DataTableComponent, ...]
+  imports: [CommonModule, ReactiveFormsModule, PosTableComponent, ...]
 })
 export class MerchantListPageComponent implements OnInit {
   // Signals

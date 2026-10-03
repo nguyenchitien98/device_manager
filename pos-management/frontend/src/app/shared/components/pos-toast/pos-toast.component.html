@@ -1,0 +1,14 @@
+<div class="pos-toast-container">
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div class="pos-toast" [class]="'toast-' + toast.type">
+      <span class="material-icons toast-icon">{{ getIcon(toast.type) }}</span>
+      <div class="toast-content">
+        <div class="toast-title">{{ toast.title }}</div>
+        <div class="toast-message">{{ toast.message }}</div>
+      </div>
+      <button class="toast-close" (click)="close(toast.id)" aria-label="Close toast">
+        <span class="material-icons" style="font-size: 16px;">close</span>
+      </button>
+    </div>
+  }
+</div>

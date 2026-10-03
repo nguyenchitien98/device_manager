@@ -22,7 +22,7 @@ export class DeviceDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  readonly serialNumber = this.route.snapshot.paramMap.get('serialNumber') ?? 'PAX-A920-998822';
+  readonly serialNumber = this.route.snapshot.paramMap.get('id') ?? 'PAX-A920-998822';
 
   readonly deviceDetail = signal({
     serialNumber: this.serialNumber,

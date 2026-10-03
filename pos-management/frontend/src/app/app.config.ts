@@ -8,6 +8,11 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 
 import { routes } from './app.routes';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
+import { errorInterceptor } from './core/interceptors/error.interceptor';
+
+import { authReducer } from './core/store/auth/auth.reducer';
+import { notificationReducer } from './core/store/notification/notification.reducer';
+import { approvalReducer } from './core/store/approval/approval.reducer';
 
 /**
  * Cấu hình Application-level providers cho POS Management Angular App.
@@ -24,17 +29,22 @@ export const appConfig: ApplicationConfig = {
     // Router với lazy-loaded routes
     provideRouter(routes),
 
-    // HTTP client — với jwtInterceptor inject JWT Bearer Token
-    provideHttpClient(withInterceptors([jwtInterceptor])),
+    // HTTP client — với jwtInterceptor & errorInterceptor
+    provideHttpClient(withInterceptors([jwtInterceptor, errorInterceptor])),
 
     // Angular Material animations (async để không block first paint)
     provideAnimationsAsync(),
 
-    // NgRx Store — reducers sẽ được thêm từng Sprint
-    provideStore({}),
+    // NgRx Global Store Setup
+    provideStore({
+      auth: authReducer,
+      notification: notificationReducer,
+      approval: approvalReducer,
+    }),
 
-    // NgRx Effects — effects sẽ được thêm từng Sprint
+    // NgRx Effects
     provideEffects([]),
+
 
     // NgRx DevTools — chỉ dùng khi development
     provideStoreDevtools({

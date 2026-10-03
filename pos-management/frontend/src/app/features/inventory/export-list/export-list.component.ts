@@ -119,7 +119,7 @@ export class ExportListPageComponent {
   }
 
   openCreatePage(): void {
-    this.router.navigate(['/inventory/exports/new']);
+    this.router.navigate(['/inventory/export-create']);
   }
 
   onActionClick(row: ExportOrder, item: DropdownItem): void {

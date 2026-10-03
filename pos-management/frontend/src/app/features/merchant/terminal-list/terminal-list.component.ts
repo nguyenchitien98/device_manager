@@ -172,7 +172,7 @@ export class TerminalListPageComponent {
   }
 
   onViewTerminal(row: TerminalItem): void {
-    this.router.navigate(['/merchant/terminals', row.id]);
+    this.router.navigate(['/merchant/terminal-detail', row.id]);
   }
 
   openEditModal(row: TerminalItem): void {

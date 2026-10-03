@@ -183,7 +183,7 @@ export class MerchantListPageComponent {
   }
 
   onViewMerchant(row: MerchantItem): void {
-    this.router.navigate(['/merchant/merchants', row.id]);
+    this.router.navigate(['/merchant/detail', row.id]);
   }
 
   openEditModal(row: MerchantItem): void {

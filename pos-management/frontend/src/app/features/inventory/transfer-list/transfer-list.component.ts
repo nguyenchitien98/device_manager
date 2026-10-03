@@ -120,7 +120,7 @@ export class TransferListPageComponent {
   }
 
   openCreatePage(): void {
-    this.router.navigate(['/inventory/transfers/new']);
+    this.router.navigate(['/inventory/transfer-create']);
   }
 
   onActionClick(row: TransferOrder, item: DropdownItem): void {

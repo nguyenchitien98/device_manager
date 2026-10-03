@@ -6,7 +6,10 @@ Tài liệu này định nghĩa **request/response schema cụ thể** cho toàn
 > - Tất cả response đều bọc trong `ApiResponse<T>`
 > - Tất cả ID đều là `UUID` dạng string
 > - Timestamps dùng ISO 8601: `2026-10-01T14:00:00Z`
-> - Lỗi theo RFC 7807 Problem Details
+> - Lỗi trả về `ApiErrorResponse` (format phẳng, xem Section 1)
+>
+> **Thứ tự ưu tiên khi mâu thuẫn:** Code backend (`ErrorCode.java`, `ApiErrorResponse.java`, `ApiResponse.java`) > File này > Các docs khác.
+> Mọi endpoint frontend gọi PHẢI có trong file này. Muốn thêm endpoint mới → cập nhật file này TRƯỚC khi code.
 
 ---
 
@@ -28,58 +31,80 @@ Tài liệu này định nghĩa **request/response schema cụ thể** cho toàn
     "content": [...],
     "totalElements": 150,
     "totalPages": 8,
-    "pageNumber": 0,
-    "pageSize": 20
+    "page": 0,      // 0-indexed
+    "size": 20
   },
   "timestamp": "2026-10-01T14:00:00Z"
 }
 
-// Response lỗi (RFC 7807)
+// Response lỗi — ApiErrorResponse (format PHẲNG, khớp backend)
 {
   "success": false,
-  "error": {
-    "code": "POS-1002",
-    "message": "Thiết bị không ở trạng thái INSTOCK",
-    "detail": "Device SN-POS-000001 có trạng thái DEPLOYED, không thể cấp phát",
-    "path": "/api/v1/assignments",
-    "timestamp": "2026-10-01T14:00:00Z"
-  }
+  "errorCode": "POS-2004",
+  "message": "Thiết bị không đủ điều kiện để thực hiện thao tác này",
+  "details": ["serialNumber: Device SN-POS-000001 đang DEPLOYED"],  // có thể null
+  "path": "/api/v1/assignments",
+  "timestamp": "2026-10-01T14:00:00Z"
 }
+```
+
+**Frontend đọc lỗi:** `err.error.errorCode`, `err.error.message`, `err.error.details`.
+**TypeScript model:**
+```typescript
+export interface PageResponse<T> { content: T[]; totalElements: number; totalPages: number; page: number; size: number; }
+export interface ApiResponse<T> { success: true; data: T; message: string | null; timestamp: string; }
+export interface ApiErrorResponse { success: false; errorCode: string; message: string; details?: string[]; path: string; timestamp: string; }
 ```
 
 ---
 
 ## 2. Error Code Reference
 
-| Code | HTTP Status | Tên | Mô Tả |
-|---|---|---|---|
-| **POS-1001** | 404 | `DEVICE_NOT_FOUND` | Serial không tồn tại trong hệ thống |
-| **POS-1002** | 422 | `DEVICE_NOT_ASSIGNABLE` | Device không ở trạng thái INSTOCK |
-| **POS-1003** | 422 | `DEVICE_ALREADY_ASSIGNED` | Device đã có assignment ACTIVE |
-| **POS-1004** | 422 | `INVALID_DEVICE_STATE_TRANSITION` | Chuyển trạng thái device không hợp lệ |
-| **POS-1005** | 422 | `DEVICE_DISPOSED` | Device đã DISPOSED, không thể thao tác |
-| **POS-2001** | 409 | `IDEMPOTENCY_CONFLICT` | Request đang được xử lý (duplicate key) |
-| **POS-2002** | 409 | `OPTIMISTIC_LOCK_CONFLICT` | Conflict khi cập nhật đồng thời, vui lòng thử lại |
-| **POS-3001** | 403 | `SELF_APPROVAL_NOT_ALLOWED` | Người tạo không thể tự phê duyệt |
-| **POS-3002** | 422 | `APPROVAL_ALREADY_PROCESSED` | Phiếu đã được xử lý bởi người khác |
-| **POS-3003** | 422 | `INVALID_APPROVAL_STATE` | Phiếu không ở trạng thái cho phép thao tác này |
-| **POS-4001** | 404 | `MERCHANT_NOT_FOUND` | Merchant không tồn tại |
-| **POS-4002** | 422 | `MERCHANT_NOT_ACTIVE` | Merchant không ở trạng thái ACTIVE |
-| **POS-4003** | 404 | `TERMINAL_NOT_FOUND` | Terminal ID không tồn tại |
-| **POS-4004** | 422 | `TERMINAL_NOT_ACTIVE` | Terminal không ở trạng thái ACTIVE |
-| **POS-5001** | 422 | `DUPLICATE_SERIAL_NUMBER` | Serial number đã tồn tại trong hệ thống |
-| **POS-5002** | 404 | `PURCHASE_ORDER_NOT_FOUND` | Purchase Order không tồn tại |
-| **POS-5003** | 422 | `INSUFFICIENT_STOCK` | Không đủ thiết bị INSTOCK để thực hiện |
-| **POS-6001** | 403 | `BUSINESS_UNIT_SCOPE_VIOLATION` | Không có quyền thao tác với đơn vị KD này |
-| **POS-6002** | 403 | `PERMISSION_DENIED` | Không có quyền thực hiện thao tác này |
-| **POS-7001** | 400 | `INVALID_SERIAL_FORMAT` | Serial number không đúng định dạng SN-POS-XXXXXX |
-| **POS-7002** | 400 | `INVALID_DATE_RANGE` | Effective date range không hợp lệ |
-| **POS-7003** | 400 | `INVALID_PAGINATION` | Tham số phân trang không hợp lệ |
-| **POS-9001** | 401 | `UNAUTHORIZED` | Chưa xác thực hoặc token hết hạn |
-| **POS-9002** | 401 | `TOKEN_EXPIRED` | Access Token đã hết hạn |
-| **POS-9003** | 401 | `REFRESH_TOKEN_INVALID` | Refresh Token không hợp lệ hoặc đã bị thu hồi |
-| **POS-9004** | 429 | `ACCOUNT_LOCKED` | Tài khoản bị khóa do đăng nhập sai nhiều lần |
-| **POS-9005** | 429 | `RATE_LIMIT_EXCEEDED` | Quá số request cho phép (5 req/s per user) |
+> **Nguồn sự thật:** `backend/pos-common/.../exception/ErrorCode.java`. Bảng dưới là bản sao — khi thêm mã mới, sửa `ErrorCode.java` trước rồi cập nhật bảng này.
+> Frontend map `errorCode` → message trong `core/constants/error-messages.ts` (fallback dùng `message` từ backend).
+
+| Nhóm | Code | HTTP | Enum | Mô Tả |
+|---|---|---|---|---|
+| Auth | **POS-1001** | 401 | `INVALID_CREDENTIALS` | Sai tên đăng nhập hoặc mật khẩu |
+| Auth | **POS-1002** | 423 | `ACCOUNT_LOCKED` | Tài khoản bị khóa 30 phút |
+| Auth | **POS-1003** | 401 | `TOKEN_INVALID` | Token hết hạn / không hợp lệ |
+| Auth | **POS-1004** | 401 | `REFRESH_TOKEN_INVALID` | Refresh token bị thu hồi |
+| Auth | **POS-1005** | 403 | `ACCESS_DENIED` | Không có quyền |
+| Auth | **POS-1006** | 429 | `RATE_LIMIT_EXCEEDED` | Vượt số lần thử |
+| Device | **POS-2001** | 404 | `DEVICE_NOT_FOUND` | Serial không tồn tại |
+| Device | **POS-2002** | 409 | `SERIAL_ALREADY_EXISTS` | Serial đã tồn tại |
+| Device | **POS-2003** | 422 | `INVALID_DEVICE_STATUS_TRANSITION` | Chuyển trạng thái sai FSM |
+| Device | **POS-2004** | 422 | `DEVICE_NOT_ASSIGNABLE` | Thiết bị không ở INSTOCK |
+| Device | **POS-2005** | 404 | `PURCHASE_ORDER_NOT_FOUND` | Không tìm thấy PO |
+| Device | **POS-2006** | 422 | `INSUFFICIENT_STOCK` | Không đủ tồn kho |
+| Device | **POS-2007** | 404 | `DEVICE_MODEL_NOT_FOUND` | Không tìm thấy Model |
+| Device | **POS-2008** | 422 | `DEVICE_MODEL_HAS_ACTIVE_DEVICES` | Model còn thiết bị đang dùng |
+| Device | **POS-2009** | 404 | `VENDOR_NOT_FOUND` | Không tìm thấy Vendor |
+| Merchant | **POS-3001** | 404 | `MERCHANT_NOT_FOUND` | Không tìm thấy Merchant |
+| Merchant | **POS-3002** | 422 | `MERCHANT_INACTIVE` | Merchant không ACTIVE |
+| Merchant | **POS-3003** | 409 | `TERMINAL_ID_ALREADY_EXISTS` | TID đã tồn tại |
+| Merchant | **POS-3004** | 404 | `TERMINAL_NOT_FOUND` | Không tìm thấy TID |
+| Merchant | **POS-3005** | 409 | `FEE_POLICY_DATE_CONFLICT` | Trùng khoảng hiệu lực phí |
+| Assignment | **POS-4001** | 404 | `ASSIGNMENT_NOT_FOUND` | Không tìm thấy assignment |
+| Assignment | **POS-4002** | 422 | `DEVICE_ALREADY_ASSIGNED` | Thiết bị đang được dùng |
+| Assignment | **POS-4003** | 409 | `ASSIGNMENT_CONFLICT` | Xung đột đồng thời (optimistic lock) |
+| Assignment | **POS-4004** | 409 | `DUPLICATE_REQUEST` | Idempotency key đã xử lý |
+| Approval | **POS-5001** | 404 | `APPROVAL_REQUEST_NOT_FOUND` | Không tìm thấy phiếu |
+| Approval | **POS-5002** | 422 | `INVALID_APPROVAL_STATUS` | Trạng thái phiếu không cho phép |
+| Approval | **POS-5003** | 403 | `SELF_APPROVAL_NOT_ALLOWED` | Người tạo không được tự duyệt |
+| General | **POS-6001** | 404 | `RESOURCE_NOT_FOUND` | Không tìm thấy dữ liệu |
+| General | **POS-6002** | 400 | `VALIDATION_FAILED` | Dữ liệu không hợp lệ (xem `details`) |
+| General | **POS-6003** | 409 | `DATA_INTEGRITY_VIOLATION` | Vi phạm ràng buộc dữ liệu |
+| General | **POS-6999** | 500 | `INTERNAL_SERVER_ERROR` | Lỗi hệ thống |
+| Export | **POS-7001** | 400 | `EXPORT_NO_DATA` | Không có dữ liệu để xuất |
+| Export | **POS-7002** | 400 | `EXPORT_SIZE_EXCEEDED` | Vượt giới hạn bản ghi |
+| Export | **POS-7003** | 202 | `EXPORT_IN_PROGRESS` | File đang tạo (async) |
+| Export | **POS-7004** | 403 | `EXPORT_PERMISSION_DENIED` | Không có quyền xuất |
+| Export | **POS-7005** | 400 | `EXPORT_FORMAT_UNSUPPORTED` | Định dạng không hỗ trợ |
+| Export | **POS-7006** | 500 | `EXPORT_JOB_FAILED` | Job xuất thất bại |
+| Catalog | **POS-8001…8007** | 404 | `CATEGORY/DEVICE_TYPE/BUSINESS_UNIT/WAREHOUSE/MCC/FEE_POLICY/LOGISTICS_NOT_FOUND` | Không tìm thấy bản ghi danh mục |
+| Catalog | **POS-8008** | 409 | `CODE_ALREADY_EXISTS` | Mã đã tồn tại |
+| External | **POS-9001…9005** | 502 | `WAY4_* / T24_*` | Lỗi tích hợp WAY4 / T24 |
 
 ---
 
@@ -110,7 +135,7 @@ Tài liệu này định nghĩa **request/response schema cụ thể** cho toàn
   }
 }
 
-// Error 401: POS-9001 | Error 429: POS-9004
+// Error 401: POS-1001 (Invalid Credentials) | Error 423: POS-1002 (Account Locked)
 ```
 
 ### POST /api/v1/auth/refresh
@@ -125,7 +150,7 @@ Tài liệu này định nghĩa **request/response schema cụ thể** cho toàn
   "expiresIn": 900
 }
 
-// Error 401: POS-9003
+// Error 401: POS-1004 (Refresh Token Invalid)
 ```
 
 ### POST /api/v1/auth/logout
@@ -166,13 +191,13 @@ Tài liệu này định nghĩa **request/response schema cụ thể** cho toàn
 }
 
 // Errors:
-// 404 POS-1001: Device not found
-// 422 POS-1002: Device not assignable (not INSTOCK)
-// 422 POS-1003: Device already assigned
-// 422 POS-4002: Merchant not active
-// 422 POS-4004: Terminal not active
-// 403 POS-6001: Business unit scope violation
-// 409 POS-2001: Idempotency conflict
+// 404 POS-2001: Device not found
+// 422 POS-2004: Device not assignable (not INSTOCK)
+// 422 POS-4002: Device already assigned
+// 422 POS-3002: Merchant not active
+// 404 POS-3004: Terminal not found
+// 403 POS-1005: Access denied
+// 409 POS-4004: Duplicate request (Idempotency conflict)
 ```
 
 ### POST /api/v1/assignments/{id}/return

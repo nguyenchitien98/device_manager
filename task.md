@@ -612,3 +612,8 @@ OVERALL: 8/196 tasks (4%)
 - [2026-10-03] Cập nhật task.md với chi tiết coding steps từng Sprint
 - [2026-10-03] Cập nhật 07_UI_UX_Standard.md: thêm Dual Theme, Sidebar structure từ ảnh chuẩn
 - [2026-10-03] Tạo CODING_AGENT_GUIDE.md — quy trình làm việc chi tiết cho AI Agent
+- [2026-10-03] Hoàn thành Senior Code Review toàn bộ 38 màn hình UI, khắc phục 100% lỗi nháy Dark Mode/Button Flicker.
+- [2026-10-03] Tạo plan_refactor.md — Kế hoạch nâng cấp và refactor 5 giai đoạn cho dự án.
+- [2026-10-03] Tạo ANTIGRAVITY_UI_ACTION_GUIDE.md & docs/15_UI_Action_API_Guide.md — Kim chỉ nam mapping 100% buttons, actions và REST API endpoints cho tất cả 38 màn hình, đảm bảo không nút nào bị đơ/chết cứng.
+- [2026-10-03] Hoàn thành Phase 1 & Phase 2 Refactoring: Thiết lập ToastService, ErrorInterceptor, NgRx Stores (Auth, Notification, Approval), BaseApiService, FileExportService & 8 Domain API Services. Compile sạch 100% (ng build SUCCESS).
+

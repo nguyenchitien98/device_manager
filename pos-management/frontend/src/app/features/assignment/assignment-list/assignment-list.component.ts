@@ -118,7 +118,7 @@ export class AssignmentListPageComponent {
   }
 
   openCreatePage(): void {
-    this.router.navigate(['/assignment/new']);
+    this.router.navigate(['/assignment/create']);
   }
 
   onActionClick(row: AssignmentItem, item: DropdownItem): void {

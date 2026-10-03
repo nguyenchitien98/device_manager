@@ -119,7 +119,7 @@ export class ImportListPageComponent {
   }
 
   openCreatePage(): void {
-    this.router.navigate(['/inventory/imports/new']);
+    this.router.navigate(['/inventory/import-create']);
   }
 
   onActionClick(row: ImportOrder, item: DropdownItem): void {
