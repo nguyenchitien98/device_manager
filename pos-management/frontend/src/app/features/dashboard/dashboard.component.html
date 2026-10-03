@@ -1,0 +1,183 @@
+<div class="dashboard-page fade-in">
+
+  <!-- ─── Page Header ────────────────────────────────────────────── -->
+  <div class="dash-header">
+    <h1 class="dash-title">Dashboard</h1>
+    <div class="dash-actions">
+      <span class="last-updated">Cập nhật lúc 10:45 AM</span>
+      <button class="btn btn-secondary btn-sm" id="btn-refresh-dashboard">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+        Làm mới
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Row 1: 5 KPI Gradient Cards ───────────────────────────── -->
+  <div class="kpi-grid">
+    @for (card of kpiCards; track card.label) {
+      <div class="kpi-card {{ card.colorClass }}">
+        <div class="kpi-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path [attr.d]="card.icon"/>
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-label">{{ card.label }}</span>
+          <span class="kpi-value">{{ card.value | number }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ─── Row 2: 3 Secondary Stat Cards ─────────────────────────── -->
+  <div class="stat-grid">
+    @for (stat of statCards; track stat.label) {
+      <div class="stat-card">
+        <div class="stat-icon" [style.background]="stat.iconColor + '1A'" [style.color]="stat.iconColor">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path [attr.d]="stat.icon"/>
+          </svg>
+        </div>
+        <div class="stat-body">
+          <span class="stat-label">{{ stat.label }}</span>
+          <span class="stat-value">{{ stat.value | number }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ─── Row 3: Charts ─────────────────────────────────────────── -->
+  <div class="charts-row">
+
+    <!-- Bar Chart: Nhập/Xuất kho theo tháng -->
+    <div class="chart-card chart-wide">
+      <div class="chart-header">
+        <h3 class="chart-title">Nhập/Xuất kho theo tháng</h3>
+        <div class="chart-legend">
+          <span class="legend-dot blue"></span><span>Nhập kho</span>
+          <span class="legend-dot green"></span><span>Xuất kho</span>
+        </div>
+      </div>
+
+      <div class="bar-chart">
+        <!-- Y axis -->
+        <div class="y-axis">
+          @for (tick of [120, 100, 80, 60, 40, 20, 0]; track tick) {
+            <span>{{ tick }}</span>
+          }
+        </div>
+        <!-- Bars area -->
+        <div class="bars-area">
+          @for (m of monthlyData; track m.month) {
+            <div class="bar-column">
+              <div class="bar-pair">
+                <div
+                  class="bar bar-import"
+                  [style.height.%]="barHeight(m.import)"
+                  [title]="'Nhập: ' + m.import">
+                </div>
+                <div
+                  class="bar bar-export"
+                  [style.height.%]="barHeight(m.export)"
+                  [title]="'Xuất: ' + m.export">
+                </div>
+              </div>
+              <span class="month-label">{{ m.month }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Donut Chart: Phân bổ thiết bị -->
+    <div class="chart-card chart-narrow">
+      <div class="chart-header">
+        <h3 class="chart-title">Phân bổ thiết bị theo trạng thái</h3>
+      </div>
+
+      <div class="donut-wrap">
+        <svg class="donut-svg" viewBox="0 0 120 120">
+          @for (slice of donutSlices; track slice.label) {
+            <circle
+              cx="60" cy="60" r="54"
+              fill="none"
+              [attr.stroke]="slice.color"
+              stroke-width="18"
+              [attr.stroke-dasharray]="slice.dasharray"
+              [attr.stroke-dashoffset]="slice.dashoffset"
+            />
+          }
+        </svg>
+        <div class="donut-hole"></div>
+      </div>
+
+      <div class="donut-legend">
+        @for (slice of donutSlices; track slice.label) {
+          <div class="donut-legend-item">
+            <span class="donut-dot" [style.background]="slice.color"></span>
+            <span class="donut-label">{{ slice.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── Row 4: Top Warehouses + Activity Feed ──────────────────── -->
+  <div class="charts-row">
+
+    <!-- Horizontal Bar: Top 5 Kho -->
+    <div class="chart-card chart-wide">
+      <div class="chart-header">
+        <h3 class="chart-title">Top 5 Kho tồn nhiều nhất</h3>
+      </div>
+
+      <div class="hbar-container">
+        @for (wh of topWarehouses; track wh.name) {
+          <div class="hbar-row">
+            <span class="hbar-name">{{ wh.name }}</span>
+            <div class="hbar-track">
+              <div class="hbar-fill" [style.width.%]="barWidth(wh.value, wh.max)"></div>
+            </div>
+          </div>
+        }
+        <div class="hbar-xaxis">
+          @for (tick of whXAxis; track tick) {
+            <span>{{ tick }}</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="chart-card chart-narrow">
+      <div class="chart-header">
+        <h3 class="chart-title">Hoạt động gần đây</h3>
+        <button class="btn-link" id="btn-view-all-activity">Xem tất cả</button>
+      </div>
+
+      <div class="activity-feed">
+        @for (act of recentActivities; track act.desc) {
+          <div class="activity-item">
+            <div class="act-avatar" [style.background]="act.color">
+              <span>{{ act.initials }}</span>
+            </div>
+            <div class="act-body">
+              <div class="act-author">
+                {{ act.author }}
+                <span class="act-role">| {{ act.role }}</span>
+              </div>
+              <div class="act-desc">{{ act.desc }}</div>
+              <div class="act-time">{{ act.time }}</div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+  </div>
+
+</div>

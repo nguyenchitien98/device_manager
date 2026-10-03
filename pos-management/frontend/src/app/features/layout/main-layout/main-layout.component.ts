@@ -1,31 +1,141 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  HostListener,
   computed,
   inject,
-  signal
+  signal,
+  OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 
-export interface MenuItem {
+/** Breadcrumb item */
+interface Breadcrumb {
   label: string;
-  icon: string;
-  route?: string;
-  badge?: number;
-  permission?: string;
+  url: string;
 }
 
-export interface MenuGroup {
-  title: string;
-  isExpanded?: boolean;
-  items: MenuItem[];
-}
+/** Mapping route → breadcrumb */
+const BREADCRUMB_MAP: Record<string, Breadcrumb[]> = {
+  '/dashboard': [{ label: 'Dashboard', url: '/dashboard' }],
+  '/catalog/device-categories': [
+    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
+    { label: 'Device Category', url: '/catalog/device-categories' },
+  ],
+  '/catalog/device-types': [
+    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
+    { label: 'Device Type', url: '/catalog/device-types' },
+  ],
+  '/catalog/device-models': [
+    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
+    { label: 'Device Model', url: '/catalog/device-models' },
+  ],
+  '/catalog/vendors': [
+    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
+    { label: 'Vendor', url: '/catalog/vendors' },
+  ],
+  '/catalog/mcc': [
+    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
+    { label: 'MCC', url: '/catalog/mcc' },
+  ],
+  '/catalog/fee-policies': [
+    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
+    { label: 'Chính sách phí', url: '/catalog/fee-policies' },
+  ],
+  '/organization/business-units': [
+    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
+    { label: 'Đơn vị Kinh doanh', url: '/organization/business-units' },
+  ],
+  '/organization/warehouses': [
+    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
+    { label: 'Quản lý kho', url: '/organization/warehouses' },
+  ],
+  '/inventory/purchase-orders': [
+    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
+    { label: 'Purchase order', url: '/inventory/purchase-orders' },
+  ],
+  '/inventory/imports': [
+    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/imports' },
+    { label: 'Thông tin Nhập kho', url: '/inventory/imports' },
+  ],
+  '/inventory/exports': [
+    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/exports' },
+    { label: 'Thông tin Xuất kho', url: '/inventory/exports' },
+  ],
+  '/inventory/stock': [
+    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/stock' },
+    { label: 'Thông tin tồn kho', url: '/inventory/stock' },
+  ],
+  '/inventory/transfers': [
+    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/transfers' },
+    { label: 'Điều chuyển kho', url: '/inventory/transfers' },
+  ],
+  '/merchant/merchants': [
+    { label: 'Quản Lý Merchant', url: '/merchant/merchants' },
+    { label: 'Danh sách Merchant', url: '/merchant/merchants' },
+  ],
+  '/merchant/terminals': [
+    { label: 'Quản Lý Merchant', url: '/merchant/merchants' },
+    { label: 'Quản lý TID', url: '/merchant/terminals' },
+  ],
+  '/device/search': [
+    { label: 'Quản Lý Thiết Bị', url: '/device/search' },
+    { label: 'Tra cứu thiết bị', url: '/device/search' },
+  ],
+  '/assignment/list': [
+    { label: 'Quản Lý Assignment', url: '/assignment/list' },
+    { label: 'Quản lý assignment', url: '/assignment/list' },
+  ],
+  '/assignment/history': [
+    { label: 'Quản Lý Assignment', url: '/assignment/list' },
+    { label: 'Lịch sử assignment', url: '/assignment/history' },
+  ],
+  '/approval/inbox': [
+    { label: 'Quy Trình Nghiệp Vụ', url: '/approval/inbox' },
+    { label: 'Hộp việc cần duyệt', url: '/approval/inbox' },
+  ],
+  '/monitoring/pos': [
+    { label: 'Báo Cáo & Hệ Thống', url: '/monitoring/pos' },
+    { label: 'Giám sát hệ thống', url: '/monitoring/pos' },
+  ],
+  '/reports': [
+    { label: 'Báo Cáo & Hệ Thống', url: '/reports' },
+    { label: 'Báo cáo', url: '/reports' },
+  ],
+};
+
+/** Mapping route → page title hiển thị trên header */
+const PAGE_TITLE_MAP: Record<string, string> = {
+  '/dashboard': 'Dashboard',
+  '/catalog/device-categories': 'Device Category',
+  '/catalog/device-types': 'Device Type',
+  '/catalog/device-models': 'Device Model',
+  '/catalog/vendors': 'Vendor',
+  '/catalog/mcc': 'Quản lý MCC',
+  '/catalog/fee-policies': 'Chính sách phí',
+  '/organization/business-units': 'Đơn vị Kinh doanh',
+  '/organization/warehouses': 'Quản lý kho',
+  '/inventory/purchase-orders': 'Purchase Order',
+  '/inventory/imports': 'Thông tin Nhập kho',
+  '/inventory/exports': 'Thông tin Xuất kho',
+  '/inventory/stock': 'Thông tin tồn kho',
+  '/inventory/transfers': 'Điều chuyển kho',
+  '/merchant/merchants': 'Danh sách Merchant',
+  '/merchant/terminals': 'Quản lý TID',
+  '/device/search': 'Tra cứu thiết bị',
+  '/assignment/list': 'Quản lý Assignment',
+  '/assignment/history': 'Lịch sử Assignment',
+  '/approval/inbox': 'Hộp việc cần duyệt',
+  '/monitoring/pos': 'Giám sát hệ thống',
+  '/reports': 'Báo cáo',
+};
 
 /**
- * Main Layout Component — Tuân thủ 100% UI/UX Standard & Dashboard mockup.
+ * Main Layout Component — App shell bao gồm Sidebar, Header, Content.
+ * Quản lý: Dual Theme, Sidebar collapse, User menu, Breadcrumb.
  */
 @Component({
   selector: 'app-main-layout',
@@ -35,113 +145,145 @@ export interface MenuGroup {
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
   // ─── Signals ────────────────────────────────────────────────────
   readonly isSidebarCollapsed = signal(false);
-  readonly isMobileSidebarOpen = signal(false);
+  readonly isDarkMode = signal(false);
+  readonly isUserMenuOpen = signal(false);
   readonly activeRoute = signal('/dashboard');
+  readonly approvalBadge = signal(8);
+  readonly notificationCount = signal(8);
+
+  /** Mỗi group key: true = expanded */
   readonly expandedGroups = signal<Record<string, boolean>>({
-    'QUẢN LÝ DANH MỤC': true,
+    catalog: true,
   });
 
-  // ─── Computed user ──────────────────────────────────────────────
+  // ─── Derived from Auth ───────────────────────────────────────────
   readonly currentUser = this.authService.currentUser;
 
-  /**
-   * Menu groups theo đúng hình pos_dashboard_main_1790867196500.png & UI UX Standard
-   */
-  readonly menuGroups = computed<MenuGroup[]>(() => [
-    {
-      title: 'TỔNG QUAN',
-      items: [
-        { label: 'Dashboard', icon: 'home', route: '/dashboard' },
-      ],
-    },
-    {
-      title: 'QUẢN LÝ DANH MỤC',
-      items: [
-        { label: 'Device Category', icon: 'grid_view', route: '/catalog/categories' },
-        { label: 'Device Type', icon: 'stay_current_portrait', route: '/catalog/types' },
-        { label: 'Device Model', icon: 'devices_other', route: '/catalog/models' },
-        { label: 'Vendor', icon: 'badge', route: '/catalog/vendors' },
-        { label: 'MCC', icon: 'store_mall_directory', route: '/catalog/mcc' },
-        { label: 'Business Unit', icon: 'corporate_fare', route: '/catalog/business-units' },
-        { label: 'Fee Policy', icon: 'subtitles', route: '/catalog/fee-policies' },
-      ],
-    },
-    {
-      title: 'QUẢN LÝ KHO',
-      items: [
-        { label: 'Nhập kho', icon: 'vertical_align_bottom', route: '/inventory/import' },
-        { label: 'Xuất kho', icon: 'vertical_align_top', route: '/inventory/export' },
-        { label: 'Tồn kho', icon: 'inventory_2', route: '/inventory/stock' },
-        { label: 'Điều chuyển kho', icon: 'compare_arrows', route: '/inventory/transfer' },
-      ],
-    },
-    {
-      title: 'QUẢN LÝ MERCHANT',
-      items: [
-        { label: 'Danh sách Merchant', icon: 'people_outline', route: '/merchants' },
-      ],
-    },
-    {
-      title: 'QUẢN LÝ THIẾT BỊ',
-      items: [
-        { label: 'Vòng đời thiết bị', icon: 'tablet_mac', route: '/devices' },
-      ],
-    },
-    {
-      title: 'QUẢN LÝ ASSIGNMENT',
-      items: [
-        { label: 'Cấp phát thiết bị', icon: 'assignment_ind', route: '/assignments' },
-      ],
-    },
-    {
-      title: 'QUY TRÌNH NGHIỆP VỤ',
-      items: [
-        { label: 'Hộp việc cần duyệt', icon: 'mail_outline', route: '/approvals', badge: 8 },
-        { label: 'BÁO CÁO & HỆ THỐNG', icon: 'analytics', route: '/reports' },
-      ],
-    },
-  ]);
+  readonly userInitials = computed(() => {
+    const name = this.currentUser()?.fullName ?? 'Admin User';
+    return name
+      .split(' ')
+      .map(w => w[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  });
 
-  constructor() {
+  // ─── Page title & Breadcrumb ─────────────────────────────────────
+  readonly currentPageTitle = computed(() => {
+    const route = this.activeRoute();
+    for (const key of Object.keys(PAGE_TITLE_MAP)) {
+      if (route === key || route.startsWith(key + '/')) {
+        return PAGE_TITLE_MAP[key];
+      }
+    }
+    return 'POS Management';
+  });
+
+  readonly breadcrumbs = computed<Breadcrumb[]>(() => {
+    const route = this.activeRoute();
+    if (route === '/dashboard') return [];
+    for (const key of Object.keys(BREADCRUMB_MAP)) {
+      if (route === key || route.startsWith(key + '/')) {
+        return BREADCRUMB_MAP[key];
+      }
+    }
+    return [];
+  });
+
+  ngOnInit(): void {
+    // Khôi phục theme từ localStorage
+    const saved = localStorage.getItem('pos_theme');
+    if (saved === 'dark') {
+      this.isDarkMode.set(true);
+      document.body.classList.add('theme-dark');
+    } else {
+      document.body.classList.add('theme-light');
+    }
+
+    // Khôi phục sidebar state
+    const sidebarState = localStorage.getItem('pos_sidebar_collapsed');
+    if (sidebarState === 'true') {
+      this.isSidebarCollapsed.set(true);
+    }
+
+    // Track route changes
+    this.activeRoute.set(this.router.url.split('?')[0]);
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd)
     ).subscribe((e: any) => {
-      this.activeRoute.set(e.urlAfterRedirects ?? e.url);
+      this.activeRoute.set((e.urlAfterRedirects ?? e.url).split('?')[0]);
+      this.isUserMenuOpen.set(false); // đóng dropdown khi navigate
     });
   }
 
-  toggleGroup(title: string): void {
-    this.expandedGroups.update(prev => {
-      const isCurrentlyExpanded = !!prev[title];
-      // Accordion Mode: Nếu đã mở thì đóng lại. Nếu chưa mở thì chỉ mở nhóm được chọn và tự động đóng tất cả nhóm khác.
-      return isCurrentlyExpanded ? {} : { [title]: true };
-    });
-  }
-
-  isGroupExpanded(title: string): boolean {
-    return !!this.expandedGroups()[title];
-  }
-
+  /** Toggle sidebar collapsed state */
   toggleSidebar(): void {
-    this.isSidebarCollapsed.update(v => !v);
+    this.isSidebarCollapsed.update(v => {
+      const next = !v;
+      localStorage.setItem('pos_sidebar_collapsed', String(next));
+      return next;
+    });
   }
 
-  toggleMobileSidebar(): void {
-    this.isMobileSidebarOpen.update(v => !v);
+  /** Toggle Light / Dark theme */
+  toggleTheme(): void {
+    this.isDarkMode.update(v => {
+      const next = !v;
+      document.body.classList.toggle('theme-dark', next);
+      document.body.classList.toggle('theme-light', !next);
+      localStorage.setItem('pos_theme', next ? 'dark' : 'light');
+      return next;
+    });
   }
 
+  /** Toggle accordion group */
+  toggleGroup(key: string): void {
+    this.expandedGroups.update(prev => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  }
+
+  /** Kiểm tra group có đang mở không */
+  isGroupOpen(key: string): boolean {
+    return !!this.expandedGroups()[key];
+  }
+
+  /** Toggle user menu dropdown */
+  toggleUserMenu(): void {
+    this.isUserMenuOpen.update(v => !v);
+  }
+
+  /** Đóng user menu */
+  closeUserMenu(): void {
+    this.isUserMenuOpen.set(false);
+  }
+
+  /** Đăng xuất */
   logout(): void {
+    this.isUserMenuOpen.set(false);
     this.authService.logout();
   }
 
-  isActive(route?: string): boolean {
-    if (!route) return false;
-    return this.activeRoute() === route || this.activeRoute().startsWith(route + '/');
+  /** Kiểm tra route có active không */
+  isActive(route: string): boolean {
+    const current = this.activeRoute();
+    return current === route || current.startsWith(route + '/');
+  }
+
+  /** Đóng user menu khi click outside */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(e: MouseEvent): void {
+    const target = e.target as HTMLElement;
+    if (!target.closest('.user-menu')) {
+      this.isUserMenuOpen.set(false);
+    }
   }
 }
