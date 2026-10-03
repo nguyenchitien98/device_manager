@@ -1,146 +1,200 @@
-<div class="list-page-container">
-  <!-- SEARCH ZONE (Khung trên) -->
+<div class="pos-page-container">
+  <!-- SEARCH ZONE CARD -->
   <div class="search-zone-card">
-    <div class="search-zone-header">
-      <div class="search-title">
-        <span class="material-icons title-icon">filter_alt</span>
-        <span>Bộ Lọc Tìm Kiếm</span>
+    <div class="search-card-header">
+      <div class="card-title-group">
+        <h3 class="card-title">Bộ Lọc Tìm Kiếm</h3>
       </div>
     </div>
 
-    <div class="filter-grid">
-      <pos-input
-        label="Từ khóa tìm kiếm"
-        inputId="inp-search-kw"
-        type="search"
-        placeholder="Nhập mã, tên danh mục..."
-        [ngModel]="keyword()"
-        (ngModelChange)="keyword.set($event)"
-        (enterPressed)="onSearch()"
-      />
+    <div class="search-card-body">
+      <div class="filter-grid">
+        <pos-input
+          inputId="filter-code"
+          label="Mã Danh Mục"
+          placeholder="Nhập mã danh mục (VD: POS_ANDROID)..."
+          [ngModel]="filterCode()"
+          (ngModelChange)="filterCode.set($event)"
+          (keydown.enter)="onSearch()">
+        </pos-input>
 
-      <pos-select
-        label="Trạng thái"
-        selectId="sel-search-status"
-        [options]="statusOptions"
-        [ngModel]="selectedStatus()"
-        (ngModelChange)="selectedStatus.set($event)"
-      />
-    </div>
+        <pos-input
+          inputId="filter-name"
+          label="Tên Danh Mục"
+          placeholder="Nhập tên danh mục..."
+          [ngModel]="filterName()"
+          (ngModelChange)="filterName.set($event)"
+          (keydown.enter)="onSearch()">
+        </pos-input>
 
-    <div class="filter-actions">
-      <pos-button variant="ghost" btnId="btn-reset-filter" (clicked)="onReset()">
-        🔄 Xóa bộ lọc
-      </pos-button>
-      <pos-button variant="primary" btnId="btn-do-search" (clicked)="onSearch()">
-        🔍 Tìm kiếm
-      </pos-button>
+        <pos-select
+          selectId="filter-status"
+          label="Trạng Thái"
+          [options]="statusOptions"
+          [ngModel]="filterStatus()"
+          (ngModelChange)="filterStatus.set($event)">
+        </pos-select>
+
+        <pos-input
+          inputId="filter-date"
+          type="date"
+          label="Ngày Tạo"
+          [ngModel]="filterDate()"
+          (ngModelChange)="filterDate.set($event)">
+        </pos-input>
+      </div>
+
+      <!-- FILTER ACTIONS RIGHT -->
+      <div class="filter-actions-right">
+        <pos-button
+          btnId="btn-export-excel"
+          variant="secondary"
+          icon="bi bi-file-earmark-excel"
+          (clicked)="onExportExcel()">
+          Xuất Excel
+        </pos-button>
+
+        <pos-button
+          btnId="btn-reset"
+          variant="secondary"
+          icon="bi bi-arrow-counterclockwise"
+          (clicked)="onReset()">
+          Xóa bộ lọc
+        </pos-button>
+
+        <pos-button
+          btnId="btn-search"
+          variant="primary"
+          icon="bi bi-search"
+          (clicked)="onSearch()">
+          Tìm kiếm
+        </pos-button>
+      </div>
     </div>
   </div>
 
-  <!-- LIST ZONE (Khung dưới) -->
+  <!-- LIST ZONE CARD -->
   <div class="list-zone-card">
-    <div class="list-toolbar">
-      <div class="toolbar-left">
-        <h3 class="list-title">Danh Sách Danh Mục Thiết Bị</h3>
-        <pos-badge variant="info">{{ filteredCategories().length }} danh mục</pos-badge>
+    <div class="list-card-header">
+      <div class="card-title-group">
+        <h3 class="card-title">Danh Sách Danh Mục Thiết Bị</h3>
+        <pos-badge variant="info" class="count-badge">{{ filteredCategories().length }} danh mục</pos-badge>
       </div>
-      <div class="toolbar-right">
-        <pos-button variant="primary" btnId="btn-add-category" (clicked)="openCreateModal()">
-          ➕ Thêm danh mục mới
+
+      <div class="card-header-actions">
+        <!-- Dropdown select Ẩn/Hiển thị cột -->
+        <pos-dropdown
+          [items]="columnToggleItems()"
+          (itemClick)="toggleColumn($event)">
+          <button class="col-toggle-btn" type="button">
+            <i class="bi bi-columns-gap"></i>
+            <span>Hiển thị cột</span>
+          </button>
+        </pos-dropdown>
+
+        <!-- Button Thêm mới -->
+        <pos-button
+          btnId="btn-create-category"
+          variant="primary"
+          icon="bi bi-plus-lg"
+          (clicked)="openCreateModal()">
+          Thêm danh mục mới
         </pos-button>
       </div>
     </div>
 
-    <!-- Table Component -->
-    <pos-table
-      [columns]="columns"
-      [data]="filteredCategories()"
-      [loading]="loading()"
-    >
-      <ng-template #cellTemplate let-row let-col="column">
-        @if (col.field === 'code') {
-          <span class="code-badge">{{ row.code }}</span>
-        } @else if (col.field === 'status') {
-          <pos-badge [variant]="row.status === 'ACTIVE' ? 'success' : 'gray'" [dot]="true">
-            {{ row.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động' }}
-          </pos-badge>
-        } @else if (col.field === 'actions') {
-          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
-        } @else {
-          {{ row[col.field] }}
-        }
-      </ng-template>
-    </pos-table>
+    <div class="list-card-body p-0">
+      <pos-table [columns]="visibleColumns()" [data]="filteredCategories()" [loading]="loading()">
+        <ng-template #cellTemplate let-item let-field="field">
+          <ng-container [ngSwitch]="field">
+            <span *ngSwitchCase="'code'" class="font-mono text-primary font-bold">
+              {{ item.code }}
+            </span>
+            <span *ngSwitchCase="'status'">
+              <pos-badge [variant]="item.status === 'ACTIVE' ? 'success' : 'danger'">
+                {{ item.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động' }}
+              </pos-badge>
+            </span>
+            <span *ngSwitchCase="'actions'">
+              <pos-dropdown
+                [items]="actionItems"
+                (itemClick)="onActionClick(item, $event)">
+              </pos-dropdown>
+            </span>
+            <span *ngSwitchDefault>{{ item[field] }}</span>
+          </ng-container>
+        </ng-template>
+      </pos-table>
+    </div>
 
-    <!-- Pagination -->
-    <pos-pagination
-      [totalItems]="filteredCategories().length"
-      [pageSize]="pageSize()"
-      [currentPage]="currentPage()"
-      (pageChange)="currentPage.set($event)"
-      (pageSizeChange)="pageSize.set($event)"
-    />
+    <div class="list-card-footer">
+      <pos-pagination
+        [totalItems]="filteredCategories().length"
+        [pageSize]="pageSize()"
+        [currentPage]="currentPage()"
+        (pageChange)="currentPage.set($event)">
+      </pos-pagination>
+    </div>
   </div>
+
+  <!-- Create / Edit Modal -->
+  <pos-modal
+    [isOpen]="showModal()"
+    [title]="modalTitle()"
+    size="md"
+    (closed)="showModal.set(false)">
+    <div class="modal-form-grid">
+      <pos-input
+        inputId="form-code"
+        label="Mã Danh Mục"
+        placeholder="VD: POS_ANDROID"
+        [required]="true"
+        [ngModel]="formModel.code"
+        (ngModelChange)="formModel.code = $event">
+      </pos-input>
+
+      <pos-input
+        inputId="form-name"
+        label="Tên Danh Mục"
+        placeholder="VD: Smart POS Android"
+        [required]="true"
+        [ngModel]="formModel.name"
+        (ngModelChange)="formModel.name = $event">
+      </pos-input>
+
+      <pos-select
+        selectId="form-status"
+        label="Trạng Thái"
+        [options]="statusOptions.slice(1)"
+        [(ngModel)]="formModel.status">
+      </pos-select>
+
+      <div style="grid-column: span 2;">
+        <pos-input
+          inputId="form-desc"
+          type="textarea"
+          label="Mô Tả"
+          placeholder="Mô tả chi tiết về danh mục..."
+          [ngModel]="formModel.description"
+          (ngModelChange)="formModel.description = $event">
+        </pos-input>
+      </div>
+    </div>
+
+    <div class="modal-footer-actions">
+      <pos-button btnId="btn-cancel" variant="ghost" (clicked)="showModal.set(false)">Hủy bỏ</pos-button>
+      <pos-button btnId="btn-save" variant="primary" [loading]="saving()" (clicked)="onSave()">Lưu thông tin</pos-button>
+    </div>
+  </pos-modal>
+
+  <!-- Delete Confirm Dialog -->
+  <pos-confirm-dialog
+    [isOpen]="showDeleteConfirm()"
+    title="Xóa Danh Mục Thiết Bị?"
+    [message]="'Bạn có chắc chắn muốn xóa danh mục `' + (selectedItem()?.name || '') + '`? Hành động này không thể hoàn tác.'"
+    type="danger"
+    [loading]="deleting()"
+    (confirm)="onConfirmDelete()"
+    (cancel)="showDeleteConfirm.set(false)">
+  </pos-confirm-dialog>
 </div>
-
-<!-- Modal Thêm/Sửa -->
-<pos-modal
-  [isOpen]="showModal()"
-  [title]="modalTitle()"
-  size="md"
-  (closed)="showModal.set(false)"
->
-  <div class="form-grid">
-    <pos-input
-      label="Mã Danh Mục"
-      inputId="inp-cat-code"
-      placeholder="VD: POS_ANDROID"
-      [required]="true"
-      [(ngModel)]="formModel.code"
-    />
-
-    <pos-input
-      label="Tên Danh Mục"
-      inputId="inp-cat-name"
-      placeholder="VD: Smart POS Android"
-      [required]="true"
-      [(ngModel)]="formModel.name"
-    />
-
-    <pos-input
-      type="textarea"
-      label="Mô Tả"
-      inputId="inp-cat-desc"
-      placeholder="Nhập mô tả..."
-      [(ngModel)]="formModel.description"
-    />
-
-    <pos-select
-      label="Trạng Thái"
-      selectId="sel-cat-status"
-      [options]="[
-        { label: 'Hoạt động', value: 'ACTIVE' },
-        { label: 'Ngừng hoạt động', value: 'INACTIVE' }
-      ]"
-      [(ngModel)]="formModel.status"
-    />
-  </div>
-
-  <div modal-footer>
-    <pos-button variant="ghost" (clicked)="showModal.set(false)">Hủy</pos-button>
-    <pos-button variant="primary" [loading]="saving()" (clicked)="onSave()">Lưu thông tin</pos-button>
-  </div>
-</pos-modal>
-
-<!-- Confirm Xóa -->
-<pos-confirm-dialog
-  [isOpen]="showDeleteConfirm()"
-  title="Xóa Danh Mục Thiết Bị"
-  [message]="'Bạn có chắc chắn muốn xóa danh mục `' + selectedItem()?.name + '`? Action này không thể hoàn tác.'"
-  type="danger"
-  confirmText="Xóa vĩnh viễn"
-  [loading]="deleting()"
-  (confirm)="onConfirmDelete()"
-  (cancel)="showDeleteConfirm.set(false)"
-/>

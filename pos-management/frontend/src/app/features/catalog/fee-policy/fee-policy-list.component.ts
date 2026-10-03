@@ -12,9 +12,9 @@ export interface FeePolicy {
   id: string;
   code: string;
   name: string;
-  cardType: 'DOMESTIC' | 'INTERNATIONAL';
-  merchantRatePercent: number;
-  minFeeAmount: number;
+  feeRate: number;
+  minFee: number;
+  maxFee: number;
   status: 'ACTIVE' | 'INACTIVE';
   createdAt: string;
 }
@@ -25,7 +25,7 @@ export interface FeePolicy {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, FormsModule,
-    PosButtonComponent, PosInputComponent, PosSelectComponent,
+    PosButtonComponent, PosInputComponent,
     PosBadgeComponent, PosModalComponent, PosTableComponent,
     PosPaginationComponent, PosDropdownComponent, PosConfirmDialogComponent
   ],
@@ -33,11 +33,13 @@ export interface FeePolicy {
   styleUrl: './fee-policy-list.component.scss'
 })
 export class FeePolicyListPageComponent {
-  readonly keyword = signal('');
-  readonly selectedCardType = signal('');
+  readonly filterCode = signal('');
+  readonly filterName = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
 
   readonly showModal = signal(false);
   readonly isEditing = signal(false);
@@ -52,56 +54,74 @@ export class FeePolicyListPageComponent {
     id: '',
     code: '',
     name: '',
-    cardType: 'DOMESTIC',
-    merchantRatePercent: 0.8,
-    minFeeAmount: 5000,
+    feeRate: 1.2,
+    minFee: 2000,
+    maxFee: 50000,
     status: 'ACTIVE'
   };
 
-  readonly cardTypeOptions: SelectOption[] = [
-    { label: 'Tất cả loại thẻ', value: '' },
-    { label: 'Thẻ Nội Địa (Napas)', value: 'DOMESTIC' },
-    { label: 'Thẻ Quốc Tế (Visa/Master/JCB)', value: 'INTERNATIONAL' }
-  ];
-
-  readonly columns: TableColumn[] = [
-    { field: 'code', header: 'Mã Chính Sách', width: '140px', sortable: true },
-    { field: 'name', header: 'Tên Chính Sách Phí', width: '240px', sortable: true },
-    { field: 'cardType', header: 'Loại Thẻ Áp Dụng', width: '180px', align: 'center' },
-    { field: 'merchantRatePercent', header: 'Phí Phần Trăm (%)', width: '150px', align: 'center' },
-    { field: 'minFeeAmount', header: 'Phí Tối Thiểu (VND)', width: '160px', align: 'right' },
+  readonly allColumns: TableColumn[] = [
+    { field: 'code', header: 'Mã CS Phí', width: '130px', sortable: true },
+    { field: 'name', header: 'Tên Chính Sách Phí', width: '220px', sortable: true },
+    { field: 'feeRate', header: 'Tỷ Lệ Phí (%)', width: '130px', align: 'right' },
+    { field: 'minFee', header: 'Phí Tối Thiểu (VNĐ)', width: '160px', align: 'right' },
+    { field: 'maxFee', header: 'Phí Tối Đa (VNĐ)', width: '160px', align: 'right' },
     { field: 'status', header: 'Trạng Thái', width: '130px', align: 'center' },
+    { field: 'createdAt', header: 'Ngày Tạo', width: '130px', align: 'center' },
     { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
   ];
 
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.filter(c => !hidden.has(c.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
+      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
+    }));
+  });
+
   readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'edit' },
-    { id: 'delete', label: 'Xóa chính sách', icon: 'delete', danger: true }
+    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
+    { id: 'delete', label: 'Xóa chính sách phí', icon: 'bi bi-trash', danger: true }
   ];
 
   readonly policies = signal<FeePolicy[]>([
-    { id: '1', code: 'FEE_NAPAS_STANDARD', name: 'Gói Phí Thẻ Napas Mẫu Chuẩn', cardType: 'DOMESTIC', merchantRatePercent: 0.5, minFeeAmount: 2000, status: 'ACTIVE', createdAt: '2026-01-01' },
-    { id: '2', code: 'FEE_INTL_VISA_MASTER', name: 'Gói Phí Thẻ Quốc Tế Visa/Mastercard', cardType: 'INTERNATIONAL', merchantRatePercent: 1.8, minFeeAmount: 10000, status: 'ACTIVE', createdAt: '2026-01-01' },
-    { id: '3', code: 'FEE_SUPERMARKET_PREFER', name: 'Gói Phí Ưu Đãi Siêu Thị', cardType: 'DOMESTIC', merchantRatePercent: 0.3, minFeeAmount: 1000, status: 'ACTIVE', createdAt: '2026-01-15' },
-    { id: '4', code: 'FEE_LUXURY_JEWELRY', name: 'Gói Phí Cao Cấp Vàng Bạc Đá Quý', cardType: 'INTERNATIONAL', merchantRatePercent: 2.2, minFeeAmount: 20000, status: 'ACTIVE', createdAt: '2026-02-01' }
+    { id: '1', code: 'FEE_STANDARD', name: 'Gói Phí Tiêu Chuẩn Merchant', feeRate: 1.2, minFee: 2000, maxFee: 50000, status: 'ACTIVE', createdAt: '2026-01-10' },
+    { id: '2', code: 'FEE_SUPERMARKET', name: 'Gói Phí Ưu Đãi Chuỗi Siêu Thị', feeRate: 0.8, minFee: 1000, maxFee: 30000, status: 'ACTIVE', createdAt: '2026-01-15' },
+    { id: '3', code: 'FEE_JEWELRY', name: 'Gói Phí Cao Cấp Tiệm Vàng Vàng Bạc', feeRate: 1.5, minFee: 5000, maxFee: 100000, status: 'ACTIVE', createdAt: '2026-02-01' }
   ]);
 
   readonly filteredPolicies = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
-    const ct = this.selectedCardType();
+    const fc = this.filterCode().toLowerCase().trim();
+    const fn = this.filterName().toLowerCase().trim();
     return this.policies().filter(item => {
-      const matchKw = !kw || item.code.toLowerCase().includes(kw) || item.name.toLowerCase().includes(kw);
-      const matchCt = !ct || item.cardType === ct;
-      return matchKw && matchCt;
+      const matchCode = !fc || item.code.toLowerCase().includes(fc);
+      const matchName = !fn || item.name.toLowerCase().includes(fn);
+      return matchCode && matchName;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedCardType.set(''); this.currentPage.set(1); }
+  onReset(): void { this.filterCode.set(''); this.filterName.set(''); this.currentPage.set(1); }
+  onExportExcel(): void {}
+
+  toggleColumn(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
 
   openCreateModal(): void {
     this.isEditing.set(false);
-    this.formModel = { id: '', code: '', name: '', cardType: 'DOMESTIC', merchantRatePercent: 0.8, minFeeAmount: 5000, status: 'ACTIVE' };
+    this.formModel = { id: '', code: '', name: '', feeRate: 1.2, minFee: 2000, maxFee: 50000, status: 'ACTIVE' };
     this.showModal.set(true);
   }
 

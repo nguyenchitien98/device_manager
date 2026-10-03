@@ -2,24 +2,31 @@
   <div class="search-zone-card">
     <div class="search-zone-header">
       <div class="search-title">
-        <span class="material-icons title-icon">filter_alt</span>
         <span>Bộ Lọc Tìm Kiếm Lệnh Assignment</span>
       </div>
     </div>
 
     <div class="filter-grid">
       <pos-input
-        label="Từ khóa"
-        inputId="inp-search-kw"
-        type="search"
-        placeholder="Nhập mã lệnh, MID, TID, Serial..."
-        [ngModel]="keyword()"
-        (ngModelChange)="keyword.set($event)"
+        label="Mã Lệnh Assignment"
+        inputId="inp-search-code"
+        placeholder="Nhập mã lệnh..."
+        [ngModel]="searchAssignmentCode()"
+        (ngModelChange)="searchAssignmentCode.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-input
+        label="Merchant / TID / Serial"
+        inputId="inp-search-mer"
+        placeholder="Nhập tên merchant, TID, Serial..."
+        [ngModel]="searchMerchant()"
+        (ngModelChange)="searchMerchant.set($event)"
         (enterPressed)="onSearch()"
       />
 
       <pos-select
-        label="Loại hành động"
+        label="Loại Hành Động"
         selectId="sel-search-type"
         [options]="typeOptions"
         [ngModel]="selectedType()"
@@ -27,7 +34,8 @@
       />
     </div>
 
-    <div class="filter-actions">
+    <div class="filter-actions-right">
+      <pos-button variant="ghost" (clicked)="exportExcel()">📊 Xuất Excel</pos-button>
       <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
       <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
     </div>
@@ -35,16 +43,23 @@
 
   <div class="list-zone-card">
     <div class="list-toolbar">
-      <div class="toolbar-left">
+      <div class="card-title-group">
         <h3 class="list-title">Danh Sách Lệnh Bàn Giao / Thu Hồi Thiết Bị (Assignment)</h3>
-        <pos-badge variant="info">{{ filteredAssignments().length }} lệnh</pos-badge>
+        <pos-badge variant="info">{{ filteredAssignments().length }} bản ghi</pos-badge>
       </div>
-      <div class="toolbar-right">
+      <div class="card-header-actions">
+        <pos-dropdown
+          buttonVariant="ghost"
+          [items]="columnToggleItems()"
+          (itemClick)="onColumnToggle($event)"
+        >
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
+        </pos-dropdown>
         <pos-button variant="primary" (clicked)="openCreatePage()">➕ Tạo lệnh assignment mới</pos-button>
       </div>
     </div>
 
-    <pos-table [columns]="columns" [data]="filteredAssignments()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredAssignments()" [loading]="loading()">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'assignmentCode') {
           <span class="code-badge">{{ row.assignmentCode }}</span>

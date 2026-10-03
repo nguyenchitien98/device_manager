@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   PosButtonComponent, PosInputComponent, PosBadgeComponent,
-  PosTableComponent, PosModalComponent, TableColumn
+  PosTableComponent, PosModalComponent, PosDropdownComponent, TableColumn, DropdownItem
 } from '@shared';
 
 export interface SystemRole {
@@ -27,14 +27,30 @@ export interface PermissionGroup {
   imports: [
     CommonModule, FormsModule,
     PosButtonComponent, PosInputComponent, PosBadgeComponent,
-    PosTableComponent, PosModalComponent
+    PosTableComponent, PosModalComponent, PosDropdownComponent
   ],
   templateUrl: './role-management.component.html',
   styleUrl: './role-management.component.scss'
 })
 export class RoleManagementPageComponent {
-  readonly keyword = signal('');
+  readonly searchRoleCode = signal('');
+  readonly searchRoleName = signal('');
   readonly loading = signal(false);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   readonly columns: TableColumn[] = [
     { field: 'roleCode', header: 'Mã Vai Trò', width: '160px', sortable: true },
@@ -52,8 +68,13 @@ export class RoleManagementPageComponent {
   ]);
 
   readonly filteredRoles = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
-    return this.roles().filter(item => !kw || item.roleCode.toLowerCase().includes(kw) || item.roleName.toLowerCase().includes(kw));
+    const code = this.searchRoleCode().toLowerCase().trim();
+    const name = this.searchRoleName().toLowerCase().trim();
+    return this.roles().filter(item => {
+      const matchCode = !code || item.roleCode.toLowerCase().includes(code);
+      const matchName = !name || item.roleName.toLowerCase().includes(name);
+      return matchCode && matchName;
+    });
   });
 
   // Modal Matrix Permissions
@@ -95,5 +116,24 @@ export class RoleManagementPageComponent {
 
   savePermissions(): void {
     this.isPermissionModalOpen.set(false);
+  }
+
+  onSearch(): void {}
+  onReset(): void {
+    this.searchRoleCode.set('');
+    this.searchRoleName.set('');
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất báo cáo ma trận vai trò phân quyền thành công!');
   }
 }

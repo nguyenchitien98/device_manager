@@ -1,65 +1,73 @@
-<div class="pos-page-container">
+<div class="list-page-container">
   <div class="search-zone-card">
-    <div class="search-card-header">
-      <div class="card-title">
-        <i class="bi bi-clock-history icon-blue"></i>
-        <span>Tra cứu Nhật ký & Lịch sử Bàn giao Terminal</span>
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span>Bộ Lọc Tra Cứu Nhật Ký Bàn Giao Terminal</span>
       </div>
     </div>
-    <div class="search-card-body">
-      <div class="filter-grid">
-        <pos-input
-          inputId="search-keyword"
-          label="Từ khóa tìm kiếm"
-          placeholder="Mã lệnh, Tên Merchant, Serial POS..."
-          [ngModel]="keyword()"
-          (ngModelChange)="keyword.set($event)"
-          (keydown.enter)="onSearch()">
-        </pos-input>
 
-        <div class="filter-actions">
-          <pos-button btnId="btn-search" variant="primary" icon="bi bi-search" (clicked)="onSearch()">Tra cứu</pos-button>
-          <pos-button btnId="btn-reset" variant="secondary" icon="bi bi-arrow-counterclockwise" (clicked)="onReset()">Đặt lại</pos-button>
-        </div>
-      </div>
+    <div class="filter-grid">
+      <pos-input
+        label="Mã Lệnh Assignment"
+        inputId="inp-search-code"
+        placeholder="Nhập mã lệnh..."
+        [ngModel]="searchAssignmentCode()"
+        (ngModelChange)="searchAssignmentCode.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-input
+        label="Merchant / Serial POS"
+        inputId="inp-search-mer"
+        placeholder="Nhập tên merchant, serial POS..."
+        [ngModel]="searchMerchant()"
+        (ngModelChange)="searchMerchant.set($event)"
+        (enterPressed)="onSearch()"
+      />
+    </div>
+
+    <div class="filter-actions-right">
+      <pos-button variant="ghost" (clicked)="exportExcel()">📊 Xuất Excel</pos-button>
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
     </div>
   </div>
 
   <div class="list-zone-card">
-    <div class="list-card-header">
-      <div class="card-title">
-        <i class="bi bi-journal-text icon-blue"></i>
-        <span>Nhật ký Lịch sử Giao dịch Bàn giao</span>
-        <pos-badge variant="info" class="count-badge">{{ filteredHistory().length }} bản ghi</pos-badge>
+    <div class="list-toolbar">
+      <div class="card-title-group">
+        <h3 class="list-title">Nhật Ký Lịch Sử Giao Dịch Bàn Giao</h3>
+        <pos-badge variant="info">{{ filteredHistory().length }} bản ghi</pos-badge>
+      </div>
+      <div class="card-header-actions">
+        <pos-dropdown
+          buttonVariant="ghost"
+          [items]="columnToggleItems()"
+          (itemClick)="onColumnToggle($event)"
+        >
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
+        </pos-dropdown>
       </div>
     </div>
 
-    <div class="list-card-body">
-      <pos-table [columns]="columns" [data]="filteredHistory()" [loading]="loading()">
-        <ng-template #cellTemplate let-item let-field="field">
-          <ng-container [ngSwitch]="field">
-            <span *ngSwitchCase="'actionType'" class="badge-action">
-              <pos-badge [variant]="item.actionType === 'Cấp mới' ? 'success' : 'warning'">{{ item.actionType }}</pos-badge>
-            </span>
-            <span *ngSwitchCase="'assignmentCode'" class="font-mono text-primary font-bold">
-              {{ item.assignmentCode }}
-            </span>
-            <span *ngSwitchCase="'tid'" class="font-mono font-medium">
-              {{ item.tid }}
-            </span>
-            <span *ngSwitchDefault>{{ item[field] }}</span>
-          </ng-container>
-        </ng-template>
-      </pos-table>
-    </div>
+    <pos-table [columns]="visibleColumns()" [data]="filteredHistory()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'actionType') {
+          <pos-badge [variant]="row.actionType === 'Cấp mới' ? 'success' : 'warning'">{{ row.actionType }}</pos-badge>
+        } @else if (col.field === 'assignmentCode') {
+          <span class="code-badge">{{ row.assignmentCode }}</span>
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
 
-    <div class="list-card-footer">
-      <pos-pagination
-        [totalItems]="filteredHistory().length"
-        [pageSize]="pageSize()"
-        [currentPage]="currentPage()"
-        (pageChange)="currentPage.set($event)">
-      </pos-pagination>
-    </div>
+    <pos-pagination
+      [totalItems]="filteredHistory().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
   </div>
 </div>

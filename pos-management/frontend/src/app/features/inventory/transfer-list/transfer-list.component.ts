@@ -34,11 +34,27 @@ export interface TransferOrder {
 export class TransferListPageComponent {
   private readonly router = inject(Router);
 
-  readonly keyword = signal('');
+  readonly searchTransferCode = signal('');
+  readonly searchWarehouse = signal('');
   readonly selectedStatus = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   readonly statusOptions: SelectOption[] = [
     { label: 'Tất cả trạng thái', value: '' },
@@ -69,17 +85,37 @@ export class TransferListPageComponent {
   ]);
 
   readonly filteredTransfers = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const code = this.searchTransferCode().toLowerCase().trim();
+    const wh = this.searchWarehouse().toLowerCase().trim();
     const st = this.selectedStatus();
     return this.transfers().filter(item => {
-      const matchKw = !kw || item.transferCode.toLowerCase().includes(kw) || item.sourceWarehouse.toLowerCase().includes(kw) || item.targetWarehouse.toLowerCase().includes(kw);
+      const matchCode = !code || item.transferCode.toLowerCase().includes(code);
+      const matchWh = !wh || item.sourceWarehouse.toLowerCase().includes(wh) || item.targetWarehouse.toLowerCase().includes(wh);
       const matchSt = !st || item.status === st;
-      return matchKw && matchSt;
+      return matchCode && matchWh && matchSt;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
+  onReset(): void {
+    this.searchTransferCode.set('');
+    this.searchWarehouse.set('');
+    this.selectedStatus.set('');
+    this.currentPage.set(1);
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất báo cáo danh sách Điều Chuyển Kho thành công!');
+  }
 
   openCreatePage(): void {
     this.router.navigate(['/inventory/transfers/new']);

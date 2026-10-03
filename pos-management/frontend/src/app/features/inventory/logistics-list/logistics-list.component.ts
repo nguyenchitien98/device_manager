@@ -31,11 +31,27 @@ export interface LogisticsTracking {
   styleUrl: './logistics-list.component.scss'
 })
 export class LogisticsListPageComponent {
-  readonly keyword = signal('');
+  readonly searchTrackingNumber = signal('');
+  readonly searchCarrier = signal('');
   readonly selectedStatus = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   readonly statusOptions: SelectOption[] = [
     { label: 'Tất cả trạng thái', value: '' },
@@ -67,17 +83,37 @@ export class LogisticsListPageComponent {
   ]);
 
   readonly filteredTrackings = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const tracking = this.searchTrackingNumber().toLowerCase().trim();
+    const carrier = this.searchCarrier().toLowerCase().trim();
     const st = this.selectedStatus();
     return this.trackings().filter(item => {
-      const matchKw = !kw || item.trackingNumber.toLowerCase().includes(kw) || item.carrierName.toLowerCase().includes(kw) || item.destinationName.toLowerCase().includes(kw);
+      const matchTracking = !tracking || item.trackingNumber.toLowerCase().includes(tracking);
+      const matchCarrier = !carrier || item.carrierName.toLowerCase().includes(carrier) || item.destinationName.toLowerCase().includes(carrier);
       const matchSt = !st || item.status === st;
-      return matchKw && matchSt;
+      return matchTracking && matchCarrier && matchSt;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
+  onReset(): void {
+    this.searchTrackingNumber.set('');
+    this.searchCarrier.set('');
+    this.selectedStatus.set('');
+    this.currentPage.set(1);
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất báo cáo danh sách vận đơn Logistics thành công!');
+  }
 
   onActionClick(row: LogisticsTracking, item: DropdownItem): void {
     if (item.id === 'view') {

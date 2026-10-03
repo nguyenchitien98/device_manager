@@ -11,8 +11,8 @@ import {
 export interface MccItem {
   id: string;
   code: string;
-  name: string;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  nameName: string;
+  riskLevel: 'Thấp' | 'Trung bình' | 'Cao';
   status: 'ACTIVE' | 'INACTIVE';
   createdAt: string;
 }
@@ -31,11 +31,14 @@ export interface MccItem {
   styleUrl: './mcc-list.component.scss'
 })
 export class MccListPageComponent {
-  readonly keyword = signal('');
-  readonly selectedRisk = signal('');
+  readonly filterCode = signal('');
+  readonly filterName = signal('');
+  readonly filterRisk = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
 
   readonly showModal = signal(false);
   readonly isEditing = signal(false);
@@ -49,56 +52,81 @@ export class MccListPageComponent {
   formModel = {
     id: '',
     code: '',
-    name: '',
-    riskLevel: 'LOW',
+    nameName: '',
+    riskLevel: 'Thấp' as 'Thấp' | 'Trung bình' | 'Cao',
     status: 'ACTIVE'
   };
 
   readonly riskOptions: SelectOption[] = [
     { label: 'Tất cả rủi ro', value: '' },
-    { label: 'Rủi ro thấp (Low)', value: 'LOW' },
-    { label: 'Rủi ro trung bình (Medium)', value: 'MEDIUM' },
-    { label: 'Rủi ro cao (High)', value: 'HIGH' }
+    { label: 'Rủi ro Thấp', value: 'Thấp' },
+    { label: 'Rủi ro Trung bình', value: 'Trung bình' },
+    { label: 'Rủi ro Cao', value: 'Cao' }
   ];
 
-  readonly columns: TableColumn[] = [
+  readonly allColumns: TableColumn[] = [
     { field: 'code', header: 'Mã MCC', width: '130px', sortable: true },
-    { field: 'name', header: 'Tên Ngành Hàng (MCC Description)', width: '320px', sortable: true },
+    { field: 'nameName', header: 'Tên Ngành Nghề Kinh Doanh', width: '250px', sortable: true },
     { field: 'riskLevel', header: 'Mức Rủi Ro', width: '150px', align: 'center' },
-    { field: 'status', header: 'Trạng Thái', width: '140px', align: 'center' },
+    { field: 'status', header: 'Trạng Thái', width: '130px', align: 'center' },
     { field: 'createdAt', header: 'Ngày Tạo', width: '140px', align: 'center' },
     { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
   ];
 
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.filter(c => !hidden.has(c.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
+      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
+    }));
+  });
+
   readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'edit' },
-    { id: 'delete', label: 'Xóa MCC', icon: 'delete', danger: true }
+    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
+    { id: 'delete', label: 'Xóa mã MCC', icon: 'bi bi-trash', danger: true }
   ];
 
   readonly mccList = signal<MccItem[]>([
-    { id: '1', code: '5411', name: 'Siêu thị & Cửa hàng thực phẩm (Supermarkets)', riskLevel: 'LOW', status: 'ACTIVE', createdAt: '2026-01-01' },
-    { id: '2', code: '5812', name: 'Nhà hàng & Quán ăn (Restaurants & Dining)', riskLevel: 'LOW', status: 'ACTIVE', createdAt: '2026-01-01' },
-    { id: '3', code: '5541', name: 'Trạm xăng dầu (Service Stations)', riskLevel: 'MEDIUM', status: 'ACTIVE', createdAt: '2026-01-05' },
-    { id: '4', code: '7995', name: 'Cá cược & Trò chơi có thưởng (Gambling / Betting)', riskLevel: 'HIGH', status: 'ACTIVE', createdAt: '2026-01-10' },
-    { id: '5', code: '5094', name: 'Trang sức, Vàng bạc & Đá quý (Precious Stones & Jewelry)', riskLevel: 'HIGH', status: 'ACTIVE', createdAt: '2026-01-15' }
+    { id: '1', code: '5411', nameName: 'Siêu thị & Cửa hàng bách hóa tổng hợp', riskLevel: 'Thấp', status: 'ACTIVE', createdAt: '2026-01-10' },
+    { id: '2', code: '5812', nameName: 'Nhà hàng, Quán ăn & Dịch vụ ăn uống', riskLevel: 'Trung bình', status: 'ACTIVE', createdAt: '2026-01-15' },
+    { id: '3', code: '5944', nameName: 'Cửa hàng Trang sức & Vàng bạc đá quý', riskLevel: 'Cao', status: 'ACTIVE', createdAt: '2026-02-01' },
+    { id: '4', code: '7011', nameName: 'Khách sạn, Resort & Khai thác lưu trú', riskLevel: 'Trung bình', status: 'ACTIVE', createdAt: '2026-02-20' }
   ]);
 
-  readonly filteredMcc = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
-    const rk = this.selectedRisk();
+  readonly filteredMccs = computed(() => {
+    const fc = this.filterCode().trim();
+    const fn = this.filterName().toLowerCase().trim();
+    const fr = this.filterRisk();
     return this.mccList().filter(item => {
-      const matchKw = !kw || item.code.toLowerCase().includes(kw) || item.name.toLowerCase().includes(kw);
-      const matchRk = !rk || item.riskLevel === rk;
-      return matchKw && matchRk;
+      const matchCode = !fc || item.code.includes(fc);
+      const matchName = !fn || item.nameName.toLowerCase().includes(fn);
+      const matchRisk = !fr || item.riskLevel === fr;
+      return matchCode && matchName && matchRisk;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedRisk.set(''); this.currentPage.set(1); }
+  onReset(): void { this.filterCode.set(''); this.filterName.set(''); this.filterRisk.set(''); this.currentPage.set(1); }
+  onExportExcel(): void {}
+
+  toggleColumn(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
 
   openCreateModal(): void {
     this.isEditing.set(false);
-    this.formModel = { id: '', code: '', name: '', riskLevel: 'LOW', status: 'ACTIVE' };
+    this.formModel = { id: '', code: '', nameName: '', riskLevel: 'Thấp', status: 'ACTIVE' };
     this.showModal.set(true);
   }
 

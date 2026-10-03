@@ -2,24 +2,40 @@
   <div class="search-zone-card">
     <div class="search-zone-header">
       <div class="search-title">
-        <span class="material-icons title-icon">search</span>
         <span>Tra Cứu & Tìm Kiếm Thiết Bị POS Vòng Đời</span>
       </div>
     </div>
 
     <div class="filter-grid">
       <pos-input
-        label="Từ khóa tra cứu"
-        inputId="inp-search-kw"
-        type="search"
-        placeholder="Nhập Serial Number, Model, MID, TID, SIM ICCID..."
-        [ngModel]="keyword()"
-        (ngModelChange)="keyword.set($event)"
+        label="Số Serial POS"
+        inputId="inp-search-sn"
+        placeholder="Nhập số Serial..."
+        [ngModel]="searchSerial()"
+        (ngModelChange)="searchSerial.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-input
+        label="Model Thiết Bị"
+        inputId="inp-search-model"
+        placeholder="Nhập model thiết bị..."
+        [ngModel]="searchModel()"
+        (ngModelChange)="searchModel.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-input
+        label="Mã TID / Merchant"
+        inputId="inp-search-tid"
+        placeholder="Nhập mã TID hoặc merchant..."
+        [ngModel]="searchTid()"
+        (ngModelChange)="searchTid.set($event)"
         (enterPressed)="onSearch()"
       />
 
       <pos-select
-        label="Trạng thái thiết bị"
+        label="Trạng Thái Thiết Bị"
         selectId="sel-search-status"
         [options]="statusOptions"
         [ngModel]="selectedStatus()"
@@ -27,7 +43,8 @@
       />
     </div>
 
-    <div class="filter-actions">
+    <div class="filter-actions-right">
+      <pos-button variant="ghost" (clicked)="exportExcel()">📊 Xuất Excel</pos-button>
       <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
       <pos-button variant="primary" (clicked)="onSearch()">🔍 Tra cứu ngay</pos-button>
     </div>
@@ -35,13 +52,22 @@
 
   <div class="list-zone-card">
     <div class="list-toolbar">
-      <div class="toolbar-left">
+      <div class="card-title-group">
         <h3 class="list-title">Kết Quả Tra Cứu Thiết Bị POS</h3>
-        <pos-badge variant="info">{{ filteredDevices().length }} thiết bị</pos-badge>
+        <pos-badge variant="info">{{ filteredDevices().length }} bản ghi</pos-badge>
+      </div>
+      <div class="card-header-actions">
+        <pos-dropdown
+          buttonVariant="ghost"
+          [items]="columnToggleItems()"
+          (itemClick)="onColumnToggle($event)"
+        >
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
+        </pos-dropdown>
       </div>
     </div>
 
-    <pos-table [columns]="columns" [data]="filteredDevices()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredDevices()" [loading]="loading()">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'serialNumber') {
           <span class="code-badge">{{ row.serialNumber }}</span>

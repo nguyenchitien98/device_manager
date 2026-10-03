@@ -12,8 +12,7 @@ export interface BusinessUnit {
   id: string;
   code: string;
   name: string;
-  unitType: 'HEADQUARTER' | 'BRANCH' | 'TRANSACTION_OFFICE';
-  parentName: string;
+  managerName: string;
   phone: string;
   status: 'ACTIVE' | 'INACTIVE';
   createdAt: string;
@@ -25,7 +24,7 @@ export interface BusinessUnit {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, FormsModule,
-    PosButtonComponent, PosInputComponent, PosSelectComponent,
+    PosButtonComponent, PosInputComponent,
     PosBadgeComponent, PosModalComponent, PosTableComponent,
     PosPaginationComponent, PosDropdownComponent, PosConfirmDialogComponent
   ],
@@ -33,11 +32,13 @@ export interface BusinessUnit {
   styleUrl: './business-unit-list.component.scss'
 })
 export class BusinessUnitListPageComponent {
-  readonly keyword = signal('');
-  readonly selectedType = signal('');
+  readonly filterCode = signal('');
+  readonly filterName = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
 
   readonly showModal = signal(false);
   readonly isEditing = signal(false);
@@ -52,58 +53,72 @@ export class BusinessUnitListPageComponent {
     id: '',
     code: '',
     name: '',
-    unitType: 'BRANCH',
-    parentName: 'Hội Sở Chính',
+    managerName: '',
     phone: '',
     status: 'ACTIVE'
   };
 
-  readonly typeOptions: SelectOption[] = [
-    { label: 'Tất cả loại đơn vị', value: '' },
-    { label: 'Hội sở chính (HQ)', value: 'HEADQUARTER' },
-    { label: 'Chi nhánh (Branch)', value: 'BRANCH' },
-    { label: 'Phòng giao dịch (PGD)', value: 'TRANSACTION_OFFICE' }
-  ];
-
-  readonly columns: TableColumn[] = [
-    { field: 'code', header: 'Mã Đơn Vị', width: '130px', sortable: true },
+  readonly allColumns: TableColumn[] = [
+    { field: 'code', header: 'Mã Đơn Vị', width: '140px', sortable: true },
     { field: 'name', header: 'Tên Đơn Vị Kinh Doanh', width: '250px', sortable: true },
-    { field: 'unitType', header: 'Phân Loại', width: '170px', align: 'center' },
-    { field: 'parentName', header: 'Đơn Vị Quản Lý Cấp Trên', width: '200px' },
-    { field: 'phone', header: 'Điện Thoại', width: '130px' },
+    { field: 'managerName', header: 'Trưởng Đơn Vị', width: '180px' },
+    { field: 'phone', header: 'Số Điện Thoại', width: '140px' },
     { field: 'status', header: 'Trạng Thái', width: '130px', align: 'center' },
+    { field: 'createdAt', header: 'Ngày Tạo', width: '130px', align: 'center' },
     { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
   ];
 
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.filter(c => !hidden.has(c.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
+      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
+    }));
+  });
+
   readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'edit' },
-    { id: 'delete', label: 'Xóa đơn vị', icon: 'delete', danger: true }
+    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
+    { id: 'delete', label: 'Xóa đơn vị', icon: 'bi bi-trash', danger: true }
   ];
 
   readonly units = signal<BusinessUnit[]>([
-    { id: '1', code: 'BU_HO', name: 'Hội Sở Chính Ngân Hàng', unitType: 'HEADQUARTER', parentName: '—', phone: '024 3942 5555', status: 'ACTIVE', createdAt: '2026-01-01' },
-    { id: '2', code: 'BU_CN_HN', name: 'Chi Nhánh Hà Nội', unitType: 'BRANCH', parentName: 'Hội Sở Chính Ngân Hàng', phone: '024 3825 1111', status: 'ACTIVE', createdAt: '2026-01-05' },
-    { id: '3', code: 'BU_CN_HCM', name: 'Chi Nhánh TP. Hồ Chí Minh', unitType: 'BRANCH', parentName: 'Hội Sở Chính Ngân Hàng', phone: '028 3829 2222', status: 'ACTIVE', createdAt: '2026-01-05' },
-    { id: '4', code: 'BU_PGD_HK', name: 'PGD Hoàn Kiếm', unitType: 'TRANSACTION_OFFICE', parentName: 'Chi Nhánh Hà Nội', phone: '024 3933 4444', status: 'ACTIVE', createdAt: '2026-01-10' },
-    { id: '5', code: 'BU_PGD_Q1', name: 'PGD Quận 1 Bến Thành', unitType: 'TRANSACTION_OFFICE', parentName: 'Chi Nhánh TP. Hồ Chí Minh', phone: '028 3822 5555', status: 'ACTIVE', createdAt: '2026-01-12' }
+    { id: '1', code: 'BU_HN_CENTER', name: 'Khối POS Trung Tâm Hà Nội', managerName: 'Nguyễn Văn Nam', phone: '0912345678', status: 'ACTIVE', createdAt: '2026-01-10' },
+    { id: '2', code: 'BU_HCM_CENTER', name: 'Khối POS Trung Tâm TP.HCM', managerName: 'Trần Thị Thu', phone: '0987654321', status: 'ACTIVE', createdAt: '2026-01-15' },
+    { id: '3', code: 'BU_DN_BRANCH', name: 'Chi Nhánh POS Đà Nẵng', managerName: 'Phạm Minh Tuấn', phone: '0903112233', status: 'ACTIVE', createdAt: '2026-02-01' }
   ]);
 
   readonly filteredUnits = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
-    const tp = this.selectedType();
+    const fc = this.filterCode().toLowerCase().trim();
+    const fn = this.filterName().toLowerCase().trim();
     return this.units().filter(item => {
-      const matchKw = !kw || item.code.toLowerCase().includes(kw) || item.name.toLowerCase().includes(kw);
-      const matchTp = !tp || item.unitType === tp;
-      return matchKw && matchTp;
+      const matchCode = !fc || item.code.toLowerCase().includes(fc);
+      const matchName = !fn || item.name.toLowerCase().includes(fn);
+      return matchCode && matchName;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedType.set(''); this.currentPage.set(1); }
+  onReset(): void { this.filterCode.set(''); this.filterName.set(''); this.currentPage.set(1); }
+  onExportExcel(): void {}
+
+  toggleColumn(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
 
   openCreateModal(): void {
     this.isEditing.set(false);
-    this.formModel = { id: '', code: '', name: '', unitType: 'BRANCH', parentName: 'Hội Sở Chính Ngân Hàng', phone: '', status: 'ACTIVE' };
+    this.formModel = { id: '', code: '', name: '', managerName: '', phone: '', status: 'ACTIVE' };
     this.showModal.set(true);
   }
 

@@ -2,24 +2,31 @@
   <div class="search-zone-card">
     <div class="search-zone-header">
       <div class="search-title">
-        <span class="material-icons title-icon">filter_alt</span>
         <span>Bộ Lọc Tra Cứu Tồn Kho POS</span>
       </div>
     </div>
 
     <div class="filter-grid">
       <pos-input
-        label="Từ khóa"
-        inputId="inp-search-kw"
-        type="search"
-        placeholder="Nhập model POS, tên vendor..."
-        [ngModel]="keyword()"
-        (ngModelChange)="keyword.set($event)"
+        label="Model Thiết Bị POS"
+        inputId="inp-search-model"
+        placeholder="Nhập model POS..."
+        [ngModel]="searchPosModel()"
+        (ngModelChange)="searchPosModel.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-input
+        label="Nhà Sản Xuất"
+        inputId="inp-search-vendor"
+        placeholder="Nhập nhà sản xuất..."
+        [ngModel]="searchVendor()"
+        (ngModelChange)="searchVendor.set($event)"
         (enterPressed)="onSearch()"
       />
 
       <pos-select
-        label="Kho hàng"
+        label="Kho Hàng"
         selectId="sel-search-wh"
         [options]="warehouseOptions"
         [ngModel]="selectedWarehouse()"
@@ -27,7 +34,8 @@
       />
     </div>
 
-    <div class="filter-actions">
+    <div class="filter-actions-right">
+      <pos-button variant="ghost" (clicked)="exportExcel()">📊 Xuất Excel</pos-button>
       <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
       <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
     </div>
@@ -35,13 +43,22 @@
 
   <div class="list-zone-card">
     <div class="list-toolbar">
-      <div class="toolbar-left">
-        <h3 class="list-title">Báo Cáo Tồn Kho POS Thời Gian Thực (Real-time Stock)</h3>
-        <pos-badge variant="info">{{ filteredStock().length }} dòng dữ liệu</pos-badge>
+      <div class="card-title-group">
+        <h3 class="list-title">Báo Cáo Tồn Kho POS Thời Gian Thực</h3>
+        <pos-badge variant="info">{{ filteredStock().length }} bản ghi</pos-badge>
+      </div>
+      <div class="card-header-actions">
+        <pos-dropdown
+          buttonVariant="ghost"
+          [items]="columnToggleItems()"
+          (itemClick)="onColumnToggle($event)"
+        >
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
+        </pos-dropdown>
       </div>
     </div>
 
-    <pos-table [columns]="columns" [data]="filteredStock()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredStock()" [loading]="loading()">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'inStockQty') {
           <pos-badge variant="success">{{ row.inStockQty | number:'1.0-0' }} máy</pos-badge>

@@ -12,9 +12,9 @@ export interface Vendor {
   id: string;
   code: string;
   name: string;
-  country: string;
-  contactEmail: string;
-  contactPhone: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
   status: 'ACTIVE' | 'INACTIVE';
   createdAt: string;
 }
@@ -25,7 +25,7 @@ export interface Vendor {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, FormsModule,
-    PosButtonComponent, PosInputComponent, PosSelectComponent,
+    PosButtonComponent, PosInputComponent,
     PosBadgeComponent, PosModalComponent, PosTableComponent,
     PosPaginationComponent, PosDropdownComponent, PosConfirmDialogComponent
   ],
@@ -33,15 +33,18 @@ export interface Vendor {
   styleUrl: './vendor-list.component.scss'
 })
 export class VendorListPageComponent {
-  readonly keyword = signal('');
-  readonly selectedStatus = signal('');
+  readonly filterCode = signal('');
+  readonly filterName = signal('');
+  readonly filterPhone = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
 
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
   readonly showModal = signal(false);
   readonly isEditing = signal(false);
-  readonly modalTitle = computed(() => this.isEditing() ? 'Chỉnh sửa Vendor' : 'Thêm mới Vendor');
+  readonly modalTitle = computed(() => this.isEditing() ? 'Chỉnh sửa Nhà Cung Cấp' : 'Thêm mới Nhà Cung Cấp');
   readonly saving = signal(false);
 
   readonly showDeleteConfirm = signal(false);
@@ -52,57 +55,77 @@ export class VendorListPageComponent {
     id: '',
     code: '',
     name: '',
-    country: 'Trung Quốc',
-    contactEmail: '',
-    contactPhone: '',
+    contactPerson: '',
+    phone: '',
+    email: '',
     status: 'ACTIVE'
   };
 
-  readonly statusOptions: SelectOption[] = [
-    { label: 'Tất cả trạng thái', value: '' },
-    { label: 'Hoạt động', value: 'ACTIVE' },
-    { label: 'Ngừng hoạt động', value: 'INACTIVE' }
-  ];
-
-  readonly columns: TableColumn[] = [
-    { field: 'code', header: 'Mã Vendor', width: '130px', sortable: true },
-    { field: 'name', header: 'Tên Nhà Sản Xuất', width: '220px', sortable: true },
-    { field: 'country', header: 'Quốc Gia', width: '140px' },
-    { field: 'contactEmail', header: 'Email Liên Hệ' },
-    { field: 'contactPhone', header: 'Số Điện Thoại', width: '140px' },
+  readonly allColumns: TableColumn[] = [
+    { field: 'code', header: 'Mã NCC', width: '130px', sortable: true },
+    { field: 'name', header: 'Tên Nhà Cung Cấp', width: '220px', sortable: true },
+    { field: 'contactPerson', header: 'Người Liên Hệ', width: '180px' },
+    { field: 'phone', header: 'Số Điện Thoại', width: '140px' },
+    { field: 'email', header: 'Email Liên Hệ', width: '200px' },
     { field: 'status', header: 'Trạng Thái', width: '130px', align: 'center' },
     { field: 'createdAt', header: 'Ngày Tạo', width: '130px', align: 'center' },
     { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
   ];
 
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.filter(c => !hidden.has(c.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
+      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
+    }));
+  });
+
   readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'edit' },
-    { id: 'delete', label: 'Xóa vendor', icon: 'delete', danger: true }
+    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
+    { id: 'delete', label: 'Xóa nhà cung cấp', icon: 'bi bi-trash', danger: true }
   ];
 
   readonly vendors = signal<Vendor[]>([
-    { id: '1', code: 'VENDOR_PAX', name: 'PAX Technology Ltd', country: 'Trung Quốc', contactEmail: 'support@pax.com.cn', contactPhone: '+86 755 86169630', status: 'ACTIVE', createdAt: '2026-01-05' },
-    { id: '2', code: 'VENDOR_INGENICO', name: 'Ingenico Group SA', country: 'Pháp', contactEmail: 'contact@ingenico.com', contactPhone: '+33 1 58018000', status: 'ACTIVE', createdAt: '2026-01-08' },
-    { id: '3', code: 'VENDOR_VERIFONE', name: 'Verifone Systems Inc', country: 'Mỹ', contactEmail: 'info@verifone.com', contactPhone: '+1 408 2327800', status: 'ACTIVE', createdAt: '2026-01-10' },
-    { id: '4', code: 'VENDOR_LANDI', name: 'Fujian Landi Commercial Equipment', country: 'Trung Quốc', contactEmail: 'service@landicorp.com', contactPhone: '+86 591 87880000', status: 'ACTIVE', createdAt: '2026-02-01' }
+    { id: '1', code: 'VENDOR_PAX', name: 'PAX Technology Vietnam', contactPerson: 'Nguyễn Văn Hải', phone: '0912345678', email: 'hai.nv@pax.com.vn', status: 'ACTIVE', createdAt: '2026-01-10' },
+    { id: '2', code: 'VENDOR_VERIFONE', name: 'Verifone Vietnam Ltd', contactPerson: 'Trần Thị Mai', phone: '0987654321', email: 'mai.tt@verifone.vn', status: 'ACTIVE', createdAt: '2026-01-12' },
+    { id: '3', code: 'VENDOR_INGENICO', name: 'Ingenico Payment Systems', contactPerson: 'Lê Hoàng Long', phone: '0903112233', email: 'long.lh@ingenico.com', status: 'ACTIVE', createdAt: '2026-01-15' },
+    { id: '4', code: 'VENDOR_SUNMI', name: 'Sunmi Technology Corp', contactPerson: 'Phạm Minh Tuấn', phone: '0934556677', email: 'tuan.pm@sunmi.com', status: 'ACTIVE', createdAt: '2026-02-01' }
   ]);
 
   readonly filteredVendors = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
-    const st = this.selectedStatus();
+    const fc = this.filterCode().toLowerCase().trim();
+    const fn = this.filterName().toLowerCase().trim();
+    const fp = this.filterPhone().trim();
     return this.vendors().filter(item => {
-      const matchKw = !kw || item.code.toLowerCase().includes(kw) || item.name.toLowerCase().includes(kw);
-      const matchSt = !st || item.status === st;
-      return matchKw && matchSt;
+      const matchCode = !fc || item.code.toLowerCase().includes(fc);
+      const matchName = !fn || item.name.toLowerCase().includes(fn);
+      const matchPhone = !fp || item.phone.includes(fp);
+      return matchCode && matchName && matchPhone;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
+  onReset(): void { this.filterCode.set(''); this.filterName.set(''); this.filterPhone.set(''); this.currentPage.set(1); }
+  onExportExcel(): void {}
+
+  toggleColumn(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
 
   openCreateModal(): void {
     this.isEditing.set(false);
-    this.formModel = { id: '', code: '', name: '', country: 'Trung Quốc', contactEmail: '', contactPhone: '', status: 'ACTIVE' };
+    this.formModel = { id: '', code: '', name: '', contactPerson: '', phone: '', email: '', status: 'ACTIVE' };
     this.showModal.set(true);
   }
 

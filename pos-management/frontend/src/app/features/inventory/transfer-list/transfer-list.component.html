@@ -2,24 +2,31 @@
   <div class="search-zone-card">
     <div class="search-zone-header">
       <div class="search-title">
-        <span class="material-icons title-icon">filter_alt</span>
         <span>Bộ Lọc Tìm Kiếm Phiếu Điều Chuyển Kho</span>
       </div>
     </div>
 
     <div class="filter-grid">
       <pos-input
-        label="Từ khóa"
-        inputId="inp-search-kw"
-        type="search"
-        placeholder="Nhập mã điều chuyển, tên kho..."
-        [ngModel]="keyword()"
-        (ngModelChange)="keyword.set($event)"
+        label="Mã Điều Chuyển"
+        inputId="inp-search-code"
+        placeholder="Nhập mã điều chuyển..."
+        [ngModel]="searchTransferCode()"
+        (ngModelChange)="searchTransferCode.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-input
+        label="Tên Kho Hàng"
+        inputId="inp-search-wh"
+        placeholder="Nhập tên kho xuất / kho nhận..."
+        [ngModel]="searchWarehouse()"
+        (ngModelChange)="searchWarehouse.set($event)"
         (enterPressed)="onSearch()"
       />
 
       <pos-select
-        label="Trạng thái"
+        label="Trạng Thái"
         selectId="sel-search-status"
         [options]="statusOptions"
         [ngModel]="selectedStatus()"
@@ -27,7 +34,8 @@
       />
     </div>
 
-    <div class="filter-actions">
+    <div class="filter-actions-right">
+      <pos-button variant="ghost" (clicked)="exportExcel()">📊 Xuất Excel</pos-button>
       <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
       <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
     </div>
@@ -35,16 +43,23 @@
 
   <div class="list-zone-card">
     <div class="list-toolbar">
-      <div class="toolbar-left">
+      <div class="card-title-group">
         <h3 class="list-title">Danh Sách Phiếu Điều Chuyển Kho Thiết Bị POS</h3>
-        <pos-badge variant="info">{{ filteredTransfers().length }} phiếu</pos-badge>
+        <pos-badge variant="info">{{ filteredTransfers().length }} bản ghi</pos-badge>
       </div>
-      <div class="toolbar-right">
+      <div class="card-header-actions">
+        <pos-dropdown
+          buttonVariant="ghost"
+          [items]="columnToggleItems()"
+          (itemClick)="onColumnToggle($event)"
+        >
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
+        </pos-dropdown>
         <pos-button variant="primary" (clicked)="openCreatePage()">➕ Tạo lệnh điều chuyển kho</pos-button>
       </div>
     </div>
 
-    <pos-table [columns]="columns" [data]="filteredTransfers()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredTransfers()" [loading]="loading()">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'transferCode') {
           <span class="code-badge">{{ row.transferCode }}</span>

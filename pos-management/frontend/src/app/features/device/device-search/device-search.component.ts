@@ -34,11 +34,28 @@ export interface DeviceItem {
 export class DeviceSearchPageComponent {
   private readonly router = inject(Router);
 
-  readonly keyword = signal('');
+  readonly searchSerial = signal('');
+  readonly searchModel = signal('');
+  readonly searchTid = signal('');
   readonly selectedStatus = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   readonly statusOptions: SelectOption[] = [
     { label: 'Tất cả trạng thái', value: '' },
@@ -71,17 +88,40 @@ export class DeviceSearchPageComponent {
   ]);
 
   readonly filteredDevices = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const sn = this.searchSerial().toLowerCase().trim();
+    const model = this.searchModel().toLowerCase().trim();
+    const tid = this.searchTid().toLowerCase().trim();
     const st = this.selectedStatus();
     return this.devices().filter(item => {
-      const matchKw = !kw || item.serialNumber.toLowerCase().includes(kw) || item.posModel.toLowerCase().includes(kw) || item.merchantName.toLowerCase().includes(kw) || item.tid.toLowerCase().includes(kw);
+      const matchSn = !sn || item.serialNumber.toLowerCase().includes(sn);
+      const matchModel = !model || item.posModel.toLowerCase().includes(model);
+      const matchTid = !tid || item.tid.toLowerCase().includes(tid) || item.merchantName.toLowerCase().includes(tid);
       const matchSt = !st || item.status === st;
-      return matchKw && matchSt;
+      return matchSn && matchModel && matchTid && matchSt;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
+  onReset(): void {
+    this.searchSerial.set('');
+    this.searchModel.set('');
+    this.searchTid.set('');
+    this.selectedStatus.set('');
+    this.currentPage.set(1);
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất báo cáo tra cứu thiết bị POS thành công!');
+  }
 
   onActionClick(row: DeviceItem, item: DropdownItem): void {
     if (item.id === 'view') {

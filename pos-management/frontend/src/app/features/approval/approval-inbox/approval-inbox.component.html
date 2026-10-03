@@ -1,89 +1,97 @@
-<div class="pos-page-container">
+<div class="list-page-container">
   <div class="search-zone-card">
-    <div class="search-card-header">
-      <div class="card-title">
-        <i class="bi bi-inbox-fill icon-blue"></i>
-        <span>Hòm thư Phê duyệt & Quản lý Hồ sơ Yêu cầu</span>
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span>Hòm Thư Phê Duyệt & Quản Lý Hồ Sơ Yêu Cầu</span>
       </div>
     </div>
-    <div class="search-card-body">
-      <div class="filter-grid">
-        <pos-input
-          inputId="search-keyword"
-          label="Từ khóa tìm kiếm"
-          placeholder="Mã yêu cầu, Tiêu đề, Người trình..."
-          [ngModel]="keyword()"
-          (ngModelChange)="keyword.set($event)"
-          (keydown.enter)="onSearch()">
-        </pos-input>
 
-        <pos-select
-          selectId="search-type"
-          label="Loại Hồ Sơ"
-          [options]="typeOptions"
-          [(ngModel)]="selectedType">
-        </pos-select>
+    <div class="filter-grid">
+      <pos-input
+        label="Mã Yêu Cầu"
+        inputId="inp-search-code"
+        placeholder="Nhập mã yêu cầu..."
+        [ngModel]="searchRequestCode()"
+        (ngModelChange)="searchRequestCode.set($event)"
+        (enterPressed)="onSearch()"
+      />
 
-        <pos-select
-          selectId="search-status"
-          label="Trạng Thái Phê Duyệt"
-          [options]="statusOptions"
-          [(ngModel)]="selectedStatus">
-        </pos-select>
+      <pos-input
+        label="Tiêu Đề / Người Trình"
+        inputId="inp-search-title"
+        placeholder="Nhập tiêu đề hoặc người trình..."
+        [ngModel]="searchTitle()"
+        (ngModelChange)="searchTitle.set($event)"
+        (enterPressed)="onSearch()"
+      />
 
-        <div class="filter-actions">
-          <pos-button btnId="btn-search" variant="primary" icon="bi bi-search" (clicked)="onSearch()">Lọc hồ sơ</pos-button>
-          <pos-button btnId="btn-reset" variant="secondary" icon="bi bi-arrow-counterclockwise" (clicked)="onReset()">Đặt lại</pos-button>
-        </div>
-      </div>
+      <pos-select
+        label="Loại Hồ Sơ"
+        selectId="sel-search-type"
+        [options]="typeOptions"
+        [ngModel]="selectedType()"
+        (ngModelChange)="selectedType.set($event)"
+      />
+
+      <pos-select
+        label="Trạng Thái Phê Duyệt"
+        selectId="sel-search-status"
+        [options]="statusOptions"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions-right">
+      <pos-button variant="ghost" (clicked)="exportExcel()">📊 Xuất Excel</pos-button>
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Lọc hồ sơ</pos-button>
     </div>
   </div>
 
   <div class="list-zone-card">
-    <div class="list-card-header">
-      <div class="card-title">
-        <i class="bi bi-card-checklist icon-blue"></i>
-        <span>Danh sách Yêu cầu Trình duyệt</span>
-        <pos-badge variant="info" class="count-badge">{{ filteredApprovals().length }} hồ sơ</pos-badge>
+    <div class="list-toolbar">
+      <div class="card-title-group">
+        <h3 class="list-title">Danh Sách Yêu Cầu Trình Duyệt</h3>
+        <pos-badge variant="info">{{ filteredApprovals().length }} bản ghi</pos-badge>
+      </div>
+      <div class="card-header-actions">
+        <pos-dropdown
+          buttonVariant="ghost"
+          [items]="columnToggleItems()"
+          (itemClick)="onColumnToggle($event)"
+        >
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
+        </pos-dropdown>
       </div>
     </div>
 
-    <div class="list-card-body">
-      <pos-table [columns]="columns" [data]="filteredApprovals()" [loading]="loading()">
-        <ng-template #cellTemplate let-item let-field="field">
-          <ng-container [ngSwitch]="field">
-            <span *ngSwitchCase="'requestCode'" class="font-mono text-primary font-bold">
-              {{ item.requestCode }}
-            </span>
-            <span *ngSwitchCase="'priority'">
-              <pos-badge [variant]="item.priority === 'High' ? 'danger' : (item.priority === 'Medium' ? 'warning' : 'info')">
-                {{ item.priority }}
-              </pos-badge>
-            </span>
-            <span *ngSwitchCase="'status'">
-              <pos-badge [variant]="item.status === 'APPROVED' ? 'success' : (item.status === 'REJECTED' ? 'danger' : 'warning')">
-                {{ item.status === 'APPROVED' ? 'Đã duyệt' : (item.status === 'REJECTED' ? 'Từ chối' : 'Chờ phê duyệt') }}
-              </pos-badge>
-            </span>
-            <span *ngSwitchCase="'actions'">
-              <pos-dropdown
-                [items]="getActionItems(item)"
-                (itemClick)="onActionClick(item, $event)">
-              </pos-dropdown>
-            </span>
-            <span *ngSwitchDefault>{{ item[field] }}</span>
-          </ng-container>
-        </ng-template>
-      </pos-table>
-    </div>
+    <pos-table [columns]="visibleColumns()" [data]="filteredApprovals()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'requestCode') {
+          <span class="code-badge">{{ row.requestCode }}</span>
+        } @else if (col.field === 'priority') {
+          <pos-badge [variant]="row.priority === 'High' ? 'danger' : (row.priority === 'Medium' ? 'warning' : 'info')">
+            {{ row.priority }}
+          </pos-badge>
+        } @else if (col.field === 'status') {
+          <pos-badge [variant]="row.status === 'APPROVED' ? 'success' : (row.status === 'REJECTED' ? 'danger' : 'warning')" [dot]="true">
+            {{ row.status === 'APPROVED' ? 'Đã duyệt' : (row.status === 'REJECTED' ? 'Từ chối' : 'Chờ phê duyệt') }}
+          </pos-badge>
+        } @else if (col.field === 'actions') {
+          <pos-dropdown [items]="getActionItems(row)" (itemClick)="onActionClick(row, $event)" />
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
 
-    <div class="list-card-footer">
-      <pos-pagination
-        [totalItems]="filteredApprovals().length"
-        [pageSize]="pageSize()"
-        [currentPage]="currentPage()"
-        (pageChange)="currentPage.set($event)">
-      </pos-pagination>
-    </div>
+    <pos-pagination
+      [totalItems]="filteredApprovals().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
   </div>
 </div>

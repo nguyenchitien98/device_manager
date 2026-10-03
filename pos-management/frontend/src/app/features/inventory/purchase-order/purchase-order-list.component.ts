@@ -12,11 +12,11 @@ export interface PurchaseOrder {
   id: string;
   poNumber: string;
   vendorName: string;
-  totalQuantity: number;
-  totalAmountVnd: number;
-  status: 'DRAFT' | 'APPROVED' | 'IMPORTED' | 'REJECTED';
+  deviceModel: string;
+  quantity: number;
+  totalValue: number;
+  status: 'PENDING' | 'APPROVED' | 'COMPLETED';
   orderDate: string;
-  expectedDeliveryDate: string;
 }
 
 @Component({
@@ -33,15 +33,18 @@ export interface PurchaseOrder {
   styleUrl: './purchase-order-list.component.scss'
 })
 export class PurchaseOrderListPageComponent {
-  readonly keyword = signal('');
+  readonly filterPoNumber = signal('');
+  readonly selectedVendor = signal('');
   readonly selectedStatus = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
 
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
   readonly showModal = signal(false);
   readonly isEditing = signal(false);
-  readonly modalTitle = computed(() => this.isEditing() ? 'Chỉnh sửa Đơn Mua Hàng PO' : 'Tạo Đơn Mua Hàng PO Mới');
+  readonly modalTitle = computed(() => this.isEditing() ? 'Chỉnh sửa Đơn Mua POS (PO)' : 'Thêm mới Đơn Mua POS (PO)');
   readonly saving = signal(false);
 
   readonly showDeleteConfirm = signal(false);
@@ -51,61 +54,92 @@ export class PurchaseOrderListPageComponent {
   formModel = {
     id: '',
     poNumber: '',
-    vendorName: 'PAX Technology Ltd',
-    totalQuantity: 500,
-    totalAmountVnd: 2500000000,
-    status: 'DRAFT',
-    expectedDeliveryDate: '2026-04-30'
+    vendorName: 'PAX Technology',
+    deviceModel: 'PAX A920 Pro',
+    quantity: 100,
+    totalValue: 550000000,
+    status: 'PENDING'
   };
+
+  readonly vendorOptions: SelectOption[] = [
+    { label: 'Tất cả nhà cung cấp', value: '' },
+    { label: 'PAX Technology', value: 'PAX Technology' },
+    { label: 'Verifone Vietnam', value: 'Verifone Vietnam' },
+    { label: 'Ingenico Group', value: 'Ingenico Group' }
+  ];
 
   readonly statusOptions: SelectOption[] = [
     { label: 'Tất cả trạng thái', value: '' },
-    { label: 'Bản nháp (Draft)', value: 'DRAFT' },
-    { label: 'Đã duyệt (Approved)', value: 'APPROVED' },
-    { label: 'Đã nhập kho (Imported)', value: 'IMPORTED' },
-    { label: 'Từ chối (Rejected)', value: 'REJECTED' }
+    { label: 'Chờ duyệt', value: 'PENDING' },
+    { label: 'Đã duyệt', value: 'APPROVED' },
+    { label: 'Hoàn tất nhập kho', value: 'COMPLETED' }
   ];
 
-  readonly columns: TableColumn[] = [
-    { field: 'poNumber', header: 'Số Đơn PO', width: '150px', sortable: true },
-    { field: 'vendorName', header: 'Nhà Cung Cấp', width: '200px', sortable: true },
-    { field: 'totalQuantity', header: 'Số Lượng POS', width: '140px', align: 'center' },
-    { field: 'totalAmountVnd', header: 'Tổng Giá Trị (VND)', width: '180px', align: 'right' },
+  readonly allColumns: TableColumn[] = [
+    { field: 'poNumber', header: 'Số Đơn Hàng (PO)', width: '160px', sortable: true },
+    { field: 'vendorName', header: 'Nhà Cung Cấp', width: '200px' },
+    { field: 'deviceModel', header: 'Model Đặt Mua', width: '180px' },
+    { field: 'quantity', header: 'Số Lượng', width: '120px', align: 'center' },
+    { field: 'totalValue', header: 'Tổng Giá Trị (VNĐ)', width: '180px', align: 'right' },
+    { field: 'status', header: 'Trạng Thái', width: '150px', align: 'center' },
     { field: 'orderDate', header: 'Ngày Đặt', width: '130px', align: 'center' },
-    { field: 'expectedDeliveryDate', header: 'Dự Kiến Giao', width: '130px', align: 'center' },
-    { field: 'status', header: 'Trạng Thái', width: '140px', align: 'center' },
     { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
   ];
 
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.filter(c => !hidden.has(c.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
+      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
+    }));
+  });
+
   readonly actionItems: DropdownItem[] = [
-    { id: 'view', label: 'Xem chi tiết', icon: 'visibility' },
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'edit' },
-    { id: 'delete', label: 'Hủy đơn PO', icon: 'delete', danger: true }
+    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
+    { id: 'delete', label: 'Xóa đơn hàng', icon: 'bi bi-trash', danger: true }
   ];
 
   readonly orders = signal<PurchaseOrder[]>([
-    { id: '1', poNumber: 'PO-2026-001', vendorName: 'PAX Technology Ltd', totalQuantity: 1000, totalAmountVnd: 4500000000, status: 'IMPORTED', orderDate: '2026-01-05', expectedDeliveryDate: '2026-01-25' },
-    { id: '2', poNumber: 'PO-2026-002', vendorName: 'Ingenico Group SA', totalQuantity: 500, totalAmountVnd: 3200000000, status: 'APPROVED', orderDate: '2026-02-01', expectedDeliveryDate: '2026-03-01' },
-    { id: '3', poNumber: 'PO-2026-003', vendorName: 'Verifone Systems Inc', totalQuantity: 300, totalAmountVnd: 1200000000, status: 'DRAFT', orderDate: '2026-03-01', expectedDeliveryDate: '2026-04-05' },
-    { id: '4', poNumber: 'PO-2026-004', vendorName: 'Landi Commercial', totalQuantity: 2000, totalAmountVnd: 1800000000, status: 'APPROVED', orderDate: '2026-03-10', expectedDeliveryDate: '2026-04-15' }
+    { id: '1', poNumber: 'PO-2026-001', vendorName: 'PAX Technology', deviceModel: 'PAX A920 Pro', quantity: 100, totalValue: 550000000, status: 'PENDING', orderDate: '2026-01-10' },
+    { id: '2', poNumber: 'PO-2026-002', vendorName: 'Verifone Vietnam', deviceModel: 'Verifone VX520', quantity: 50, totalValue: 175000000, status: 'APPROVED', orderDate: '2026-01-15' },
+    { id: '3', poNumber: 'PO-2026-003', vendorName: 'Ingenico Group', deviceModel: 'AXIUM DX8000', quantity: 200, totalValue: 1200000000, status: 'COMPLETED', orderDate: '2026-02-01' }
   ]);
 
   readonly filteredOrders = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const po = this.filterPoNumber().toLowerCase().trim();
+    const v = this.selectedVendor();
     const st = this.selectedStatus();
+
     return this.orders().filter(item => {
-      const matchKw = !kw || item.poNumber.toLowerCase().includes(kw) || item.vendorName.toLowerCase().includes(kw);
-      const matchSt = !st || item.status === st;
-      return matchKw && matchSt;
+      const matchPo = !po || item.poNumber.toLowerCase().includes(po);
+      const matchVendor = !v || item.vendorName === v;
+      const matchStatus = !st || item.status === st;
+      return matchPo && matchVendor && matchStatus;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
+  onReset(): void { this.filterPoNumber.set(''); this.selectedVendor.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
+  onExportExcel(): void {}
+
+  toggleColumn(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
 
   openCreateModal(): void {
     this.isEditing.set(false);
-    this.formModel = { id: '', poNumber: 'PO-2026-00' + (this.orders().length + 1), vendorName: 'PAX Technology Ltd', totalQuantity: 500, totalAmountVnd: 2500000000, status: 'DRAFT', expectedDeliveryDate: '2026-04-30' };
+    this.formModel = { id: '', poNumber: '', vendorName: 'PAX Technology', deviceModel: 'PAX A920 Pro', quantity: 100, totalValue: 550000000, status: 'PENDING' };
     this.showModal.set(true);
   }
 

@@ -1,99 +1,116 @@
-<div class="list-page-container">
+<div class="pos-page-container">
+  <!-- SEARCH ZONE CARD -->
   <div class="search-zone-card">
-    <div class="search-zone-header">
-      <div class="search-title">
-        <span class="material-icons title-icon">filter_alt</span>
-        <span>Bộ Lọc Tìm Kiếm Đơn Vị Kinh Doanh</span>
+    <div class="search-card-header">
+      <div class="card-title-group">
+        <h3 class="card-title">Bộ Lọc Tìm Kiếm</h3>
       </div>
     </div>
 
-    <div class="filter-grid">
-      <pos-input
-        label="Từ khóa"
-        inputId="inp-search-kw"
-        type="search"
-        placeholder="Nhập mã, tên đơn vị..."
-        [ngModel]="keyword()"
-        (ngModelChange)="keyword.set($event)"
-        (enterPressed)="onSearch()"
-      />
+    <div class="search-card-body">
+      <div class="filter-grid">
+        <pos-input
+          inputId="filter-code"
+          label="Mã Đơn Vị"
+          placeholder="VD: BU_HN_CENTER..."
+          [ngModel]="filterCode()"
+          (ngModelChange)="filterCode.set($event)"
+          (keydown.enter)="onSearch()">
+        </pos-input>
 
-      <pos-select
-        label="Phân loại đơn vị"
-        selectId="sel-search-type"
-        [options]="typeOptions"
-        [ngModel]="selectedType()"
-        (ngModelChange)="selectedType.set($event)"
-      />
-    </div>
+        <pos-input
+          inputId="filter-name"
+          label="Tên Đơn Vị Kinh Doanh"
+          placeholder="Nhập tên đơn vị..."
+          [ngModel]="filterName()"
+          (ngModelChange)="filterName.set($event)"
+          (keydown.enter)="onSearch()">
+        </pos-input>
+      </div>
 
-    <div class="filter-actions">
-      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
-      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
+      <div class="filter-actions-right">
+        <pos-button btnId="btn-export-excel" variant="secondary" icon="bi bi-file-earmark-excel" (clicked)="onExportExcel()">Xuất Excel</pos-button>
+        <pos-button btnId="btn-reset" variant="secondary" icon="bi bi-arrow-counterclockwise" (clicked)="onReset()">Xóa bộ lọc</pos-button>
+        <pos-button btnId="btn-search" variant="primary" icon="bi bi-search" (clicked)="onSearch()">Tìm kiếm</pos-button>
+      </div>
     </div>
   </div>
 
+  <!-- LIST ZONE CARD -->
   <div class="list-zone-card">
-    <div class="list-toolbar">
-      <div class="toolbar-left">
-        <h3 class="list-title">Danh Sách Đơn Vị Kinh Doanh (Business Units)</h3>
-        <pos-badge variant="info">{{ filteredUnits().length }} đơn vị</pos-badge>
+    <div class="list-card-header">
+      <div class="card-title-group">
+        <h3 class="card-title">Danh Sách Đơn Vị Kinh Doanh</h3>
+        <pos-badge variant="info" class="count-badge">{{ filteredUnits().length }} đơn vị</pos-badge>
       </div>
-      <div class="toolbar-right">
-        <pos-button variant="primary" (clicked)="openCreateModal()">➕ Thêm đơn vị mới</pos-button>
+
+      <div class="card-header-actions">
+        <pos-dropdown [items]="columnToggleItems()" (itemClick)="toggleColumn($event)">
+          <button class="col-toggle-btn" type="button">
+            <i class="bi bi-columns-gap"></i>
+            <span>Hiển thị cột</span>
+          </button>
+        </pos-dropdown>
+
+        <pos-button btnId="btn-create-unit" variant="primary" icon="bi bi-plus-lg" (clicked)="openCreateModal()">
+          Thêm đơn vị mới
+        </pos-button>
       </div>
     </div>
 
-    <pos-table [columns]="columns" [data]="filteredUnits()" [loading]="loading()">
-      <ng-template #cellTemplate let-row let-col="column">
-        @if (col.field === 'code') {
-          <span class="code-badge">{{ row.code }}</span>
-        } @else if (col.field === 'unitType') {
-          <pos-badge [variant]="row.unitType === 'HEADQUARTER' ? 'purple' : row.unitType === 'BRANCH' ? 'primary' : 'gray'">
-            {{ row.unitType === 'HEADQUARTER' ? 'Hội Sở' : row.unitType === 'BRANCH' ? 'Chi Nhánh' : 'PGD' }}
-          </pos-badge>
-        } @else if (col.field === 'status') {
-          <pos-badge [variant]="row.status === 'ACTIVE' ? 'success' : 'gray'" [dot]="true">
-            {{ row.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động' }}
-          </pos-badge>
-        } @else if (col.field === 'actions') {
-          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
-        } @else {
-          {{ row[col.field] }}
-        }
-      </ng-template>
-    </pos-table>
+    <div class="list-card-body p-0">
+      <pos-table [columns]="visibleColumns()" [data]="filteredUnits()" [loading]="loading()">
+        <ng-template #cellTemplate let-item let-field="field">
+          <ng-container [ngSwitch]="field">
+            <span *ngSwitchCase="'code'" class="font-mono text-primary font-bold">
+              {{ item.code }}
+            </span>
+            <span *ngSwitchCase="'status'">
+              <pos-badge [variant]="item.status === 'ACTIVE' ? 'success' : 'danger'">
+                {{ item.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động' }}
+              </pos-badge>
+            </span>
+            <span *ngSwitchCase="'actions'">
+              <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(item, $event)"></pos-dropdown>
+            </span>
+            <span *ngSwitchDefault>{{ item[field] }}</span>
+          </ng-container>
+        </ng-template>
+      </pos-table>
+    </div>
 
-    <pos-pagination
-      [totalItems]="filteredUnits().length"
-      [pageSize]="pageSize()"
-      [currentPage]="currentPage()"
-      (pageChange)="currentPage.set($event)"
-      (pageSizeChange)="pageSize.set($event)"
-    />
+    <div class="list-card-footer">
+      <pos-pagination
+        [totalItems]="filteredUnits().length"
+        [pageSize]="pageSize()"
+        [currentPage]="currentPage()"
+        (pageChange)="currentPage.set($event)">
+      </pos-pagination>
+    </div>
   </div>
+
+  <!-- Create / Edit Modal -->
+  <pos-modal [isOpen]="showModal()" [title]="modalTitle()" size="md" (closed)="showModal.set(false)">
+    <div class="modal-form-grid">
+      <pos-input inputId="form-code" label="Mã Đơn Vị" placeholder="VD: BU_HN_CENTER" [required]="true" [ngModel]="formModel.code" (ngModelChange)="formModel.code = $event"></pos-input>
+      <pos-input inputId="form-name" label="Tên Đơn Vị" placeholder="VD: Khối POS Hà Nội" [required]="true" [ngModel]="formModel.name" (ngModelChange)="formModel.name = $event"></pos-input>
+      <pos-input inputId="form-manager" label="Trưởng Đơn Vị" placeholder="VD: Nguyễn Văn Nam" [ngModel]="formModel.managerName" (ngModelChange)="formModel.managerName = $event"></pos-input>
+    </div>
+
+    <div class="modal-footer-actions">
+      <pos-button btnId="btn-cancel" variant="ghost" (clicked)="showModal.set(false)">Hủy bỏ</pos-button>
+      <pos-button btnId="btn-save" variant="primary" [loading]="saving()" (clicked)="onSave()">Lưu thông tin</pos-button>
+    </div>
+  </pos-modal>
+
+  <!-- Delete Confirm Dialog -->
+  <pos-confirm-dialog
+    [isOpen]="showDeleteConfirm()"
+    title="Xóa Đơn Vị Kinh Doanh?"
+    [message]="'Bạn có chắc chắn muốn xóa đơn vị `' + (selectedItem()?.name || '') + '`?'"
+    type="danger"
+    [loading]="deleting()"
+    (confirm)="onConfirmDelete()"
+    (cancel)="showDeleteConfirm.set(false)">
+  </pos-confirm-dialog>
 </div>
-
-<pos-modal [isOpen]="showModal()" [title]="modalTitle()" size="md" (closed)="showModal.set(false)">
-  <div class="form-grid">
-    <pos-input label="Mã Đơn Vị" inputId="inp-bu-code" placeholder="VD: BU_CN_HN" [required]="true" [(ngModel)]="formModel.code" />
-    <pos-input label="Tên Đơn Vị Kinh Doanh" inputId="inp-bu-name" placeholder="VD: Chi Nhánh Hà Nội" [required]="true" [(ngModel)]="formModel.name" />
-    <pos-select label="Phân Loại" selectId="sel-bu-type" [options]="typeOptions" [(ngModel)]="formModel.unitType" />
-    <pos-input label="Số Điện Thoại" inputId="inp-bu-phone" [(ngModel)]="formModel.phone" />
-  </div>
-
-  <div modal-footer>
-    <pos-button variant="ghost" (clicked)="showModal.set(false)">Hủy</pos-button>
-    <pos-button variant="primary" [loading]="saving()" (clicked)="onSave()">Lưu thông tin</pos-button>
-  </div>
-</pos-modal>
-
-<pos-confirm-dialog
-  [isOpen]="showDeleteConfirm()"
-  title="Xóa Đơn Vị Kinh Doanh"
-  [message]="'Bạn có chắc chắn muốn xóa đơn vị `' + selectedItem()?.name + '`?'"
-  type="danger"
-  [loading]="deleting()"
-  (confirm)="onConfirmDelete()"
-  (cancel)="showDeleteConfirm.set(false)"
-/>

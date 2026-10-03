@@ -2,24 +2,31 @@
   <div class="search-zone-card">
     <div class="search-zone-header">
       <div class="search-title">
-        <span class="material-icons title-icon">filter_alt</span>
         <span>Bộ Lọc Tìm Kiếm Merchant (Đơn Vị Chấp Nhận Thẻ)</span>
       </div>
     </div>
 
     <div class="filter-grid">
       <pos-input
-        label="Từ khóa"
-        inputId="inp-search-kw"
-        type="search"
-        placeholder="Nhập mã MID, tên thương hiệu, tên pháp lý..."
-        [ngModel]="keyword()"
-        (ngModelChange)="keyword.set($event)"
+        label="Mã MID"
+        inputId="inp-search-mid"
+        placeholder="Nhập mã MID..."
+        [ngModel]="searchMerchantCode()"
+        (ngModelChange)="searchMerchantCode.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-input
+        label="Tên Thương Hiệu / Cửa Hàng"
+        inputId="inp-search-brand"
+        placeholder="Nhập tên thương hiệu, tên pháp lý..."
+        [ngModel]="searchBrandName()"
+        (ngModelChange)="searchBrandName.set($event)"
         (enterPressed)="onSearch()"
       />
 
       <pos-select
-        label="Trạng thái Merchant"
+        label="Trạng Thái Merchant"
         selectId="sel-search-status"
         [options]="statusOptions"
         [ngModel]="selectedStatus()"
@@ -27,7 +34,8 @@
       />
     </div>
 
-    <div class="filter-actions">
+    <div class="filter-actions-right">
+      <pos-button variant="ghost" (clicked)="exportExcel()">📊 Xuất Excel</pos-button>
       <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
       <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
     </div>
@@ -35,16 +43,23 @@
 
   <div class="list-zone-card">
     <div class="list-toolbar">
-      <div class="toolbar-left">
-        <h3 class="list-title">Quản Lý Danh Sách Merchant (MID)</h3>
-        <pos-badge variant="info">{{ filteredMerchants().length }} merchant</pos-badge>
+      <div class="card-title-group">
+        <h3 class="list-title">Danh Sách Merchant (MID)</h3>
+        <pos-badge variant="info">{{ filteredMerchants().length }} bản ghi</pos-badge>
       </div>
-      <div class="toolbar-right">
+      <div class="card-header-actions">
+        <pos-dropdown
+          buttonVariant="ghost"
+          [items]="columnToggleItems()"
+          (itemClick)="onColumnToggle($event)"
+        >
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
+        </pos-dropdown>
         <pos-button variant="primary" (clicked)="openCreateModal()">➕ Đăng ký Merchant mới</pos-button>
       </div>
     </div>
 
-    <pos-table [columns]="columns" [data]="filteredMerchants()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredMerchants()" [loading]="loading()">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'merchantCode') {
           <span class="code-badge">{{ row.merchantCode }}</span>

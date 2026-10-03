@@ -32,12 +32,18 @@ export interface DeviceCategory {
   styleUrl: './device-category-list.component.scss'
 })
 export class DeviceCategoryListPageComponent {
-  // Signals
-  readonly keyword = signal('');
-  readonly selectedStatus = signal('');
+  // Specific Filter Signals
+  readonly filterCode = signal('');
+  readonly filterName = signal('');
+  readonly filterStatus = signal('');
+  readonly filterDate = signal('');
+
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  // Column visibility signal
+  readonly hiddenColumns = signal<Set<string>>(new Set());
 
   // Modal Signals
   readonly showModal = signal(false);
@@ -67,8 +73,8 @@ export class DeviceCategoryListPageComponent {
   ];
 
   // Table Columns
-  readonly columns: TableColumn[] = [
-    { field: 'code', header: 'Mã Danh Mục', width: '140px', sortable: true },
+  readonly allColumns: TableColumn[] = [
+    { field: 'code', header: 'Mã Danh Mục', width: '150px', sortable: true },
     { field: 'name', header: 'Tên Danh Mục', width: '220px', sortable: true },
     { field: 'description', header: 'Mô Tả' },
     { field: 'deviceCount', header: 'Số Lượng POS', width: '130px', align: 'center' },
@@ -77,10 +83,24 @@ export class DeviceCategoryListPageComponent {
     { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
   ];
 
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.filter(c => !hidden.has(c.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
+      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
+    }));
+  });
+
   // Row Action Items
   readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'edit' },
-    { id: 'delete', label: 'Xóa danh mục', icon: 'delete', danger: true }
+    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
+    { id: 'delete', label: 'Xóa danh mục', icon: 'bi bi-trash', danger: true }
   ];
 
   // Mock Data
@@ -94,12 +114,17 @@ export class DeviceCategoryListPageComponent {
 
   // Filtered List
   readonly filteredCategories = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
-    const st = this.selectedStatus();
+    const fc = this.filterCode().toLowerCase().trim();
+    const fn = this.filterName().toLowerCase().trim();
+    const fs = this.filterStatus();
+    const fd = this.filterDate();
+
     return this.categories().filter(item => {
-      const matchKw = !kw || item.code.toLowerCase().includes(kw) || item.name.toLowerCase().includes(kw) || item.description.toLowerCase().includes(kw);
-      const matchSt = !st || item.status === st;
-      return matchKw && matchSt;
+      const matchCode = !fc || item.code.toLowerCase().includes(fc);
+      const matchName = !fn || item.name.toLowerCase().includes(fn);
+      const matchStatus = !fs || item.status === fs;
+      const matchDate = !fd || item.createdAt === fd;
+      return matchCode && matchName && matchStatus && matchDate;
     });
   });
 
@@ -108,9 +133,27 @@ export class DeviceCategoryListPageComponent {
   }
 
   onReset(): void {
-    this.keyword.set('');
-    this.selectedStatus.set('');
+    this.filterCode.set('');
+    this.filterName.set('');
+    this.filterStatus.set('');
+    this.filterDate.set('');
     this.currentPage.set(1);
+  }
+
+  onExportExcel(): void {
+    // Export excel logic simulation
+  }
+
+  toggleColumn(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) {
+        next.delete(item.id);
+      } else {
+        next.add(item.id);
+      }
+      return next;
+    });
   }
 
   openCreateModal(): void {

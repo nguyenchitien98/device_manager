@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -34,12 +34,30 @@ export interface ApprovalItem {
   styleUrl: './approval-inbox.component.scss'
 })
 export class ApprovalInboxPageComponent {
-  readonly keyword = signal('');
+  private readonly router = inject(Router);
+
+  readonly searchRequestCode = signal('');
+  readonly searchTitle = signal('');
   readonly selectedType = signal('');
   readonly selectedStatus = signal('PENDING');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   readonly typeOptions = [
     { label: 'Tất cả loại yêu cầu', value: '' },
@@ -75,25 +93,25 @@ export class ApprovalInboxPageComponent {
   ]);
 
   readonly filteredApprovals = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const code = this.searchRequestCode().toLowerCase().trim();
+    const title = this.searchTitle().toLowerCase().trim();
     const type = this.selectedType();
     const st = this.selectedStatus();
 
     return this.approvals().filter(item => {
-      const matchesKw = !kw || item.requestCode.toLowerCase().includes(kw) || item.title.toLowerCase().includes(kw) || item.creatorName.toLowerCase().includes(kw);
+      const matchesCode = !code || item.requestCode.toLowerCase().includes(code);
+      const matchesTitle = !title || item.title.toLowerCase().includes(title) || item.creatorName.toLowerCase().includes(title);
       const matchesType = !type || item.requestType.toLowerCase().includes(type.toLowerCase());
       const matchesSt = !st || item.status === st;
-      return matchesKw && matchesType && matchesSt;
+      return matchesCode && matchesTitle && matchesType && matchesSt;
     });
   });
 
-  constructor(private router: Router) {}
-
   getActionItems(item: ApprovalItem): DropdownItem[] {
     return [
-      { id: 'view', label: 'Xem & Phê duyệt', icon: 'bi bi-eye' },
-      { id: 'quick-approve', label: 'Duyệt nhanh', icon: 'bi bi-check-circle', danger: false },
-      { id: 'quick-reject', label: 'Từ chối nhanh', icon: 'bi bi-x-circle', danger: true }
+      { id: 'view', label: 'Xem & Phê duyệt', icon: 'visibility' },
+      { id: 'quick-approve', label: 'Duyệt nhanh', icon: 'check_circle', danger: false },
+      { id: 'quick-reject', label: 'Từ chối nhanh', icon: 'cancel', danger: true }
     ];
   }
 
@@ -108,5 +126,24 @@ export class ApprovalInboxPageComponent {
   }
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedType.set(''); this.selectedStatus.set('PENDING'); this.currentPage.set(1); }
+  onReset(): void {
+    this.searchRequestCode.set('');
+    this.searchTitle.set('');
+    this.selectedType.set('');
+    this.selectedStatus.set('PENDING');
+    this.currentPage.set(1);
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất báo cáo danh sách hồ sơ trình duyệt thành công!');
+  }
 }

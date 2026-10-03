@@ -35,11 +35,27 @@ export interface AssignmentItem {
 export class AssignmentListPageComponent {
   private readonly router = inject(Router);
 
-  readonly keyword = signal('');
+  readonly searchAssignmentCode = signal('');
+  readonly searchMerchant = signal('');
   readonly selectedType = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   readonly typeOptions: SelectOption[] = [
     { label: 'Tất cả loại lệnh', value: '' },
@@ -69,17 +85,37 @@ export class AssignmentListPageComponent {
   ]);
 
   readonly filteredAssignments = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const code = this.searchAssignmentCode().toLowerCase().trim();
+    const merchant = this.searchMerchant().toLowerCase().trim();
     const tp = this.selectedType();
     return this.assignments().filter(item => {
-      const matchKw = !kw || item.assignmentCode.toLowerCase().includes(kw) || item.merchantName.toLowerCase().includes(kw) || item.tid.toLowerCase().includes(kw) || item.posSerial.toLowerCase().includes(kw);
+      const matchCode = !code || item.assignmentCode.toLowerCase().includes(code);
+      const matchMerchant = !merchant || item.merchantName.toLowerCase().includes(merchant) || item.tid.toLowerCase().includes(merchant) || item.posSerial.toLowerCase().includes(merchant);
       const matchTp = !tp || item.actionType === tp;
-      return matchKw && matchTp;
+      return matchCode && matchMerchant && matchTp;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedType.set(''); this.currentPage.set(1); }
+  onReset(): void {
+    this.searchAssignmentCode.set('');
+    this.searchMerchant.set('');
+    this.selectedType.set('');
+    this.currentPage.set(1);
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất báo cáo danh sách lệnh Assignment thành công!');
+  }
 
   openCreatePage(): void {
     this.router.navigate(['/assignment/new']);

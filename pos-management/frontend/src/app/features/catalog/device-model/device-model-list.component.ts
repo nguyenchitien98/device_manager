@@ -13,9 +13,8 @@ export interface DeviceModel {
   code: string;
   name: string;
   vendorName: string;
-  typeName: string;
-  ramMb: number;
-  storageMb: number;
+  deviceTypeName: string;
+  screenSize: string;
   status: 'ACTIVE' | 'INACTIVE';
   createdAt: string;
 }
@@ -34,15 +33,18 @@ export interface DeviceModel {
   styleUrl: './device-model-list.component.scss'
 })
 export class DeviceModelListPageComponent {
-  readonly keyword = signal('');
+  readonly filterCode = signal('');
+  readonly filterName = signal('');
   readonly selectedVendor = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
 
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
   readonly showModal = signal(false);
   readonly isEditing = signal(false);
-  readonly modalTitle = computed(() => this.isEditing() ? 'Chỉnh sửa Model Thiết Bị' : 'Thêm mới Model Thiết Bị');
+  readonly modalTitle = computed(() => this.isEditing() ? 'Chỉnh sửa Model POS' : 'Thêm mới Model POS');
   readonly saving = signal(false);
 
   readonly showDeleteConfirm = signal(false);
@@ -54,60 +56,84 @@ export class DeviceModelListPageComponent {
     code: '',
     name: '',
     vendorName: 'PAX Technology',
-    typeName: 'Smart POS Cầm Tay 4G',
-    ramMb: 2048,
-    storageMb: 16384,
+    deviceTypeName: 'Smart POS Cầm Tay 4G',
+    screenSize: '5.5 inch',
     status: 'ACTIVE'
   };
 
   readonly vendorOptions: SelectOption[] = [
-    { label: 'Tất cả Vendor', value: '' },
+    { label: 'Tất cả nhà cung cấp', value: '' },
     { label: 'PAX Technology', value: 'PAX Technology' },
-    { label: 'Ingenico', value: 'Ingenico' },
-    { label: 'Verifone', value: 'Verifone' },
-    { label: 'Landi', value: 'Landi' }
+    { label: 'Verifone Vietnam', value: 'Verifone Vietnam' },
+    { label: 'Ingenico Group', value: 'Ingenico Group' },
+    { label: 'Sunmi Tech', value: 'Sunmi Tech' }
   ];
 
-  readonly columns: TableColumn[] = [
-    { field: 'code', header: 'Mã Model', width: '130px', sortable: true },
-    { field: 'name', header: 'Tên Model', width: '200px', sortable: true },
-    { field: 'vendorName', header: 'Nhà Sản Xuất', width: '160px' },
-    { field: 'typeName', header: 'Loại Thiết Bị', width: '180px' },
-    { field: 'specs', header: 'Cấu Hình (RAM/ROM)', width: '160px', align: 'center' },
+  readonly allColumns: TableColumn[] = [
+    { field: 'code', header: 'Mã Model', width: '140px', sortable: true },
+    { field: 'name', header: 'Tên Model POS', width: '200px', sortable: true },
+    { field: 'vendorName', header: 'Nhà Cung Cấp', width: '180px' },
+    { field: 'deviceTypeName', header: 'Loại Thiết Bị', width: '200px' },
+    { field: 'screenSize', header: 'Màn Hình', width: '120px', align: 'center' },
     { field: 'status', header: 'Trạng Thái', width: '130px', align: 'center' },
     { field: 'createdAt', header: 'Ngày Tạo', width: '130px', align: 'center' },
     { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
   ];
 
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.filter(c => !hidden.has(c.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
+      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
+    }));
+  });
+
   readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'edit' },
-    { id: 'delete', label: 'Xóa model', icon: 'delete', danger: true }
+    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
+    { id: 'delete', label: 'Xóa model', icon: 'bi bi-trash', danger: true }
   ];
 
   readonly models = signal<DeviceModel[]>([
-    { id: '1', code: 'A920_PRO', name: 'PAX A920 Pro Smart POS', vendorName: 'PAX Technology', typeName: 'Smart POS Cầm Tay 4G', ramMb: 2048, storageMb: 16384, status: 'ACTIVE', createdAt: '2026-01-12' },
-    { id: '2', code: 'A930_TOUCH', name: 'PAX A930 Android 10', vendorName: 'PAX Technology', typeName: 'Smart POS Cầm Tay 4G', ramMb: 2048, storageMb: 16384, status: 'ACTIVE', createdAt: '2026-01-15' },
-    { id: '3', code: 'DX8000', name: 'Ingenico AXIUM DX8000', vendorName: 'Ingenico', typeName: 'Smart POS Cầm Tay 4G', ramMb: 2048, storageMb: 16384, status: 'ACTIVE', createdAt: '2026-01-20' },
-    { id: '4', code: 'V200T', name: 'Verifone VX520 / V200t', vendorName: 'Verifone', typeName: 'POS Để Bàn Cố Định LAN', ramMb: 512, storageMb: 1024, status: 'ACTIVE', createdAt: '2026-02-01' },
-    { id: '5', code: 'LANDI_M3', name: 'Landi M3 Soundbox', vendorName: 'Landi', typeName: 'Loa QR Màn Hình Hiển Thị LED', ramMb: 256, storageMb: 512, status: 'INACTIVE', createdAt: '2026-02-15' }
+    { id: '1', code: 'MODEL_A920', name: 'PAX A920 Pro', vendorName: 'PAX Technology', deviceTypeName: 'Smart POS Cầm Tay 4G', screenSize: '5.5 inch', status: 'ACTIVE', createdAt: '2026-01-15' },
+    { id: '2', code: 'MODEL_VX520', name: 'Verifone VX520', vendorName: 'Verifone Vietnam', deviceTypeName: 'POS Để Bàn Cố Định LAN', screenSize: '2.8 inch', status: 'ACTIVE', createdAt: '2026-01-10' },
+    { id: '3', code: 'MODEL_DX8000', name: 'Ingenico AXIUM DX8000', vendorName: 'Ingenico Group', deviceTypeName: 'Smart POS Quầy Đôi', screenSize: '6.0 inch', status: 'ACTIVE', createdAt: '2026-02-01' },
+    { id: '4', code: 'MODEL_V2PRO', name: 'Sunmi V2 Pro', vendorName: 'Sunmi Tech', deviceTypeName: 'mPOS Kết Nối Bluetooth', screenSize: '5.99 inch', status: 'ACTIVE', createdAt: '2026-02-18' }
   ]);
 
   readonly filteredModels = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
-    const ven = this.selectedVendor();
+    const fc = this.filterCode().toLowerCase().trim();
+    const fn = this.filterName().toLowerCase().trim();
+    const v = this.selectedVendor();
     return this.models().filter(item => {
-      const matchKw = !kw || item.code.toLowerCase().includes(kw) || item.name.toLowerCase().includes(kw);
-      const matchVen = !ven || item.vendorName === ven;
-      return matchKw && matchVen;
+      const matchCode = !fc || item.code.toLowerCase().includes(fc);
+      const matchName = !fn || item.name.toLowerCase().includes(fn);
+      const matchVendor = !v || item.vendorName === v;
+      return matchCode && matchName && matchVendor;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedVendor.set(''); this.currentPage.set(1); }
+  onReset(): void { this.filterCode.set(''); this.filterName.set(''); this.selectedVendor.set(''); this.currentPage.set(1); }
+  onExportExcel(): void {}
+
+  toggleColumn(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
 
   openCreateModal(): void {
     this.isEditing.set(false);
-    this.formModel = { id: '', code: '', name: '', vendorName: 'PAX Technology', typeName: 'Smart POS Cầm Tay 4G', ramMb: 2048, storageMb: 16384, status: 'ACTIVE' };
+    this.formModel = { id: '', code: '', name: '', vendorName: 'PAX Technology', deviceTypeName: 'Smart POS Cầm Tay 4G', screenSize: '5.5 inch', status: 'ACTIVE' };
     this.showModal.set(true);
   }
 

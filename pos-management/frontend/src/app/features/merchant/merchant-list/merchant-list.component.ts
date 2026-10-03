@@ -37,7 +37,8 @@ export interface MerchantItem {
 export class MerchantListPageComponent {
   private readonly router = inject(Router);
 
-  readonly keyword = signal('');
+  readonly searchMerchantCode = signal('');
+  readonly searchBrandName = signal('');
   readonly selectedStatus = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
@@ -49,6 +50,21 @@ export class MerchantListPageComponent {
   readonly showDeleteConfirm = signal(false);
   readonly deleting = signal(false);
   readonly selectedItem = signal<MerchantItem | null>(null);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   formModel = {
     merchantCode: '',
@@ -96,17 +112,37 @@ export class MerchantListPageComponent {
   ]);
 
   readonly filteredMerchants = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const code = this.searchMerchantCode().toLowerCase().trim();
+    const brand = this.searchBrandName().toLowerCase().trim();
     const st = this.selectedStatus();
     return this.merchants().filter(item => {
-      const matchKw = !kw || item.merchantCode.toLowerCase().includes(kw) || item.brandName.toLowerCase().includes(kw) || item.legalName.toLowerCase().includes(kw);
+      const matchCode = !code || item.merchantCode.toLowerCase().includes(code);
+      const matchBrand = !brand || item.brandName.toLowerCase().includes(brand) || item.legalName.toLowerCase().includes(brand);
       const matchSt = !st || item.status === st;
-      return matchKw && matchSt;
+      return matchCode && matchBrand && matchSt;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
+  onReset(): void {
+    this.searchMerchantCode.set('');
+    this.searchBrandName.set('');
+    this.selectedStatus.set('');
+    this.currentPage.set(1);
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất báo cáo danh sách Merchant thành công!');
+  }
 
   openCreateModal(): void {
     this.formModel = {

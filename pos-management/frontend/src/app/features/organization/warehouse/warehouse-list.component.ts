@@ -12,10 +12,10 @@ export interface Warehouse {
   id: string;
   code: string;
   name: string;
-  warehouseType: 'MAIN' | 'BRANCH' | 'TRANSIT';
-  businessUnitName: string;
-  address: string;
+  location: string;
   managerName: string;
+  phone: string;
+  capacity: number;
   status: 'ACTIVE' | 'INACTIVE';
   createdAt: string;
 }
@@ -34,15 +34,18 @@ export interface Warehouse {
   styleUrl: './warehouse-list.component.scss'
 })
 export class WarehouseListPageComponent {
-  readonly keyword = signal('');
-  readonly selectedType = signal('');
+  readonly filterCode = signal('');
+  readonly filterName = signal('');
+  readonly filterLocation = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
 
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
   readonly showModal = signal(false);
   readonly isEditing = signal(false);
-  readonly modalTitle = computed(() => this.isEditing() ? 'Chỉnh sửa Kho Hàng' : 'Thêm mới Kho Hàng');
+  readonly modalTitle = computed(() => this.isEditing() ? 'Chỉnh sửa Kho Thiết Bị' : 'Thêm mới Kho Thiết Bị');
   readonly saving = signal(false);
 
   readonly showDeleteConfirm = signal(false);
@@ -53,58 +56,84 @@ export class WarehouseListPageComponent {
     id: '',
     code: '',
     name: '',
-    warehouseType: 'MAIN',
-    businessUnitName: 'Hội Sở Chính Ngân Hàng',
-    address: '',
+    location: 'Hà Nội',
     managerName: '',
+    phone: '',
+    capacity: 10000,
     status: 'ACTIVE'
   };
 
-  readonly typeOptions: SelectOption[] = [
-    { label: 'Tất cả loại kho', value: '' },
-    { label: 'Kho Tổng (Central Warehouse)', value: 'MAIN' },
-    { label: 'Kho Chi Nhánh (Branch)', value: 'BRANCH' },
-    { label: 'Kho Trung Chuyển (Transit)', value: 'TRANSIT' }
+  readonly locationOptions: SelectOption[] = [
+    { label: 'Tất cả khu vực', value: '' },
+    { label: 'Hà Nội', value: 'Hà Nội' },
+    { label: 'TP. Hồ Chí Minh', value: 'TP. Hồ Chí Minh' },
+    { label: 'Đà Nẵng', value: 'Đà Nẵng' }
   ];
 
-  readonly columns: TableColumn[] = [
+  readonly allColumns: TableColumn[] = [
     { field: 'code', header: 'Mã Kho', width: '130px', sortable: true },
-    { field: 'name', header: 'Tên Kho Hàng', width: '220px', sortable: true },
-    { field: 'warehouseType', header: 'Loại Kho', width: '150px', align: 'center' },
-    { field: 'businessUnitName', header: 'Trực Thuộc BU', width: '200px' },
-    { field: 'managerName', header: 'Quản Lý Kho', width: '150px' },
+    { field: 'name', header: 'Tên Kho Thiết Bị', width: '220px', sortable: true },
+    { field: 'location', header: 'Khu Vực', width: '150px' },
+    { field: 'managerName', header: 'Thủ Kho Quản Lý', width: '180px' },
+    { field: 'capacity', header: 'Sức Chứa (Máy)', width: '140px', align: 'center' },
     { field: 'status', header: 'Trạng Thái', width: '130px', align: 'center' },
+    { field: 'createdAt', header: 'Ngày Tạo', width: '130px', align: 'center' },
     { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
   ];
 
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.filter(c => !hidden.has(c.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
+      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
+    }));
+  });
+
   readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'edit' },
-    { id: 'delete', label: 'Xóa kho', icon: 'delete', danger: true }
+    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
+    { id: 'delete', label: 'Xóa kho', icon: 'bi bi-trash', danger: true }
   ];
 
   readonly warehouses = signal<Warehouse[]>([
-    { id: '1', code: 'WH_MAIN_HN', name: 'Kho Tổng POS Hà Nội', warehouseType: 'MAIN', businessUnitName: 'Hội Sở Chính Ngân Hàng', address: 'Số 1 Láng Hạ, Ba Đình, Hà Nội', managerName: 'Nguyễn Văn Hải', status: 'ACTIVE', createdAt: '2026-01-01' },
-    { id: '2', code: 'WH_MAIN_HCM', name: 'Kho Tổng POS TP.HCM', warehouseType: 'MAIN', businessUnitName: 'Hội Sở Chính Ngân Hàng', address: '123 Lê Lợi, Q.1, TP.HCM', managerName: 'Trần Thị Thu', status: 'ACTIVE', createdAt: '2026-01-05' },
-    { id: '3', code: 'WH_BRANCH_DN', name: 'Kho Chi Nhánh Đà Nẵng', warehouseType: 'BRANCH', businessUnitName: 'Chi Nhánh Đà Nẵng', address: '45 Nguyễn Văn Linh, Đà Nẵng', managerName: 'Lê Hoàng Nam', status: 'ACTIVE', createdAt: '2026-01-15' },
-    { id: '4', code: 'WH_TRANSIT_MB', name: 'Kho Trung Chuyển Miền Bắc', warehouseType: 'TRANSIT', businessUnitName: 'Hội Sở Chính Ngân Hàng', address: 'KCN Bắc Thăng Long, Hà Nội', managerName: 'Phạm Quốc Bảo', status: 'ACTIVE', createdAt: '2026-02-01' }
+    { id: '1', code: 'WH_HN_CENTRAL', name: 'Kho POS Trung Tâm Hà Nội', location: 'Hà Nội', managerName: 'Lê Văn Nam', phone: '0912345678', capacity: 15000, status: 'ACTIVE', createdAt: '2026-01-10' },
+    { id: '2', code: 'WH_HCM_CENTRAL', name: 'Kho POS Trung Tâm TP.HCM', location: 'TP. Hồ Chí Minh', managerName: 'Nguyễn Thị Hoa', phone: '0987654321', capacity: 20000, status: 'ACTIVE', createdAt: '2026-01-12' },
+    { id: '3', code: 'WH_DN_BRANCH', name: 'Kho POS Chi Nhánh Đà Nẵng', location: 'Đà Nẵng', managerName: 'Trần Văn Mạnh', phone: '0903112233', capacity: 5000, status: 'ACTIVE', createdAt: '2026-02-01' }
   ]);
 
   readonly filteredWarehouses = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
-    const tp = this.selectedType();
+    const fc = this.filterCode().toLowerCase().trim();
+    const fn = this.filterName().toLowerCase().trim();
+    const loc = this.filterLocation();
     return this.warehouses().filter(item => {
-      const matchKw = !kw || item.code.toLowerCase().includes(kw) || item.name.toLowerCase().includes(kw);
-      const matchTp = !tp || item.warehouseType === tp;
-      return matchKw && matchTp;
+      const matchCode = !fc || item.code.toLowerCase().includes(fc);
+      const matchName = !fn || item.name.toLowerCase().includes(fn);
+      const matchLoc = !loc || item.location === loc;
+      return matchCode && matchName && matchLoc;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedType.set(''); this.currentPage.set(1); }
+  onReset(): void { this.filterCode.set(''); this.filterName.set(''); this.filterLocation.set(''); this.currentPage.set(1); }
+  onExportExcel(): void {}
+
+  toggleColumn(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
 
   openCreateModal(): void {
     this.isEditing.set(false);
-    this.formModel = { id: '', code: '', name: '', warehouseType: 'MAIN', businessUnitName: 'Hội Sở Chính Ngân Hàng', address: '', managerName: '', status: 'ACTIVE' };
+    this.formModel = { id: '', code: '', name: '', location: 'Hà Nội', managerName: '', phone: '', capacity: 10000, status: 'ACTIVE' };
     this.showModal.set(true);
   }
 

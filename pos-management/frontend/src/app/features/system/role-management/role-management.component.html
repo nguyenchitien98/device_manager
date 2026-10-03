@@ -1,60 +1,73 @@
-<div class="pos-page-container">
+<div class="list-page-container">
   <div class="search-zone-card">
-    <div class="search-card-header">
-      <div class="card-title">
-        <i class="bi bi-shield-lock-fill icon-blue"></i>
-        <span>Quản lý Vai trò & Phân quyền Chi tiết (Role Matrix)</span>
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span>Quản Lý Vai Trò & Phân Quyền Chi Tiết (Role Matrix)</span>
       </div>
     </div>
-    <div class="search-card-body">
-      <div class="filter-grid">
-        <pos-input
-          inputId="search-keyword"
-          label="Từ khóa tìm kiếm"
-          placeholder="Mã vai trò, Tên vai trò..."
-          [ngModel]="keyword()"
-          (ngModelChange)="keyword.set($event)">
-        </pos-input>
-      </div>
+
+    <div class="filter-grid">
+      <pos-input
+        label="Mã Vai Trò"
+        inputId="inp-search-code"
+        placeholder="Nhập mã vai trò..."
+        [ngModel]="searchRoleCode()"
+        (ngModelChange)="searchRoleCode.set($event)"
+      />
+
+      <pos-input
+        label="Tên Vai Trò / Nhóm Quyền"
+        inputId="inp-search-name"
+        placeholder="Nhập tên vai trò..."
+        [ngModel]="searchRoleName()"
+        (ngModelChange)="searchRoleName.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions-right">
+      <pos-button variant="ghost" (clicked)="exportExcel()">📊 Xuất Excel</pos-button>
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
     </div>
   </div>
 
   <div class="list-zone-card">
-    <div class="list-card-header">
-      <div class="card-title">
-        <i class="bi bi-person-gear icon-blue"></i>
-        <span>Danh sách Vai trò Hệ thống</span>
-        <pos-badge variant="info" class="count-badge">{{ filteredRoles().length }} vai trò</pos-badge>
+    <div class="list-toolbar">
+      <div class="card-title-group">
+        <h3 class="list-title">Danh Sách Vai Trò Hệ Thống</h3>
+        <pos-badge variant="info">{{ filteredRoles().length }} bản ghi</pos-badge>
+      </div>
+      <div class="card-header-actions">
+        <pos-dropdown
+          buttonVariant="ghost"
+          [items]="columnToggleItems()"
+          (itemClick)="onColumnToggle($event)"
+        >
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
+        </pos-dropdown>
       </div>
     </div>
 
-    <div class="list-card-body">
-      <pos-table [columns]="columns" [data]="filteredRoles()" [loading]="loading()">
-        <ng-template #cellTemplate let-item let-field="field">
-          <ng-container [ngSwitch]="field">
-            <span *ngSwitchCase="'roleCode'" class="font-mono text-primary font-bold">
-              {{ item.roleCode }}
-            </span>
-            <span *ngSwitchCase="'isSystemDefault'">
-              <pos-badge [variant]="item.isSystemDefault ? 'primary' : 'info'">
-                {{ item.isSystemDefault ? 'Mặc định' : 'Tùy chỉnh' }}
-              </pos-badge>
-            </span>
-            <span *ngSwitchCase="'actions'">
-              <pos-button
-                [btnId]="'btn-perm-' + item.id"
-                variant="primary"
-                size="sm"
-                icon="bi bi-sliders"
-                (clicked)="openPermissionModal(item)">
-                Phân Quyền
-              </pos-button>
-            </span>
-            <span *ngSwitchDefault>{{ item[field] }}</span>
-          </ng-container>
-        </ng-template>
-      </pos-table>
-    </div>
+    <pos-table [columns]="visibleColumns()" [data]="filteredRoles()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'roleCode') {
+          <span class="code-badge">{{ row.roleCode }}</span>
+        } @else if (col.field === 'isSystemDefault') {
+          <pos-badge [variant]="row.isSystemDefault ? 'primary' : 'gray'">
+            {{ row.isSystemDefault ? 'Mặc định' : 'Tùy chỉnh' }}
+          </pos-badge>
+        } @else if (col.field === 'actions') {
+          <pos-button
+            variant="ghost"
+            size="sm"
+            (clicked)="openPermissionModal(row)">
+            ⚙️ Phân Quyền
+          </pos-button>
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
   </div>
 
   <!-- Permissions Matrix Modal -->
@@ -62,11 +75,12 @@
     [isOpen]="isPermissionModalOpen()"
     [title]="'Ma Trận Phân Quyền - ' + selectedRole()?.roleName"
     size="lg"
-    (closeModal)="isPermissionModalOpen.set(false)">
+    (closed)="isPermissionModalOpen.set(false)"
+  >
     <div class="permissions-matrix">
       <div *ngFor="let group of permissionGroups(); let gIdx = index" class="perm-group-card mb-4">
         <div class="perm-group-title font-bold text-primary mb-2">
-          <i class="bi bi-folder2-open me-2"></i>{{ group.groupName }}
+          📁 {{ group.groupName }}
         </div>
         <div class="perm-items-grid">
           <div *ngFor="let perm of group.permissions; let pIdx = index" class="perm-item p-2 border rounded d-flex align-items-center justify-content-between">
@@ -81,9 +95,9 @@
       </div>
     </div>
 
-    <div class="modal-footer-actions">
-      <pos-button btnId="btn-cancel-perm" variant="secondary" (clicked)="isPermissionModalOpen.set(false)">Hủy bỏ</pos-button>
-      <pos-button btnId="btn-save-perm" variant="primary" (clicked)="savePermissions()">Lưu Phân Quyền</pos-button>
+    <div modal-footer>
+      <pos-button variant="ghost" (clicked)="isPermissionModalOpen.set(false)">Hủy bỏ</pos-button>
+      <pos-button variant="primary" (clicked)="savePermissions()">Lưu Phân Quyền</pos-button>
     </div>
   </pos-modal>
 </div>

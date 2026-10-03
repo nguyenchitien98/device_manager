@@ -2,24 +2,31 @@
   <div class="search-zone-card">
     <div class="search-zone-header">
       <div class="search-title">
-        <span class="material-icons title-icon">filter_alt</span>
         <span>Bộ Lọc Tìm Kiếm Phiếu Xuất Kho</span>
       </div>
     </div>
 
     <div class="filter-grid">
       <pos-input
-        label="Từ khóa"
-        inputId="inp-search-kw"
-        type="search"
-        placeholder="Nhập mã phiếu xuất, tên nơi nhận..."
-        [ngModel]="keyword()"
-        (ngModelChange)="keyword.set($event)"
+        label="Mã Phiếu Xuất"
+        inputId="inp-search-code"
+        placeholder="Nhập mã phiếu xuất..."
+        [ngModel]="searchExportCode()"
+        (ngModelChange)="searchExportCode.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-input
+        label="Nơi Nhận / Merchant / Kho"
+        inputId="inp-search-dest"
+        placeholder="Nhập tên nơi nhận..."
+        [ngModel]="searchDestination()"
+        (ngModelChange)="searchDestination.set($event)"
         (enterPressed)="onSearch()"
       />
 
       <pos-select
-        label="Trạng thái"
+        label="Trạng Thái"
         selectId="sel-search-status"
         [options]="statusOptions"
         [ngModel]="selectedStatus()"
@@ -27,7 +34,8 @@
       />
     </div>
 
-    <div class="filter-actions">
+    <div class="filter-actions-right">
+      <pos-button variant="ghost" (clicked)="exportExcel()">📊 Xuất Excel</pos-button>
       <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
       <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
     </div>
@@ -35,16 +43,23 @@
 
   <div class="list-zone-card">
     <div class="list-toolbar">
-      <div class="toolbar-left">
-        <h3 class="list-title">Thông Tin Xuất Kho Thiết Bị POS</h3>
-        <pos-badge variant="info">{{ filteredExports().length }} phiếu xuất</pos-badge>
+      <div class="card-title-group">
+        <h3 class="list-title">Danh Sách Xuất Kho Thiết Bị POS</h3>
+        <pos-badge variant="info">{{ filteredExports().length }} bản ghi</pos-badge>
       </div>
-      <div class="toolbar-right">
+      <div class="card-header-actions">
+        <pos-dropdown
+          buttonVariant="ghost"
+          [items]="columnToggleItems()"
+          (itemClick)="onColumnToggle($event)"
+        >
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
+        </pos-dropdown>
         <pos-button variant="primary" (clicked)="openCreatePage()">➕ Tạo phiếu xuất kho mới</pos-button>
       </div>
     </div>
 
-    <pos-table [columns]="columns" [data]="filteredExports()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredExports()" [loading]="loading()">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'exportCode') {
           <span class="code-badge">{{ row.exportCode }}</span>

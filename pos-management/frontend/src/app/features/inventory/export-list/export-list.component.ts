@@ -34,11 +34,27 @@ export interface ExportOrder {
 export class ExportListPageComponent {
   private readonly router = inject(Router);
 
-  readonly keyword = signal('');
+  readonly searchExportCode = signal('');
+  readonly searchDestination = signal('');
   readonly selectedStatus = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   readonly statusOptions: SelectOption[] = [
     { label: 'Tất cả trạng thái', value: '' },
@@ -68,17 +84,37 @@ export class ExportListPageComponent {
   ]);
 
   readonly filteredExports = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const code = this.searchExportCode().toLowerCase().trim();
+    const dest = this.searchDestination().toLowerCase().trim();
     const st = this.selectedStatus();
     return this.exports().filter(item => {
-      const matchKw = !kw || item.exportCode.toLowerCase().includes(kw) || item.destinationName.toLowerCase().includes(kw);
+      const matchCode = !code || item.exportCode.toLowerCase().includes(code);
+      const matchDest = !dest || item.destinationName.toLowerCase().includes(dest);
       const matchSt = !st || item.status === st;
-      return matchKw && matchSt;
+      return matchCode && matchDest && matchSt;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
+  onReset(): void {
+    this.searchExportCode.set('');
+    this.searchDestination.set('');
+    this.selectedStatus.set('');
+    this.currentPage.set(1);
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất báo cáo danh sách Xuất Kho thành công!');
+  }
 
   openCreatePage(): void {
     this.router.navigate(['/inventory/exports/new']);

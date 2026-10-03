@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import {
   PosButtonComponent, PosInputComponent, PosSelectComponent,
   PosBadgeComponent, PosTableComponent, PosPaginationComponent,
-  TableColumn, SelectOption
+  PosDropdownComponent, TableColumn, SelectOption, DropdownItem
 } from '@shared';
 
 export interface StockItem {
@@ -25,17 +25,33 @@ export interface StockItem {
   imports: [
     CommonModule, FormsModule,
     PosButtonComponent, PosInputComponent, PosSelectComponent,
-    PosBadgeComponent, PosTableComponent, PosPaginationComponent
+    PosBadgeComponent, PosTableComponent, PosPaginationComponent, PosDropdownComponent
   ],
   templateUrl: './stock-list.component.html',
   styleUrl: './stock-list.component.scss'
 })
 export class StockListPageComponent {
-  readonly keyword = signal('');
+  readonly searchPosModel = signal('');
+  readonly searchVendor = signal('');
   readonly selectedWarehouse = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   readonly warehouseOptions: SelectOption[] = [
     { label: 'Tất cả kho', value: '' },
@@ -62,15 +78,35 @@ export class StockListPageComponent {
   ]);
 
   readonly filteredStock = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const model = this.searchPosModel().toLowerCase().trim();
+    const vendor = this.searchVendor().toLowerCase().trim();
     const wh = this.selectedWarehouse();
     return this.stockItems().filter(item => {
-      const matchKw = !kw || item.posModel.toLowerCase().includes(kw) || item.vendorName.toLowerCase().includes(kw);
+      const matchModel = !model || item.posModel.toLowerCase().includes(model);
+      const matchVendor = !vendor || item.vendorName.toLowerCase().includes(vendor);
       const matchWh = !wh || item.warehouseName === wh;
-      return matchKw && matchWh;
+      return matchModel && matchVendor && matchWh;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedWarehouse.set(''); this.currentPage.set(1); }
+  onReset(): void {
+    this.searchPosModel.set('');
+    this.searchVendor.set('');
+    this.selectedWarehouse.set('');
+    this.currentPage.set(1);
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất báo cáo tồn kho thành công!');
+  }
 }

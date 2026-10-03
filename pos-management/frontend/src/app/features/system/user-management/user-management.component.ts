@@ -34,12 +34,28 @@ export interface SystemUser {
   styleUrl: './user-management.component.scss'
 })
 export class UserManagementPageComponent {
-  readonly keyword = signal('');
+  readonly searchUsername = signal('');
+  readonly searchFullName = signal('');
   readonly selectedRole = signal('');
   readonly selectedStatus = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   readonly roleOptions = [
     { label: 'Tất cả vai trò', value: '' },
@@ -74,15 +90,17 @@ export class UserManagementPageComponent {
   ]);
 
   readonly filteredUsers = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const user = this.searchUsername().toLowerCase().trim();
+    const name = this.searchFullName().toLowerCase().trim();
     const role = this.selectedRole();
     const st = this.selectedStatus();
 
     return this.users().filter(item => {
-      const matchesKw = !kw || item.username.toLowerCase().includes(kw) || item.fullName.toLowerCase().includes(kw) || item.email.toLowerCase().includes(kw);
+      const matchesUser = !user || item.username.toLowerCase().includes(user);
+      const matchesName = !name || item.fullName.toLowerCase().includes(name) || item.email.toLowerCase().includes(name);
       const matchesRole = !role || item.roleName.toLowerCase().includes(role.toLowerCase());
       const matchesSt = !st || item.status === st;
-      return matchesKw && matchesRole && matchesSt;
+      return matchesUser && matchesName && matchesRole && matchesSt;
     });
   });
 
@@ -147,8 +165,8 @@ export class UserManagementPageComponent {
 
   getActionItems(item: SystemUser): DropdownItem[] {
     return [
-      { id: 'edit', label: 'Chỉnh sửa tài khoản', icon: 'bi bi-pencil' },
-      { id: 'toggle-lock', label: item.status === 'ACTIVE' ? 'Khóa tài khoản' : 'Mở khóa tài khoản', icon: item.status === 'ACTIVE' ? 'bi bi-lock' : 'bi bi-unlock', danger: item.status === 'ACTIVE' }
+      { id: 'edit', label: 'Chỉnh sửa tài khoản', icon: 'edit' },
+      { id: 'toggle-lock', label: item.status === 'ACTIVE' ? 'Khóa tài khoản' : 'Mở khóa tài khoản', icon: item.status === 'ACTIVE' ? 'lock' : 'lock_open', danger: item.status === 'ACTIVE' }
     ];
   }
 
@@ -171,5 +189,24 @@ export class UserManagementPageComponent {
   }
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedRole.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
+  onReset(): void {
+    this.searchUsername.set('');
+    this.searchFullName.set('');
+    this.selectedRole.set('');
+    this.selectedStatus.set('');
+    this.currentPage.set(1);
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất báo cáo danh sách tài khoản người dùng thành công!');
+  }
 }

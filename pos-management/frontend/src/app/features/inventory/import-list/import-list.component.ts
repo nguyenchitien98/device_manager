@@ -34,11 +34,27 @@ export interface ImportOrder {
 export class ImportListPageComponent {
   private readonly router = inject(Router);
 
-  readonly keyword = signal('');
+  readonly searchImportCode = signal('');
+  readonly searchPoNumber = signal('');
   readonly selectedStatus = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   readonly statusOptions: SelectOption[] = [
     { label: 'Tất cả trạng thái', value: '' },
@@ -68,17 +84,37 @@ export class ImportListPageComponent {
   ]);
 
   readonly filteredImports = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const code = this.searchImportCode().toLowerCase().trim();
+    const po = this.searchPoNumber().toLowerCase().trim();
     const st = this.selectedStatus();
     return this.imports().filter(item => {
-      const matchKw = !kw || item.importCode.toLowerCase().includes(kw) || item.poNumber.toLowerCase().includes(kw);
+      const matchCode = !code || item.importCode.toLowerCase().includes(code);
+      const matchPo = !po || item.poNumber.toLowerCase().includes(po);
       const matchSt = !st || item.status === st;
-      return matchKw && matchSt;
+      return matchCode && matchPo && matchSt;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
+  onReset(): void {
+    this.searchImportCode.set('');
+    this.searchPoNumber.set('');
+    this.selectedStatus.set('');
+    this.currentPage.set(1);
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất báo cáo danh sách Nhập Kho thành công!');
+  }
 
   openCreatePage(): void {
     this.router.navigate(['/inventory/imports/new']);

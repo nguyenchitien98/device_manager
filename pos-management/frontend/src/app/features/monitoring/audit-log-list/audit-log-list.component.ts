@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import {
   PosButtonComponent, PosInputComponent, PosSelectComponent,
   PosBadgeComponent, PosTableComponent, PosPaginationComponent,
-  TableColumn
+  PosDropdownComponent, TableColumn, DropdownItem
 } from '@shared';
 
 export interface AuditLog {
@@ -26,18 +26,34 @@ export interface AuditLog {
   imports: [
     CommonModule, FormsModule,
     PosButtonComponent, PosInputComponent, PosSelectComponent,
-    PosBadgeComponent, PosTableComponent, PosPaginationComponent
+    PosBadgeComponent, PosTableComponent, PosPaginationComponent, PosDropdownComponent
   ],
   templateUrl: './audit-log-list.component.html',
   styleUrl: './audit-log-list.component.scss'
 })
 export class AuditLogListPageComponent {
-  readonly keyword = signal('');
+  readonly searchUsername = signal('');
+  readonly searchAction = signal('');
   readonly selectedModule = signal('');
   readonly selectedStatus = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
+
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.filter(col => !hidden.has(col.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.columns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+    }));
+  });
 
   readonly moduleOptions = [
     { label: 'Tất cả module', value: '' },
@@ -73,18 +89,39 @@ export class AuditLogListPageComponent {
   ]);
 
   readonly filteredLogs = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const user = this.searchUsername().toLowerCase().trim();
+    const act = this.searchAction().toLowerCase().trim();
     const mod = this.selectedModule();
     const st = this.selectedStatus();
 
     return this.logs().filter(item => {
-      const matchesKw = !kw || item.username.toLowerCase().includes(kw) || item.action.toLowerCase().includes(kw) || item.detail.toLowerCase().includes(kw);
+      const matchesUser = !user || item.username.toLowerCase().includes(user);
+      const matchesAct = !act || item.action.toLowerCase().includes(act) || item.detail.toLowerCase().includes(act);
       const matchesMod = !mod || item.module === mod;
       const matchesSt = !st || item.status === st;
-      return matchesKw && matchesMod && matchesSt;
+      return matchesUser && matchesAct && matchesMod && matchesSt;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedModule.set(''); this.selectedStatus.set(''); this.currentPage.set(1); }
+  onReset(): void {
+    this.searchUsername.set('');
+    this.searchAction.set('');
+    this.selectedModule.set('');
+    this.selectedStatus.set('');
+    this.currentPage.set(1);
+  }
+
+  onColumnToggle(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
+
+  exportExcel(): void {
+    alert('Xuất nhật ký Audit Logs thành công!');
+  }
 }

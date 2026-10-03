@@ -1,81 +1,93 @@
-<div class="pos-page-container">
+<div class="list-page-container">
   <div class="search-zone-card">
-    <div class="search-card-header">
-      <div class="card-title">
-        <i class="bi bi-shield-check icon-blue"></i>
-        <span>Nhật ký Tác động & An ninh Hệ thống (Audit Logs)</span>
+    <div class="search-zone-header">
+      <div class="search-title">
+        <span>Nhật Ký Tác Động & An Ninh Hệ Thống (Audit Logs)</span>
       </div>
     </div>
-    <div class="search-card-body">
-      <div class="filter-grid">
-        <pos-input
-          inputId="search-keyword"
-          label="Từ khóa tìm kiếm"
-          placeholder="Tên tài khoản, Hành động, Nội dung chi tiết..."
-          [ngModel]="keyword()"
-          (ngModelChange)="keyword.set($event)"
-          (keydown.enter)="onSearch()">
-        </pos-input>
 
-        <pos-select
-          selectId="search-module"
-          label="Phân Hệ Tác Động"
-          [options]="moduleOptions"
-          [(ngModel)]="selectedModule">
-        </pos-select>
+    <div class="filter-grid">
+      <pos-input
+        label="Tên Tài Khoản"
+        inputId="inp-search-user"
+        placeholder="Nhập tên tài khoản..."
+        [ngModel]="searchUsername()"
+        (ngModelChange)="searchUsername.set($event)"
+        (enterPressed)="onSearch()"
+      />
 
-        <pos-select
-          selectId="search-status"
-          label="Kết Quả Thực Hiện"
-          [options]="statusOptions"
-          [(ngModel)]="selectedStatus">
-        </pos-select>
+      <pos-input
+        label="Hành Động / Chi Tiết"
+        inputId="inp-search-action"
+        placeholder="Nhập hành động hoặc chi tiết..."
+        [ngModel]="searchAction()"
+        (ngModelChange)="searchAction.set($event)"
+        (enterPressed)="onSearch()"
+      />
 
-        <div class="filter-actions">
-          <pos-button btnId="btn-search" variant="primary" icon="bi bi-search" (clicked)="onSearch()">Tra cứu nhật ký</pos-button>
-          <pos-button btnId="btn-reset" variant="secondary" icon="bi bi-arrow-counterclockwise" (clicked)="onReset()">Đặt lại</pos-button>
-        </div>
-      </div>
+      <pos-select
+        label="Phân Hệ Tác Động"
+        selectId="sel-search-module"
+        [options]="moduleOptions"
+        [ngModel]="selectedModule()"
+        (ngModelChange)="selectedModule.set($event)"
+      />
+
+      <pos-select
+        label="Kết Quả Thực Hiện"
+        selectId="sel-search-status"
+        [options]="statusOptions"
+        [ngModel]="selectedStatus()"
+        (ngModelChange)="selectedStatus.set($event)"
+      />
+    </div>
+
+    <div class="filter-actions-right">
+      <pos-button variant="ghost" (clicked)="exportExcel()">📊 Xuất Excel</pos-button>
+      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
+      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tra cứu nhật ký</pos-button>
     </div>
   </div>
 
   <div class="list-zone-card">
-    <div class="list-card-header">
-      <div class="card-title">
-        <i class="bi bi-list-columns-reverse icon-blue"></i>
-        <span>Danh sách Nhật ký Hoạt động</span>
-        <pos-badge variant="info" class="count-badge">{{ filteredLogs().length }} bản ghi</pos-badge>
+    <div class="list-toolbar">
+      <div class="card-title-group">
+        <h3 class="list-title">Danh Sách Nhật Ký Hoạt Động</h3>
+        <pos-badge variant="info">{{ filteredLogs().length }} bản ghi</pos-badge>
+      </div>
+      <div class="card-header-actions">
+        <pos-dropdown
+          buttonVariant="ghost"
+          [items]="columnToggleItems()"
+          (itemClick)="onColumnToggle($event)"
+        >
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
+        </pos-dropdown>
       </div>
     </div>
 
-    <div class="list-card-body">
-      <pos-table [columns]="columns" [data]="filteredLogs()" [loading]="loading()">
-        <ng-template #cellTemplate let-item let-field="field">
-          <ng-container [ngSwitch]="field">
-            <span *ngSwitchCase="'timestamp'" class="font-mono text-muted text-sm">
-              {{ item.timestamp }}
-            </span>
-            <span *ngSwitchCase="'username'" class="font-medium text-primary">
-              {{ item.username }}
-            </span>
-            <span *ngSwitchCase="'status'">
-              <pos-badge [variant]="item.status === 'SUCCESS' ? 'success' : (item.status === 'FAILED' ? 'danger' : 'warning')">
-                {{ item.status === 'SUCCESS' ? 'Thành công' : (item.status === 'FAILED' ? 'Thất bại' : 'Cảnh báo') }}
-              </pos-badge>
-            </span>
-            <span *ngSwitchDefault>{{ item[field] }}</span>
-          </ng-container>
-        </ng-template>
-      </pos-table>
-    </div>
+    <pos-table [columns]="visibleColumns()" [data]="filteredLogs()" [loading]="loading()">
+      <ng-template #cellTemplate let-row let-col="column">
+        @if (col.field === 'timestamp') {
+          <span class="font-mono text-muted text-sm">{{ row.timestamp }}</span>
+        } @else if (col.field === 'username') {
+          <strong>{{ row.username }}</strong>
+        } @else if (col.field === 'status') {
+          <pos-badge [variant]="row.status === 'SUCCESS' ? 'success' : (row.status === 'FAILED' ? 'danger' : 'warning')" [dot]="true">
+            {{ row.status === 'SUCCESS' ? 'Thành công' : (row.status === 'FAILED' ? 'Thất bại' : 'Cảnh báo') }}
+          </pos-badge>
+        } @else {
+          {{ row[col.field] }}
+        }
+      </ng-template>
+    </pos-table>
 
-    <div class="list-card-footer">
-      <pos-pagination
-        [totalItems]="filteredLogs().length"
-        [pageSize]="pageSize()"
-        [currentPage]="currentPage()"
-        (pageChange)="currentPage.set($event)">
-      </pos-pagination>
-    </div>
+    <pos-pagination
+      [totalItems]="filteredLogs().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage()"
+      (pageChange)="currentPage.set($event)"
+      (pageSizeChange)="pageSize.set($event)"
+    />
   </div>
 </div>

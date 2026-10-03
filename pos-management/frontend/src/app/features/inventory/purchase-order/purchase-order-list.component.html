@@ -1,98 +1,129 @@
-<div class="list-page-container">
+<div class="pos-page-container">
+  <!-- SEARCH ZONE CARD -->
   <div class="search-zone-card">
-    <div class="search-zone-header">
-      <div class="search-title">
-        <span class="material-icons title-icon">filter_alt</span>
-        <span>Bộ Lọc Tìm Kiếm Đơn Mua Hàng PO</span>
+    <div class="search-card-header">
+      <div class="card-title-group">
+        <h3 class="card-title">Bộ Lọc Tìm Kiếm</h3>
       </div>
     </div>
 
-    <div class="filter-grid">
-      <pos-input
-        label="Từ khóa"
-        inputId="inp-search-kw"
-        type="search"
-        placeholder="Nhập số PO, tên vendor..."
-        [ngModel]="keyword()"
-        (ngModelChange)="keyword.set($event)"
-        (enterPressed)="onSearch()"
-      />
+    <div class="search-card-body">
+      <div class="filter-grid">
+        <pos-input
+          inputId="filter-po"
+          label="Số Đơn Hàng PO"
+          placeholder="VD: PO-2026-001..."
+          [ngModel]="filterPoNumber()"
+          (ngModelChange)="filterPoNumber.set($event)"
+          (keydown.enter)="onSearch()">
+        </pos-input>
 
-      <pos-select
-        label="Trạng thái đơn PO"
-        selectId="sel-search-status"
-        [options]="statusOptions"
-        [ngModel]="selectedStatus()"
-        (ngModelChange)="selectedStatus.set($event)"
-      />
-    </div>
+        <pos-select
+          selectId="filter-vendor"
+          label="Nhà Cung Cấp"
+          [options]="vendorOptions"
+          [ngModel]="selectedVendor()"
+          (ngModelChange)="selectedVendor.set($event)">
+        </pos-select>
 
-    <div class="filter-actions">
-      <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
-      <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
+        <pos-select
+          selectId="filter-status"
+          label="Trạng Thái Phê Duyệt"
+          [options]="statusOptions"
+          [ngModel]="selectedStatus()"
+          (ngModelChange)="selectedStatus.set($event)">
+        </pos-select>
+      </div>
+
+      <div class="filter-actions-right">
+        <pos-button btnId="btn-export-excel" variant="secondary" icon="bi bi-file-earmark-excel" (clicked)="onExportExcel()">Xuất Excel</pos-button>
+        <pos-button btnId="btn-reset" variant="secondary" icon="bi bi-arrow-counterclockwise" (clicked)="onReset()">Xóa bộ lọc</pos-button>
+        <pos-button btnId="btn-search" variant="primary" icon="bi bi-search" (clicked)="onSearch()">Tìm kiếm</pos-button>
+      </div>
     </div>
   </div>
 
+  <!-- LIST ZONE CARD -->
   <div class="list-zone-card">
-    <div class="list-toolbar">
-      <div class="toolbar-left">
-        <h3 class="list-title">Quản Lý Đơn Mua Hàng PO (Purchase Orders)</h3>
-        <pos-badge variant="info">{{ filteredOrders().length }} đơn PO</pos-badge>
+    <div class="list-card-header">
+      <div class="card-title-group">
+        <h3 class="card-title">Danh Sách Đơn Hàng Mua POS (PO)</h3>
+        <pos-badge variant="info" class="count-badge">{{ filteredOrders().length }} đơn hàng</pos-badge>
       </div>
-      <div class="toolbar-right">
-        <pos-button variant="primary" (clicked)="openCreateModal()">➕ Tạo đơn PO mới</pos-button>
+
+      <div class="card-header-actions">
+        <pos-dropdown [items]="columnToggleItems()" (itemClick)="toggleColumn($event)">
+          <button class="col-toggle-btn" type="button">
+            <i class="bi bi-columns-gap"></i>
+            <span>Hiển thị cột</span>
+          </button>
+        </pos-dropdown>
+
+        <pos-button btnId="btn-create-po" variant="primary" icon="bi bi-plus-lg" (clicked)="openCreateModal()">
+          Tạo đơn mua PO mới
+        </pos-button>
       </div>
     </div>
 
-    <pos-table [columns]="columns" [data]="filteredOrders()" [loading]="loading()">
-      <ng-template #cellTemplate let-row let-col="column">
-        @if (col.field === 'poNumber') {
-          <span class="code-badge">{{ row.poNumber }}</span>
-        } @else if (col.field === 'totalAmountVnd') {
-          <strong>{{ row.totalAmountVnd | number:'1.0-0' }} ₫</strong>
-        } @else if (col.field === 'status') {
-          <pos-badge [variant]="row.status === 'IMPORTED' ? 'success' : row.status === 'APPROVED' ? 'primary' : row.status === 'DRAFT' ? 'gray' : 'danger'" [dot]="true">
-            {{ row.status === 'IMPORTED' ? 'Đã nhập kho' : row.status === 'APPROVED' ? 'Đã phê duyệt' : row.status === 'DRAFT' ? 'Bản nháp' : 'Từ chối' }}
-          </pos-badge>
-        } @else if (col.field === 'actions') {
-          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
-        } @else {
-          {{ row[col.field] }}
-        }
-      </ng-template>
-    </pos-table>
+    <div class="list-card-body p-0">
+      <pos-table [columns]="visibleColumns()" [data]="filteredOrders()" [loading]="loading()">
+        <ng-template #cellTemplate let-item let-field="field">
+          <ng-container [ngSwitch]="field">
+            <span *ngSwitchCase="'poNumber'" class="font-mono text-primary font-bold">
+              {{ item.poNumber }}
+            </span>
+            <span *ngSwitchCase="'quantity'" class="font-bold">
+              {{ item.quantity | number:'1.0-0' }}
+            </span>
+            <span *ngSwitchCase="'totalValue'" class="font-bold text-primary">
+              {{ item.totalValue | number:'1.0-0' }}
+            </span>
+            <span *ngSwitchCase="'status'">
+              <pos-badge [variant]="item.status === 'COMPLETED' ? 'success' : (item.status === 'APPROVED' ? 'info' : 'warning')">
+                {{ item.status === 'COMPLETED' ? 'Hoàn tất' : (item.status === 'APPROVED' ? 'Đã duyệt' : 'Chờ duyệt') }}
+              </pos-badge>
+            </span>
+            <span *ngSwitchCase="'actions'">
+              <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(item, $event)"></pos-dropdown>
+            </span>
+            <span *ngSwitchDefault>{{ item[field] }}</span>
+          </ng-container>
+        </ng-template>
+      </pos-table>
+    </div>
 
-    <pos-pagination
-      [totalItems]="filteredOrders().length"
-      [pageSize]="pageSize()"
-      [currentPage]="currentPage()"
-      (pageChange)="currentPage.set($event)"
-      (pageSizeChange)="pageSize.set($event)"
-    />
+    <div class="list-card-footer">
+      <pos-pagination
+        [totalItems]="filteredOrders().length"
+        [pageSize]="pageSize()"
+        [currentPage]="currentPage()"
+        (pageChange)="currentPage.set($event)">
+      </pos-pagination>
+    </div>
   </div>
+
+  <!-- Create / Edit Modal -->
+  <pos-modal [isOpen]="showModal()" [title]="modalTitle()" size="md" (closed)="showModal.set(false)">
+    <div class="modal-form-grid">
+      <pos-input inputId="form-po" label="Số PO" placeholder="VD: PO-2026-001" [required]="true" [ngModel]="formModel.poNumber" (ngModelChange)="formModel.poNumber = $event"></pos-input>
+      <pos-select selectId="form-vendor" label="Nhà Cung Cấp" [options]="vendorOptions.slice(1)" [(ngModel)]="formModel.vendorName"></pos-select>
+      <pos-input inputId="form-qty" type="number" label="Số Lượng" [ngModel]="formModel.quantity" (ngModelChange)="formModel.quantity = $event"></pos-input>
+    </div>
+
+    <div class="modal-footer-actions">
+      <pos-button btnId="btn-cancel" variant="ghost" (clicked)="showModal.set(false)">Hủy bỏ</pos-button>
+      <pos-button btnId="btn-save" variant="primary" [loading]="saving()" (clicked)="onSave()">Lưu thông tin</pos-button>
+    </div>
+  </pos-modal>
+
+  <!-- Delete Confirm Dialog -->
+  <pos-confirm-dialog
+    [isOpen]="showDeleteConfirm()"
+    title="Xóa Đơn Hàng PO?"
+    [message]="'Bạn có chắc chắn muốn xóa đơn hàng `' + (selectedItem()?.poNumber || '') + '`?'"
+    type="danger"
+    [loading]="deleting()"
+    (confirm)="onConfirmDelete()"
+    (cancel)="showDeleteConfirm.set(false)">
+  </pos-confirm-dialog>
 </div>
-
-<pos-modal [isOpen]="showModal()" [title]="modalTitle()" size="md" (closed)="showModal.set(false)">
-  <div class="form-grid">
-    <pos-input label="Số Đơn PO" inputId="inp-po-num" placeholder="VD: PO-2026-005" [required]="true" [(ngModel)]="formModel.poNumber" />
-    <pos-input label="Nhà Cung Cấp" inputId="inp-po-vendor" placeholder="VD: PAX Technology Ltd" [required]="true" [(ngModel)]="formModel.vendorName" />
-    <pos-input type="number" label="Số Lượng Thiết Bị POS" inputId="inp-po-qty" [(ngModel)]="formModel.totalQuantity" />
-    <pos-input type="number" label="Tổng Giá Trị (VND)" inputId="inp-po-amount" [(ngModel)]="formModel.totalAmountVnd" />
-    <pos-input type="date" label="Ngày Dự Kiến Giao" inputId="inp-po-delivery" [(ngModel)]="formModel.expectedDeliveryDate" />
-  </div>
-
-  <div modal-footer>
-    <pos-button variant="ghost" (clicked)="showModal.set(false)">Hủy</pos-button>
-    <pos-button variant="primary" [loading]="saving()" (clicked)="onSave()">Lưu thông tin</pos-button>
-  </div>
-</pos-modal>
-
-<pos-confirm-dialog
-  [isOpen]="showDeleteConfirm()"
-  title="Hủy Đơn PO"
-  [message]="'Bạn có chắc chắn muốn hủy đơn PO `' + selectedItem()?.poNumber + '`?'"
-  type="danger"
-  [loading]="deleting()"
-  (confirm)="onConfirmDelete()"
-  (cancel)="showDeleteConfirm.set(false)"
-/>

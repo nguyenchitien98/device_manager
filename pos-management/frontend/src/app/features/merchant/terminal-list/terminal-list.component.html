@@ -2,24 +2,40 @@
   <div class="search-zone-card">
     <div class="search-zone-header">
       <div class="search-title">
-        <span class="material-icons title-icon">filter_alt</span>
         <span>Bộ Lọc Tìm Kiếm Mã TID Terminal</span>
       </div>
     </div>
 
     <div class="filter-grid">
       <pos-input
-        label="Từ khóa"
-        inputId="inp-search-kw"
-        type="search"
-        placeholder="Nhập TID, MID, Serial POS..."
-        [ngModel]="keyword()"
-        (ngModelChange)="keyword.set($event)"
+        label="Mã TID"
+        inputId="inp-search-tid"
+        placeholder="Nhập mã TID..."
+        [ngModel]="searchTid()"
+        (ngModelChange)="searchTid.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-input
+        label="Mã / Tên MID Merchant"
+        inputId="inp-search-mid"
+        placeholder="Nhập mã MID hoặc tên merchant..."
+        [ngModel]="searchMerchantCode()"
+        (ngModelChange)="searchMerchantCode.set($event)"
+        (enterPressed)="onSearch()"
+      />
+
+      <pos-input
+        label="Serial POS"
+        inputId="inp-search-serial"
+        placeholder="Nhập số Serial POS..."
+        [ngModel]="searchSerial()"
+        (ngModelChange)="searchSerial.set($event)"
         (enterPressed)="onSearch()"
       />
 
       <pos-select
-        label="Trạng thái TID"
+        label="Trạng Thái TID"
         selectId="sel-search-status"
         [options]="statusOptions"
         [ngModel]="selectedStatus()"
@@ -27,7 +43,8 @@
       />
     </div>
 
-    <div class="filter-actions">
+    <div class="filter-actions-right">
+      <pos-button variant="ghost" (clicked)="exportExcel()">📊 Xuất Excel</pos-button>
       <pos-button variant="ghost" (clicked)="onReset()">🔄 Xóa bộ lọc</pos-button>
       <pos-button variant="primary" (clicked)="onSearch()">🔍 Tìm kiếm</pos-button>
     </div>
@@ -35,16 +52,23 @@
 
   <div class="list-zone-card">
     <div class="list-toolbar">
-      <div class="toolbar-left">
-        <h3 class="list-title">Quản Lý Mã TID Terminal</h3>
-        <pos-badge variant="info">{{ filteredTerminals().length }} TID</pos-badge>
+      <div class="card-title-group">
+        <h3 class="list-title">Danh Sách Mã TID Terminal</h3>
+        <pos-badge variant="info">{{ filteredTerminals().length }} bản ghi</pos-badge>
       </div>
-      <div class="toolbar-right">
+      <div class="card-header-actions">
+        <pos-dropdown
+          buttonVariant="ghost"
+          [items]="columnToggleItems()"
+          (itemClick)="onColumnToggle($event)"
+        >
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
+        </pos-dropdown>
         <pos-button variant="primary" (clicked)="openCreateModal()">➕ Cấp mã TID mới</pos-button>
       </div>
     </div>
 
-    <pos-table [columns]="columns" [data]="filteredTerminals()" [loading]="loading()">
+    <pos-table [columns]="visibleColumns()" [data]="filteredTerminals()" [loading]="loading()">
       <ng-template #cellTemplate let-row let-col="column">
         @if (col.field === 'tid') {
           <span class="code-badge">{{ row.tid }}</span>

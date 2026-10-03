@@ -32,11 +32,14 @@ export interface DeviceType {
   styleUrl: './device-type-list.component.scss'
 })
 export class DeviceTypeListPageComponent {
-  readonly keyword = signal('');
+  readonly filterCode = signal('');
+  readonly filterName = signal('');
   readonly selectedCategory = signal('');
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
+
+  readonly hiddenColumns = signal<Set<string>>(new Set());
 
   readonly showModal = signal(false);
   readonly isEditing = signal(false);
@@ -64,8 +67,8 @@ export class DeviceTypeListPageComponent {
     { label: 'Soundbox Loa QR', value: 'Soundbox Loa QR' }
   ];
 
-  readonly columns: TableColumn[] = [
-    { field: 'code', header: 'Mã Loại', width: '140px', sortable: true },
+  readonly allColumns: TableColumn[] = [
+    { field: 'code', header: 'Mã Loại', width: '150px', sortable: true },
     { field: 'name', header: 'Tên Loại Thiết Bị', width: '220px', sortable: true },
     { field: 'categoryName', header: 'Thuộc Danh Mục', width: '200px' },
     { field: 'connectionType', header: 'Kết Nối', width: '150px', align: 'center' },
@@ -74,9 +77,23 @@ export class DeviceTypeListPageComponent {
     { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
   ];
 
+  readonly visibleColumns = computed(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.filter(c => !hidden.has(c.field));
+  });
+
+  readonly columnToggleItems = computed<DropdownItem[]>(() => {
+    const hidden = this.hiddenColumns();
+    return this.allColumns.map(col => ({
+      id: col.field,
+      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
+      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
+    }));
+  });
+
   readonly actionItems: DropdownItem[] = [
-    { id: 'edit', label: 'Chỉnh sửa', icon: 'edit' },
-    { id: 'delete', label: 'Xóa loại thiết bị', icon: 'delete', danger: true }
+    { id: 'edit', label: 'Chỉnh sửa', icon: 'bi bi-pencil' },
+    { id: 'delete', label: 'Xóa loại thiết bị', icon: 'bi bi-trash', danger: true }
   ];
 
   readonly deviceTypes = signal<DeviceType[]>([
@@ -88,17 +105,29 @@ export class DeviceTypeListPageComponent {
   ]);
 
   readonly filteredTypes = computed(() => {
-    const kw = this.keyword().toLowerCase().trim();
+    const fc = this.filterCode().toLowerCase().trim();
+    const fn = this.filterName().toLowerCase().trim();
     const cat = this.selectedCategory();
     return this.deviceTypes().filter(item => {
-      const matchKw = !kw || item.code.toLowerCase().includes(kw) || item.name.toLowerCase().includes(kw);
+      const matchCode = !fc || item.code.toLowerCase().includes(fc);
+      const matchName = !fn || item.name.toLowerCase().includes(fn);
       const matchCat = !cat || item.categoryName === cat;
-      return matchKw && matchCat;
+      return matchCode && matchName && matchCat;
     });
   });
 
   onSearch(): void { this.currentPage.set(1); }
-  onReset(): void { this.keyword.set(''); this.selectedCategory.set(''); this.currentPage.set(1); }
+  onReset(): void { this.filterCode.set(''); this.filterName.set(''); this.selectedCategory.set(''); this.currentPage.set(1); }
+  onExportExcel(): void {}
+
+  toggleColumn(item: DropdownItem): void {
+    this.hiddenColumns.update(set => {
+      const next = new Set(set);
+      if (next.has(item.id)) next.delete(item.id);
+      else next.add(item.id);
+      return next;
+    });
+  }
 
   openCreateModal(): void {
     this.isEditing.set(false);
