@@ -66,7 +66,7 @@ export class ExportListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'exportCode', header: 'Mã Phiếu Xuất', width: '150px', sortable: true },
     { field: 'destinationName', header: 'Nơi Nhận / Merchant / Kho', width: '240px' },
     { field: 'exportType', header: 'Mục Đích Xuất', width: '160px', align: 'center' },

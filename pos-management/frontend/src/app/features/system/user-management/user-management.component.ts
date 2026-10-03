@@ -74,7 +74,7 @@ export class UserManagementPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'username', header: 'Tên Đăng Nhập', width: '150px', sortable: true },
     { field: 'fullName', header: 'Họ Và Tên', width: '180px' },
     { field: 'email', header: 'Email Liên Hệ', width: '200px' },

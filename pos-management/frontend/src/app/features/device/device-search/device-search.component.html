@@ -76,7 +76,11 @@
             {{ row.status === 'IN_USE' ? 'Đang hoạt động' : row.status === 'IN_STOCK' ? 'Tồn kho sẵn sàng' : row.status === 'MAINTENANCE' ? 'Bảo hành' : 'Thanh lý' }}
           </pos-badge>
         } @else if (col.field === 'actions') {
-          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+          <span class="action-btn-group">
+            <pos-button variant="info" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'view', label: '' })">
+              👁️ Xem
+            </pos-button>
+          </span>
         } @else {
           {{ row[col.field] }}
         }

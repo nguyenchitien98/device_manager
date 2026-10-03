@@ -70,7 +70,7 @@ export class DeviceModelListPageComponent {
   ];
 
   readonly allColumns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'code', header: 'Mã Model', width: '140px', sortable: true },
     { field: 'name', header: 'Tên Model POS', width: '200px', sortable: true },
     { field: 'vendorName', header: 'Nhà Cung Cấp', width: '180px' },

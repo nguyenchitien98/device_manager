@@ -75,7 +75,7 @@ export class ApprovalInboxPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '120px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '220px', align: 'center' },
     { field: 'requestCode', header: 'Mã Yêu Cầu', width: '150px', sortable: true },
     { field: 'requestType', header: 'Loại Hồ Sơ', width: '160px' },
     { field: 'title', header: 'Tiêu Đề Trình Duyệt', width: '250px' },

@@ -71,7 +71,7 @@ export class WarehouseListPageComponent {
   ];
 
   readonly allColumns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'code', header: 'Mã Kho', width: '130px', sortable: true },
     { field: 'name', header: 'Tên Kho Thiết Bị', width: '220px', sortable: true },
     { field: 'location', header: 'Khu Vực', width: '150px' },

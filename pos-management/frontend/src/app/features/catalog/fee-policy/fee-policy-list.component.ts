@@ -61,7 +61,7 @@ export class FeePolicyListPageComponent {
   };
 
   readonly allColumns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'code', header: 'Mã CS Phí', width: '130px', sortable: true },
     { field: 'name', header: 'Tên Chính Sách Phí', width: '220px', sortable: true },
     { field: 'feeRate', header: 'Tỷ Lệ Phí (%)', width: '130px', align: 'right' },

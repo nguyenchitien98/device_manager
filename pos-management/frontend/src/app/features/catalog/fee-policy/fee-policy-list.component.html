@@ -76,8 +76,13 @@
                 {{ item.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động' }}
               </pos-badge>
             </span>
-            <span *ngSwitchCase="'actions'">
-              <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(item, $event)"></pos-dropdown>
+            <span *ngSwitchCase="'actions'" class="action-btn-group">
+              <pos-button variant="warning" size="xs" [pill]="true" (clicked)="openEditModal(item)">
+                ✏️ Sửa
+              </pos-button>
+              <pos-button variant="danger" size="xs" [pill]="true" (clicked)="selectedItem.set(item); showDeleteConfirm.set(true)">
+                🗑️ Xóa
+              </pos-button>
             </span>
             <span *ngSwitchDefault>{{ item[field] }}</span>
           </ng-container>

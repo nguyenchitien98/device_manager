@@ -65,7 +65,7 @@ export class MccListPageComponent {
   ];
 
   readonly allColumns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'code', header: 'Mã MCC', width: '130px', sortable: true },
     { field: 'nameName', header: 'Tên Ngành Nghề Kinh Doanh', width: '250px', sortable: true },
     { field: 'riskLevel', header: 'Mức Rủi Ro', width: '150px', align: 'center' },

@@ -89,7 +89,7 @@ export class MerchantListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '200px', align: 'center' },
     { field: 'merchantCode', header: 'Mã MID', width: '140px', sortable: true },
     { field: 'brandName', header: 'Tên Thương Hiệu / Cửa Hàng', width: '220px', sortable: true },
     { field: 'legalName', header: 'Tên Tên Pháp Lý (Công Ty)', width: '220px' },
@@ -182,9 +182,29 @@ export class MerchantListPageComponent {
     }, 400);
   }
 
+  onViewMerchant(row: MerchantItem): void {
+    this.router.navigate(['/merchant/merchants', row.id]);
+  }
+
+  openEditModal(row: MerchantItem): void {
+    this.formModel = {
+      merchantCode: row.merchantCode,
+      legalName: row.legalName,
+      brandName: row.brandName,
+      mccCode: row.mccCode,
+      businessUnitName: row.businessUnitName,
+      taxCode: '0101234567',
+      representativeName: 'Nguyễn Văn A',
+      phone: '0901234567',
+      email: 'contact@merchant.com',
+      address: 'Hà Nội'
+    };
+    this.showModal.set(true);
+  }
+
   onActionClick(row: MerchantItem, item: DropdownItem): void {
     if (item.id === 'view') {
-      this.router.navigate(['/merchant/merchants', row.id]);
+      this.onViewMerchant(row);
     } else if (item.id === 'lock') {
       this.selectedItem.set(row);
       this.showDeleteConfirm.set(true);

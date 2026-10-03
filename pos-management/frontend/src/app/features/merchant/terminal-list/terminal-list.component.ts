@@ -84,7 +84,7 @@ export class TerminalListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '200px', align: 'center' },
     { field: 'tid', header: 'Mã TID', width: '130px', sortable: true },
     { field: 'merchantCode', header: 'Mã MID', width: '140px', sortable: true },
     { field: 'merchantName', header: 'Tên Merchant / Cửa Hàng', width: '220px' },
@@ -171,9 +171,24 @@ export class TerminalListPageComponent {
     }, 400);
   }
 
+  onViewTerminal(row: TerminalItem): void {
+    this.router.navigate(['/merchant/terminals', row.id]);
+  }
+
+  openEditModal(row: TerminalItem): void {
+    this.formModel = {
+      tid: row.tid,
+      merchantCode: row.merchantCode,
+      merchantName: row.merchantName,
+      assignedSerial: row.assignedSerial,
+      posModel: row.posModel
+    };
+    this.showModal.set(true);
+  }
+
   onActionClick(row: TerminalItem, item: DropdownItem): void {
     if (item.id === 'view') {
-      this.router.navigate(['/merchant/terminals', row.id]);
+      this.onViewTerminal(row);
     } else if (item.id === 'lock') {
       this.selectedItem.set(row);
       this.showDeleteConfirm.set(true);

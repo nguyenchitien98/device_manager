@@ -76,7 +76,7 @@ export class PurchaseOrderListPageComponent {
   ];
 
   readonly allColumns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'poNumber', header: 'Số Đơn Hàng (PO)', width: '160px', sortable: true },
     { field: 'vendorName', header: 'Nhà Cung Cấp', width: '200px' },
     { field: 'deviceModel', header: 'Model Đặt Mua', width: '180px' },

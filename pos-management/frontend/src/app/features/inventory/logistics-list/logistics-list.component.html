@@ -68,7 +68,14 @@
             {{ row.status === 'DELIVERED' ? 'Đã giao' : row.status === 'IN_TRANSIT' ? 'Đang giao' : row.status === 'PREPARING' ? 'Đóng gói' : 'Thất bại' }}
           </pos-badge>
         } @else if (col.field === 'actions') {
-          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+          <span class="action-btn-group">
+            <pos-button variant="info" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'track', label: '' })">
+              👁️ Xem
+            </pos-button>
+            <pos-button variant="warning" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'track', label: '' })">
+              ✏️ Sửa
+            </pos-button>
+          </span>
         } @else {
           {{ row[col.field] }}
         }

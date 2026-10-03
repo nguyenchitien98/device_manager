@@ -209,3 +209,12 @@
   padding-top: 16px;
   border-top: 1px solid var(--border-color, #f1f5f9);
 }
+
+/* Action Buttons Container in Table Cells */
+.action-btn-group, .actions-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}

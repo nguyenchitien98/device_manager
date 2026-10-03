@@ -132,12 +132,35 @@
 
   /* WARNING */
   &--warning {
-    background: rgba(217,119,6,0.1);
+    background: rgba(217,119,6,0.12);
     border-color: var(--warning, #D97706);
     color: var(--warning, #D97706);
 
     &:hover:not(:disabled) {
-      background: rgba(217,119,6,0.16);
+      background: #D97706;
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(217,119,6,0.3);
     }
+  }
+
+  /* INFO */
+  &--info {
+    background: rgba(14,165,233,0.12);
+    border-color: var(--info, #0EA5E9);
+    color: var(--info, #0EA5E9);
+
+    &:hover:not(:disabled) {
+      background: #0EA5E9;
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(14,165,233,0.3);
+    }
+  }
+
+  /* PILL MODIFIER (Capsule / Round Buttons) */
+  &--pill {
+    border-radius: 9999px !important;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-weight: 600;
   }
 }

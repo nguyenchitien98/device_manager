@@ -74,7 +74,7 @@ export class DeviceCategoryListPageComponent {
 
   // Table Columns
   readonly allColumns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'code', header: 'Mã Danh Mục', width: '150px', sortable: true },
     { field: 'name', header: 'Tên Danh Mục', width: '220px', sortable: true },
     { field: 'description', header: 'Mô Tả' },

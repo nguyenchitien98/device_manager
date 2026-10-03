@@ -67,7 +67,7 @@ export class TransferListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'transferCode', header: 'Mã Điều Chuyển', width: '150px', sortable: true },
     { field: 'sourceWarehouse', header: 'Kho Xuất Hàng', width: '200px' },
     { field: 'targetWarehouse', header: 'Kho Nhận Hàng', width: '200px' },

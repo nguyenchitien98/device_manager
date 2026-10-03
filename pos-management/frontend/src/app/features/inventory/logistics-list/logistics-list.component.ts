@@ -64,7 +64,7 @@ export class LogisticsListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'trackingNumber', header: 'Mã Vận Đơn', width: '160px', sortable: true },
     { field: 'carrierName', header: 'Đơn Vị Vận Chuyển', width: '180px' },
     { field: 'sourceWarehouse', header: 'Nơi Gửi (Kho Xuất)', width: '200px' },

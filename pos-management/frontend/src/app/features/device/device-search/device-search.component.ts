@@ -66,7 +66,7 @@ export class DeviceSearchPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '120px', align: 'center' },
     { field: 'serialNumber', header: 'Số Serial POS', width: '170px', sortable: true },
     { field: 'posModel', header: 'Model Thiết Bị', width: '200px', sortable: true },
     { field: 'warehouseName', header: 'Kho Hiện Tại', width: '200px' },

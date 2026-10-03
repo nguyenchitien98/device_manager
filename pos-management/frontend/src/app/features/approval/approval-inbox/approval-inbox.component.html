@@ -80,7 +80,19 @@
             {{ row.status === 'APPROVED' ? 'Đã duyệt' : (row.status === 'REJECTED' ? 'Từ chối' : 'Chờ phê duyệt') }}
           </pos-badge>
         } @else if (col.field === 'actions') {
-          <pos-dropdown [items]="getActionItems(row)" (itemClick)="onActionClick(row, $event)" />
+          <span class="action-btn-group">
+            <pos-button variant="info" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'view', label: '' })">
+              👁️ Xem
+            </pos-button>
+            @if (row.status === 'PENDING') {
+              <pos-button variant="success" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'quick-approve', label: '' })">
+                ✓ Duyệt
+              </pos-button>
+              <pos-button variant="danger" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'quick-reject', label: '' })">
+                ✕ Từ chối
+              </pos-button>
+            }
+          </span>
         } @else {
           {{ row[col.field] }}
         }

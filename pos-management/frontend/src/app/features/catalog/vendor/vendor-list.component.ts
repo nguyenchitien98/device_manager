@@ -62,7 +62,7 @@ export class VendorListPageComponent {
   };
 
   readonly allColumns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'code', header: 'Mã NCC', width: '130px', sortable: true },
     { field: 'name', header: 'Tên Nhà Cung Cấp', width: '220px', sortable: true },
     { field: 'contactPerson', header: 'Người Liên Hệ', width: '180px' },

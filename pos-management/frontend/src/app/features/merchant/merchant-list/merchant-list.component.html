@@ -71,7 +71,17 @@
             {{ row.status === 'ACTIVE' ? 'Hoạt động' : row.status === 'PENDING_APPROVAL' ? 'Chờ duyệt' : 'Tạm khóa' }}
           </pos-badge>
         } @else if (col.field === 'actions') {
-          <pos-dropdown [items]="actionItems" (itemClick)="onActionClick(row, $event)" />
+          <span class="action-btn-group">
+            <pos-button variant="info" size="xs" [pill]="true" (clicked)="onViewMerchant(row)">
+              👁️ Xem
+            </pos-button>
+            <pos-button variant="warning" size="xs" [pill]="true" (clicked)="openEditModal(row)">
+              ✏️ Sửa
+            </pos-button>
+            <pos-button variant="danger" size="xs" [pill]="true" (clicked)="selectedItem.set(row); showDeleteConfirm.set(true)">
+              🔒 Khóa
+            </pos-button>
+          </span>
         } @else {
           {{ row[col.field] }}
         }

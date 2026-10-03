@@ -66,7 +66,7 @@ export class ImportListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'importCode', header: 'Mã Phiếu Nhập', width: '150px', sortable: true },
     { field: 'poNumber', header: 'Số Đơn PO', width: '140px' },
     { field: 'warehouseName', header: 'Kho Nhập Hàng', width: '220px' },

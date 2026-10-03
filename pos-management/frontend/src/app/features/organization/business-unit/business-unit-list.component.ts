@@ -59,7 +59,7 @@ export class BusinessUnitListPageComponent {
   };
 
   readonly allColumns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'code', header: 'Mã Đơn Vị', width: '140px', sortable: true },
     { field: 'name', header: 'Tên Đơn Vị Kinh Doanh', width: '250px', sortable: true },
     { field: 'managerName', header: 'Trưởng Đơn Vị', width: '180px' },

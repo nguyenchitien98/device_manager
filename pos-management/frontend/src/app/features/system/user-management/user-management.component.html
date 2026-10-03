@@ -77,7 +77,14 @@
             {{ row.status === 'ACTIVE' ? 'Hoạt động' : 'Bị khóa' }}
           </pos-badge>
         } @else if (col.field === 'actions') {
-          <pos-dropdown [items]="getActionItems(row)" (itemClick)="onActionClick(row, $event)" />
+          <span class="action-btn-group">
+            <pos-button variant="warning" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'edit', label: '' })">
+              ✏️ Sửa
+            </pos-button>
+            <pos-button [variant]="row.status === 'ACTIVE' ? 'danger' : 'success'" size="xs" [pill]="true" (clicked)="onActionClick(row, { id: 'toggle-lock', label: '' })">
+              {{ row.status === 'ACTIVE' ? '🔒 Khóa' : '🔓 Mở' }}
+            </pos-button>
+          </span>
         } @else {
           {{ row[col.field] }}
         }

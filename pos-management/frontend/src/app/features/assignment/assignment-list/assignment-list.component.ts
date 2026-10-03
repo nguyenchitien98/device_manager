@@ -65,7 +65,7 @@ export class AssignmentListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'assignmentCode', header: 'Mã Lệnh', width: '150px', sortable: true },
     { field: 'actionType', header: 'Loại Hành Động', width: '170px', align: 'center' },
     { field: 'merchantName', header: 'Merchant Tương Tác', width: '220px' },

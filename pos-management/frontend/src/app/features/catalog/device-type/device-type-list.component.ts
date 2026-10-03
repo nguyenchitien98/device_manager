@@ -68,7 +68,7 @@ export class DeviceTypeListPageComponent {
   ];
 
   readonly allColumns: TableColumn[] = [
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
+    { field: 'actions', header: 'Thao Tác', width: '150px', align: 'center' },
     { field: 'code', header: 'Mã Loại', width: '150px', sortable: true },
     { field: 'name', header: 'Tên Loại Thiết Bị', width: '220px', sortable: true },
     { field: 'categoryName', header: 'Thuộc Danh Mục', width: '200px' },
