@@ -73,6 +73,10 @@ const BREADCRUMB_MAP: Record<string, Breadcrumb[]> = {
     { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/transfers' },
     { label: 'Điều chuyển kho', url: '/inventory/transfers' },
   ],
+  '/inventory/logistics': [
+    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/logistics' },
+    { label: 'Theo dõi vận chuyển', url: '/inventory/logistics' },
+  ],
   '/merchant/merchants': [
     { label: 'Quản Lý Merchant', url: '/merchant/merchants' },
     { label: 'Danh sách Merchant', url: '/merchant/merchants' },
@@ -123,6 +127,7 @@ const PAGE_TITLE_MAP: Record<string, string> = {
   '/inventory/exports': 'Thông tin Xuất kho',
   '/inventory/stock': 'Thông tin tồn kho',
   '/inventory/transfers': 'Điều chuyển kho',
+  '/inventory/logistics': 'Theo dõi vận chuyển',
   '/merchant/merchants': 'Danh sách Merchant',
   '/merchant/terminals': 'Quản lý TID',
   '/device/search': 'Tra cứu thiết bị',
