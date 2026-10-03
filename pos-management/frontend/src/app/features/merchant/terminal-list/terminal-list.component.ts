@@ -60,10 +60,12 @@ export class TerminalListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.columns.map(col => ({
-      id: col.field,
-      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
-    }));
+    return this.columns
+      .filter(col => col.field !== 'actions' && col.field !== 'tid')
+      .map(col => ({
+        id: col.field,
+        label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+      }));
   });
 
   formModel = {
@@ -82,13 +84,13 @@ export class TerminalListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'tid', header: 'Mã TID', width: '130px', sortable: true },
     { field: 'merchantCode', header: 'Mã MID', width: '140px', sortable: true },
     { field: 'merchantName', header: 'Tên Merchant / Cửa Hàng', width: '220px' },
     { field: 'assignedSerial', header: 'Serial POS Gán', width: '170px' },
     { field: 'posModel', header: 'Model Thiết Bị', width: '200px' },
-    { field: 'status', header: 'Trạng Thái', width: '150px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'status', header: 'Trạng Thái', width: '150px', align: 'center' }
   ];
 
   readonly actionItems: DropdownItem[] = [

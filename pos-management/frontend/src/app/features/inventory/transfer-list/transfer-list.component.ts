@@ -50,10 +50,12 @@ export class TransferListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.columns.map(col => ({
-      id: col.field,
-      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
-    }));
+    return this.columns
+      .filter(col => col.field !== 'actions' && col.field !== 'transferCode')
+      .map(col => ({
+        id: col.field,
+        label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+      }));
   });
 
   readonly statusOptions: SelectOption[] = [
@@ -65,14 +67,14 @@ export class TransferListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'transferCode', header: 'Mã Điều Chuyển', width: '150px', sortable: true },
     { field: 'sourceWarehouse', header: 'Kho Xuất Hàng', width: '200px' },
     { field: 'targetWarehouse', header: 'Kho Nhận Hàng', width: '200px' },
     { field: 'totalQuantity', header: 'Số Lượng POS', width: '130px', align: 'center' },
     { field: 'createdByName', header: 'Người Lập Phiếu', width: '160px' },
     { field: 'transferDate', header: 'Ngày Lập', width: '130px', align: 'center' },
-    { field: 'status', header: 'Trạng Thái', width: '150px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'status', header: 'Trạng Thái', width: '150px', align: 'center' }
   ];
 
   readonly actionItems: DropdownItem[] = [

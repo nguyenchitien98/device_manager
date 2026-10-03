@@ -60,10 +60,12 @@ export class MerchantListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.columns.map(col => ({
-      id: col.field,
-      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
-    }));
+    return this.columns
+      .filter(col => col.field !== 'actions' && col.field !== 'merchantCode')
+      .map(col => ({
+        id: col.field,
+        label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+      }));
   });
 
   formModel = {
@@ -87,14 +89,14 @@ export class MerchantListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'merchantCode', header: 'Mã MID', width: '140px', sortable: true },
     { field: 'brandName', header: 'Tên Thương Hiệu / Cửa Hàng', width: '220px', sortable: true },
     { field: 'legalName', header: 'Tên Tên Pháp Lý (Công Ty)', width: '220px' },
     { field: 'mccCode', header: 'MCC', width: '100px', align: 'center' },
     { field: 'businessUnitName', header: 'Đơn Vị Quản Lý', width: '180px' },
     { field: 'terminalCount', header: 'Số Máy POS', width: '120px', align: 'center' },
-    { field: 'status', header: 'Trạng Thái', width: '140px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'status', header: 'Trạng Thái', width: '140px', align: 'center' }
   ];
 
   readonly actionItems: DropdownItem[] = [

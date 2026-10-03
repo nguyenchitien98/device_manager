@@ -51,7 +51,7 @@ export class DeviceSearchPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.columns.map(col => ({
+    return this.columns.filter(col => col.field !== 'actions' && col.field !== 'serialNumber').map(col => ({
       id: col.field,
       label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
     }));
@@ -66,13 +66,13 @@ export class DeviceSearchPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'serialNumber', header: 'Số Serial POS', width: '170px', sortable: true },
     { field: 'posModel', header: 'Model Thiết Bị', width: '200px', sortable: true },
     { field: 'warehouseName', header: 'Kho Hiện Tại', width: '200px' },
     { field: 'merchantName', header: 'Merchant Gán', width: '220px' },
     { field: 'tid', header: 'Mã TID', width: '130px', align: 'center' },
-    { field: 'status', header: 'Trạng Thái Vòng Đời', width: '160px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'status', header: 'Trạng Thái Vòng Đời', width: '160px', align: 'center' }
   ];
 
   readonly actionItems: DropdownItem[] = [

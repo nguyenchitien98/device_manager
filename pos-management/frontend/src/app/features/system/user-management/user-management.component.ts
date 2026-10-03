@@ -51,10 +51,12 @@ export class UserManagementPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.columns.map(col => ({
-      id: col.field,
-      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
-    }));
+    return this.columns
+      .filter(col => col.field !== 'actions' && col.field !== 'username')
+      .map(col => ({
+        id: col.field,
+        label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+      }));
   });
 
   readonly roleOptions = [
@@ -72,6 +74,7 @@ export class UserManagementPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'username', header: 'Tên Đăng Nhập', width: '150px', sortable: true },
     { field: 'fullName', header: 'Họ Và Tên', width: '180px' },
     { field: 'email', header: 'Email Liên Hệ', width: '200px' },
@@ -79,8 +82,7 @@ export class UserManagementPageComponent {
     { field: 'roleName', header: 'Vai Trò / Quyền Hạn', width: '170px' },
     { field: 'department', header: 'Phòng Ban / Đơn Vị', width: '160px' },
     { field: 'status', header: 'Trạng Thái', width: '130px', align: 'center' },
-    { field: 'lastLogin', header: 'Đăng Nhập Cuối', width: '150px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'lastLogin', header: 'Đăng Nhập Cuối', width: '150px', align: 'center' }
   ];
 
   readonly users = signal<SystemUser[]>([

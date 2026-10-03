@@ -53,7 +53,7 @@ export class ApprovalInboxPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.columns.map(col => ({
+    return this.columns.filter(col => col.field !== 'actions' && col.field !== 'requestCode').map(col => ({
       id: col.field,
       label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
     }));
@@ -75,6 +75,7 @@ export class ApprovalInboxPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '120px', align: 'center' },
     { field: 'requestCode', header: 'Mã Yêu Cầu', width: '150px', sortable: true },
     { field: 'requestType', header: 'Loại Hồ Sơ', width: '160px' },
     { field: 'title', header: 'Tiêu Đề Trình Duyệt', width: '250px' },
@@ -82,8 +83,7 @@ export class ApprovalInboxPageComponent {
     { field: 'department', header: 'Đơn Vị', width: '150px' },
     { field: 'createdDate', header: 'Ngày Trình', width: '140px', align: 'center' },
     { field: 'priority', header: 'Độ Ưu Tiên', width: '120px', align: 'center' },
-    { field: 'status', header: 'Trạng Thái', width: '140px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '120px', align: 'center' }
+    { field: 'status', header: 'Trạng Thái', width: '140px', align: 'center' }
   ];
 
   readonly approvals = signal<ApprovalItem[]>([

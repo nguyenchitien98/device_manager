@@ -47,10 +47,12 @@ export class LogisticsListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.columns.map(col => ({
-      id: col.field,
-      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
-    }));
+    return this.columns
+      .filter(col => col.field !== 'actions' && col.field !== 'trackingNumber')
+      .map(col => ({
+        id: col.field,
+        label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+      }));
   });
 
   readonly statusOptions: SelectOption[] = [
@@ -62,14 +64,14 @@ export class LogisticsListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'trackingNumber', header: 'Mã Vận Đơn', width: '160px', sortable: true },
     { field: 'carrierName', header: 'Đơn Vị Vận Chuyển', width: '180px' },
     { field: 'sourceWarehouse', header: 'Nơi Gửi (Kho Xuất)', width: '200px' },
     { field: 'destinationName', header: 'Nơi Nhận / Merchant', width: '220px' },
     { field: 'totalQuantity', header: 'Số Máy POS', width: '120px', align: 'center' },
     { field: 'estimatedDeliveryDate', header: 'Dự Kiến Giao', width: '130px', align: 'center' },
-    { field: 'status', header: 'Trạng Thái', width: '150px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'status', header: 'Trạng Thái', width: '150px', align: 'center' }
   ];
 
   readonly actionItems: DropdownItem[] = [

@@ -50,10 +50,12 @@ export class ExportListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.columns.map(col => ({
-      id: col.field,
-      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
-    }));
+    return this.columns
+      .filter(col => col.field !== 'actions' && col.field !== 'exportCode')
+      .map(col => ({
+        id: col.field,
+        label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+      }));
   });
 
   readonly statusOptions: SelectOption[] = [
@@ -64,14 +66,14 @@ export class ExportListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'exportCode', header: 'Mã Phiếu Xuất', width: '150px', sortable: true },
     { field: 'destinationName', header: 'Nơi Nhận / Merchant / Kho', width: '240px' },
     { field: 'exportType', header: 'Mục Đích Xuất', width: '160px', align: 'center' },
     { field: 'totalQuantity', header: 'Số Lượng POS', width: '130px', align: 'center' },
     { field: 'createdByName', header: 'Người Lập Phiếu', width: '160px' },
     { field: 'exportDate', header: 'Ngày Xuất', width: '130px', align: 'center' },
-    { field: 'status', header: 'Trạng Thái', width: '140px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'status', header: 'Trạng Thái', width: '140px', align: 'center' }
   ];
 
   readonly actionItems: DropdownItem[] = [

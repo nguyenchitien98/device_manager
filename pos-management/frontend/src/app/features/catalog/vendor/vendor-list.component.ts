@@ -62,14 +62,14 @@ export class VendorListPageComponent {
   };
 
   readonly allColumns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'code', header: 'Mã NCC', width: '130px', sortable: true },
     { field: 'name', header: 'Tên Nhà Cung Cấp', width: '220px', sortable: true },
     { field: 'contactPerson', header: 'Người Liên Hệ', width: '180px' },
     { field: 'phone', header: 'Số Điện Thoại', width: '140px' },
     { field: 'email', header: 'Email Liên Hệ', width: '200px' },
     { field: 'status', header: 'Trạng Thái', width: '130px', align: 'center' },
-    { field: 'createdAt', header: 'Ngày Tạo', width: '130px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'createdAt', header: 'Ngày Tạo', width: '130px', align: 'center' }
   ];
 
   readonly visibleColumns = computed(() => {
@@ -79,10 +79,12 @@ export class VendorListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.allColumns.map(col => ({
-      id: col.field,
-      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
-    }));
+    return this.allColumns
+      .filter(col => col.field !== 'actions' && col.field !== 'code')
+      .map(col => ({
+        id: col.field,
+        label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+      }));
   });
 
   readonly actionItems: DropdownItem[] = [

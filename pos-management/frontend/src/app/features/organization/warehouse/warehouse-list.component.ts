@@ -71,14 +71,14 @@ export class WarehouseListPageComponent {
   ];
 
   readonly allColumns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'code', header: 'Mã Kho', width: '130px', sortable: true },
     { field: 'name', header: 'Tên Kho Thiết Bị', width: '220px', sortable: true },
     { field: 'location', header: 'Khu Vực', width: '150px' },
     { field: 'managerName', header: 'Thủ Kho Quản Lý', width: '180px' },
     { field: 'capacity', header: 'Sức Chứa (Máy)', width: '140px', align: 'center' },
     { field: 'status', header: 'Trạng Thái', width: '130px', align: 'center' },
-    { field: 'createdAt', header: 'Ngày Tạo', width: '130px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'createdAt', header: 'Ngày Tạo', width: '130px', align: 'center' }
   ];
 
   readonly visibleColumns = computed(() => {
@@ -88,11 +88,12 @@ export class WarehouseListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.allColumns.map(col => ({
-      id: col.field,
-      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
-      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
-    }));
+    return this.allColumns
+      .filter(col => col.field !== 'actions' && col.field !== 'code')
+      .map(col => ({
+        id: col.field,
+        label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+      }));
   });
 
   readonly actionItems: DropdownItem[] = [

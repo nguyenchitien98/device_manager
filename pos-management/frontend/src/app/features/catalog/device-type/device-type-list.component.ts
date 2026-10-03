@@ -68,13 +68,13 @@ export class DeviceTypeListPageComponent {
   ];
 
   readonly allColumns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'code', header: 'Mã Loại', width: '150px', sortable: true },
     { field: 'name', header: 'Tên Loại Thiết Bị', width: '220px', sortable: true },
     { field: 'categoryName', header: 'Thuộc Danh Mục', width: '200px' },
     { field: 'connectionType', header: 'Kết Nối', width: '150px', align: 'center' },
     { field: 'status', header: 'Trạng Thái', width: '140px', align: 'center' },
-    { field: 'createdAt', header: 'Ngày Tạo', width: '140px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'createdAt', header: 'Ngày Tạo', width: '140px', align: 'center' }
   ];
 
   readonly visibleColumns = computed(() => {
@@ -84,10 +84,12 @@ export class DeviceTypeListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.allColumns.map(col => ({
-      id: col.field,
-      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
-    }));
+    return this.allColumns
+      .filter(col => col.field !== 'actions' && col.field !== 'code')
+      .map(col => ({
+        id: col.field,
+        label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+      }));
   });
 
   readonly actionItems: DropdownItem[] = [

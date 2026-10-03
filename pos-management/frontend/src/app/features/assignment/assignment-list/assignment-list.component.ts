@@ -51,7 +51,7 @@ export class AssignmentListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.columns.map(col => ({
+    return this.columns.filter(col => col.field !== 'actions' && col.field !== 'assignmentCode').map(col => ({
       id: col.field,
       label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
     }));
@@ -65,14 +65,14 @@ export class AssignmentListPageComponent {
   ];
 
   readonly columns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'assignmentCode', header: 'Mã Lệnh', width: '150px', sortable: true },
     { field: 'actionType', header: 'Loại Hành Động', width: '170px', align: 'center' },
     { field: 'merchantName', header: 'Merchant Tương Tác', width: '220px' },
     { field: 'tid', header: 'Mã TID', width: '120px', align: 'center' },
     { field: 'posSerial', header: 'Serial POS Gán', width: '170px' },
     { field: 'createdByName', header: 'Người Thực Hiện', width: '160px' },
-    { field: 'status', header: 'Trạng Thái', width: '150px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'status', header: 'Trạng Thái', width: '150px', align: 'center' }
   ];
 
   readonly actionItems: DropdownItem[] = [

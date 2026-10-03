@@ -61,14 +61,14 @@ export class FeePolicyListPageComponent {
   };
 
   readonly allColumns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'code', header: 'Mã CS Phí', width: '130px', sortable: true },
     { field: 'name', header: 'Tên Chính Sách Phí', width: '220px', sortable: true },
     { field: 'feeRate', header: 'Tỷ Lệ Phí (%)', width: '130px', align: 'right' },
     { field: 'minFee', header: 'Phí Tối Thiểu (VNĐ)', width: '160px', align: 'right' },
     { field: 'maxFee', header: 'Phí Tối Đa (VNĐ)', width: '160px', align: 'right' },
     { field: 'status', header: 'Trạng Thái', width: '130px', align: 'center' },
-    { field: 'createdAt', header: 'Ngày Tạo', width: '130px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'createdAt', header: 'Ngày Tạo', width: '130px', align: 'center' }
   ];
 
   readonly visibleColumns = computed(() => {
@@ -78,10 +78,12 @@ export class FeePolicyListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.allColumns.map(col => ({
-      id: col.field,
-      label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
-    }));
+    return this.allColumns
+      .filter(col => col.field !== 'actions' && col.field !== 'code')
+      .map(col => ({
+        id: col.field,
+        label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+      }));
   });
 
   readonly actionItems: DropdownItem[] = [

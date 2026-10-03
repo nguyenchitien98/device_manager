@@ -76,14 +76,14 @@ export class PurchaseOrderListPageComponent {
   ];
 
   readonly allColumns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' },
     { field: 'poNumber', header: 'Số Đơn Hàng (PO)', width: '160px', sortable: true },
     { field: 'vendorName', header: 'Nhà Cung Cấp', width: '200px' },
     { field: 'deviceModel', header: 'Model Đặt Mua', width: '180px' },
     { field: 'quantity', header: 'Số Lượng', width: '120px', align: 'center' },
     { field: 'totalValue', header: 'Tổng Giá Trị (VNĐ)', width: '180px', align: 'right' },
     { field: 'status', header: 'Trạng Thái', width: '150px', align: 'center' },
-    { field: 'orderDate', header: 'Ngày Đặt', width: '130px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác', width: '100px', align: 'center' }
+    { field: 'orderDate', header: 'Ngày Đặt', width: '130px', align: 'center' }
   ];
 
   readonly visibleColumns = computed(() => {
@@ -93,11 +93,12 @@ export class PurchaseOrderListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.allColumns.map(col => ({
-      id: col.field,
-      label: (hidden.has(col.field) ? '[ Ẩn ] ' : '[ Hiển thị ] ') + col.header,
-      icon: hidden.has(col.field) ? 'bi bi-square' : 'bi bi-check-square-fill'
-    }));
+    return this.allColumns
+      .filter(col => col.field !== 'actions' && col.field !== 'poNumber')
+      .map(col => ({
+        id: col.field,
+        label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
+      }));
   });
 
   readonly actionItems: DropdownItem[] = [

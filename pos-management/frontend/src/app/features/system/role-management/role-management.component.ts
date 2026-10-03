@@ -46,19 +46,19 @@ export class RoleManagementPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.columns.map(col => ({
+    return this.columns.filter(col => col.field !== 'actions' && col.field !== 'roleCode').map(col => ({
       id: col.field,
       label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
     }));
   });
 
   readonly columns: TableColumn[] = [
+    { field: 'actions', header: 'Thao Tác', width: '160px', align: 'center' },
     { field: 'roleCode', header: 'Mã Vai Trò', width: '160px', sortable: true },
     { field: 'roleName', header: 'Tên Vai Trò / Nhóm Quyền', width: '220px' },
     { field: 'description', header: 'Mô Tả Chức Năng' },
     { field: 'userCount', header: 'Số Người Dùng', width: '130px', align: 'center' },
-    { field: 'isSystemDefault', header: 'Mặc Định Hệ Thống', width: '160px', align: 'center' },
-    { field: 'actions', header: 'Thao Tác Phân Quyền', width: '160px', align: 'center' }
+    { field: 'isSystemDefault', header: 'Mặc Định Hệ Thống', width: '160px', align: 'center' }
   ];
 
   readonly roles = signal<SystemRole[]>([

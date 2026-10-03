@@ -49,7 +49,7 @@ export class AuditLogListPageComponent {
 
   readonly columnToggleItems = computed<DropdownItem[]>(() => {
     const hidden = this.hiddenColumns();
-    return this.columns.map(col => ({
+    return this.columns.filter(col => col.field !== 'timestamp' && col.field !== 'username').map(col => ({
       id: col.field,
       label: (hidden.has(col.field) ? '☐ ' : '☑ ') + col.header
     }));
