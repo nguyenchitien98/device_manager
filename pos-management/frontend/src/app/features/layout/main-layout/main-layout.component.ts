@@ -214,11 +214,16 @@ export class MainLayoutComponent implements OnInit {
     }
 
     // Track route changes
-    this.activeRoute.set(this.router.url.split('?')[0]);
+    const initialUrl = this.router.url.split('?')[0];
+    this.activeRoute.set(initialUrl);
+    this.autoExpandGroup(initialUrl);
+
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd)
     ).subscribe((e: any) => {
-      this.activeRoute.set((e.urlAfterRedirects ?? e.url).split('?')[0]);
+      const currentUrl = (e.urlAfterRedirects ?? e.url).split('?')[0];
+      this.activeRoute.set(currentUrl);
+      this.autoExpandGroup(currentUrl);
       this.isUserMenuOpen.set(false); // đóng dropdown khi navigate
     });
   }
@@ -243,12 +248,32 @@ export class MainLayoutComponent implements OnInit {
     });
   }
 
-  /** Toggle accordion group */
+  /** Auto expand active route group */
+  private autoExpandGroup(url: string): void {
+    if (url.startsWith('/catalog') || url.startsWith('/organization') || url.startsWith('/inventory/purchase-orders')) {
+      this.expandedGroups.set({ catalog: true });
+    } else if (url.startsWith('/merchant')) {
+      this.expandedGroups.set({ merchant: true });
+    } else if (url.startsWith('/inventory')) {
+      this.expandedGroups.set({ inventory: true });
+    } else if (url.startsWith('/device')) {
+      this.expandedGroups.set({ device: true });
+    } else if (url.startsWith('/assignment')) {
+      this.expandedGroups.set({ assignment: true });
+    } else if (url.startsWith('/approval')) {
+      this.expandedGroups.set({ workflow: true });
+    } else if (url.startsWith('/monitoring') || url.startsWith('/reports')) {
+      this.expandedGroups.set({ system: true });
+    }
+  }
+
+  /** Toggle accordion group — chỉ mở 1 nhóm danh mục cha duy nhất tại một thời điểm */
   toggleGroup(key: string): void {
-    this.expandedGroups.update(prev => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    this.expandedGroups.update(prev => {
+      const isCurrentlyOpen = !!prev[key];
+      // Nếu nhóm đang mở -> đóng lại. Nếu nhóm đang đóng -> mở duy nhất nhóm được click (đóng toàn bộ các nhóm khác)
+      return isCurrentlyOpen ? {} : { [key]: true };
+    });
   }
 
   /** Kiểm tra group có đang mở không */
