@@ -10,7 +10,38 @@
 /* ─── Angular Material Theme ───────────────────────────────────── */
 @import '@angular/material/prebuilt-themes/azure-blue.css';
 
-/* ─── LIGHT THEME (Default) ────────────────────────────────────── */
+/* ─── Light Theme defaults on :root (fallback cho html element) ── */
+:root {
+  --bg-app:              #F0F2F5;
+  --bg-sidebar:          #FFFFFF;
+  --bg-header:           #FFFFFF;
+  --bg-card:             #FFFFFF;
+  --bg-card-alt:         #F8FAFC;
+  --bg-input:            #FFFFFF;
+  --bg-table-header:     #F9FAFB;
+  --bg-table-row-hover:  #F3F4F6;
+  --bg-hover:            #F3F4F6;
+  --text-primary:        #1A2332;
+  --text-secondary:      #6B7A8D;
+  --text-muted:          #9CA3AF;
+  --text-inverse:        #FFFFFF;
+  --border-color:        #E5E7EB;
+  --input-border:        #D1D5DB;
+  --divider:             #F3F4F6;
+  --sidebar-section:     #9CA3AF;
+  --sidebar-item-text:   #374151;
+  --sidebar-hover:       #F3F4F6;
+  --sidebar-active-bg:   #1A56DB;
+  --sidebar-active-text: #FFFFFF;
+  --shadow-sm:    0 1px 2px rgba(0,0,0,0.05);
+  --shadow-card:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-modal: 0 4px 24px rgba(0,0,0,0.15);
+  --shadow-lg:    0 10px 40px rgba(0,0,0,0.12);
+  --scrollbar-track: #F1F5F9;
+  --scrollbar-thumb: #CBD5E1;
+}
+
+/* ─── LIGHT THEME ────────────────────────────────────────────────── */
 body, body.theme-light {
   --bg-app:              #F0F2F5;
   --bg-sidebar:          #FFFFFF;
@@ -154,7 +185,13 @@ body.theme-dark {
   padding: 0;
 }
 
-html, body {
+html {
+  height: 100%;
+  /* Dùng màu nền light làm fallback, tránh flash đen từ Material theme */
+  background-color: #F0F2F5;
+}
+
+body {
   height: 100%;
   font-family: var(--font);
   font-size: var(--text-base);
@@ -162,7 +199,7 @@ html, body {
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color var(--t-normal), color var(--t-normal);
+  /* KHÔNG transition background trên body — gây lag theme switch */
 }
 
 a {

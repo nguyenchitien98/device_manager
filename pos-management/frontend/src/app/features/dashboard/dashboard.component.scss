@@ -119,7 +119,7 @@
   align-items: center;
   gap: 16px;
   box-shadow: var(--shadow-card);
-  transition: background var(--t-normal), border-color var(--t-normal), transform 0.2s;
+  transition: transform 0.2s;
 
   &:hover { transform: translateY(-1px); }
 
@@ -169,7 +169,6 @@
   border-radius: var(--radius-lg);
   padding: 20px;
   box-shadow: var(--shadow-card);
-  transition: background var(--t-normal), border-color var(--t-normal);
 }
 
 .chart-header {
@@ -289,7 +288,7 @@
     inset: 28px;
     background: var(--bg-card);
     border-radius: 50%;
-    transition: background var(--t-normal);
+    /* Không transition — instant switch */
   }
 }
 
