@@ -141,7 +141,6 @@
   font-size: 13px;
   font-weight: 400;
   cursor: pointer;
-  transition: background var(--t-fast), color var(--t-fast);
   white-space: nowrap;
 
   .nav-icon {
@@ -152,7 +151,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: all var(--t-fast);
+    transition: transform var(--t-fast);
     background: rgba(0, 0, 0, 0.03);
 
     &.icon-blue    { color: #2563eb; background: rgba(37, 99, 235, 0.09); }

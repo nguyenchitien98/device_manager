@@ -44,7 +44,6 @@
   tbody {
     tr {
       border-bottom: 1px solid var(--border-color, #f1f5f9);
-      transition: background-color 0.15s ease;
 
       &:last-child {
         border-bottom: none;

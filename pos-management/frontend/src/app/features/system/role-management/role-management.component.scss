@@ -5,8 +5,8 @@
   overflow-y: auto;
 
   .perm-group-card {
-    background: var(--pos-bg-card, #ffffff);
-    border: 1px solid var(--pos-border-color, #e2e8f0);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 16px;
 

@@ -11,12 +11,12 @@
 }
 
 .user-card {
-  background: var(--pos-bg-card, #ffffff);
-  border: 1px solid var(--pos-border-color, #e2e8f0);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 24px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-card);
 
   .avatar-wrapper {
     display: flex;
@@ -41,7 +41,7 @@
     .user-name {
       font-size: 1.2rem;
       font-weight: 700;
-      color: var(--pos-text-main, #1e293b);
+      color: var(--text-primary);
       margin: 4px 0;
     }
 
@@ -57,34 +57,34 @@
     flex-direction: column;
     gap: 12px;
     padding-top: 16px;
-    border-top: 1px solid var(--pos-border-color, #f1f5f9);
+    border-top: 1px solid var(--border-color);
 
     .info-item {
       display: flex;
       align-items: center;
       gap: 10px;
       font-size: 0.9rem;
-      color: var(--pos-text-main, #1e293b);
+      color: var(--text-primary);
     }
   }
 }
 
 .detail-card {
-  background: var(--pos-bg-card, #ffffff);
-  border: 1px solid var(--pos-border-color, #e2e8f0);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
 
   .card-header {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--pos-text-main, #1e293b);
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 16px;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--pos-border-color, #f1f5f9);
+    border-bottom: 1px solid var(--border-color);
   }
 
   .form-grid {

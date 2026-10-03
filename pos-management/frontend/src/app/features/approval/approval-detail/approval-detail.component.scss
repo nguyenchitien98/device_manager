@@ -1,15 +1,15 @@
 @import '../../../shared/styles/list-page.shared.scss';
 
 .detail-header-card {
-  background: var(--pos-bg-card, #ffffff);
-  border: 1px solid var(--pos-border-color, #e2e8f0);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
 
   .header-left {
     display: flex;
@@ -20,7 +20,7 @@
       .page-title {
         font-size: 1.25rem;
         font-weight: 700;
-        color: var(--pos-text-main, #1e293b);
+        color: var(--text-primary);
         margin: 0;
         display: flex;
         align-items: center;
@@ -28,7 +28,7 @@
       }
       .sub-title {
         font-size: 0.85rem;
-        color: var(--pos-text-secondary, #64748b);
+        color: var(--text-secondary);
       }
     }
   }
@@ -50,22 +50,22 @@
 }
 
 .detail-card {
-  background: var(--pos-bg-card, #ffffff);
-  border: 1px solid var(--pos-border-color, #e2e8f0);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-card);
 
   .card-header {
     font-size: 1rem;
     font-weight: 600;
-    color: var(--pos-text-main, #1e293b);
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 16px;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--pos-border-color, #f1f5f9);
+    border-bottom: 1px solid var(--border-color);
   }
 
   .info-rows {
@@ -84,11 +84,11 @@
 
       .info-label {
         font-size: 0.8rem;
-        color: var(--pos-text-secondary, #64748b);
+        color: var(--text-secondary);
       }
       .info-value {
         font-size: 0.95rem;
-        color: var(--pos-text-main, #1e293b);
+        color: var(--text-primary);
       }
     }
   }
@@ -109,8 +109,8 @@
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: var(--pos-border-color, #e2e8f0);
-      color: var(--pos-text-secondary, #64748b);
+      background: var(--border-color);
+      color: var(--text-secondary);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -132,14 +132,16 @@
       flex: 1;
       .step-title {
         font-size: 0.95rem;
-        color: var(--pos-text-main, #1e293b);
+        color: var(--text-primary);
       }
       .step-user {
         font-size: 0.85rem;
+        color: var(--text-secondary);
       }
       .step-comment {
-        background: var(--pos-bg-page, #f8fafc);
-        border: 1px dashed var(--pos-border-color, #cbd5e1);
+        background: var(--bg-card-alt);
+        border: 1px dashed var(--border-color);
+        color: var(--text-primary);
       }
     }
   }

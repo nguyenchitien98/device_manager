@@ -72,7 +72,6 @@
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background var(--t-fast), color var(--t-fast);
   position: relative;
 
   &:hover {
@@ -124,7 +123,6 @@
     background: transparent;
     border-radius: var(--radius-md);
     cursor: pointer;
-    transition: background var(--t-fast);
 
     &:hover { background: var(--bg-hover); }
   }
@@ -229,7 +227,6 @@
     text-align: left;
     font-family: var(--font);
     text-decoration: none;
-    transition: background var(--t-fast), color var(--t-fast);
 
     svg { flex-shrink: 0; }
 

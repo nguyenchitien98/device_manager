@@ -156,7 +156,7 @@
   font-size: 0.88rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.1s;
   white-space: nowrap;
 
   &:hover {
@@ -217,4 +217,55 @@
   justify-content: center;
   gap: 6px;
   flex-wrap: nowrap;
+}
+
+/* Dark Mode Enhancements for List Pages (Dashboard Standard Benchmark) */
+body.theme-dark {
+  .search-zone-card, .list-zone-card, .pos-card {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+  }
+
+  .search-card-header, .list-card-header, .card-header {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+
+    h3, .card-title, .list-title, .search-title-text, .card-title-text, span.title-text {
+      color: var(--text-primary);
+    }
+  }
+
+  .list-card-footer, .card-footer {
+    background: var(--bg-card);
+    border-color: var(--border-color);
+  }
+
+  .col-toggle-btn {
+    background: var(--bg-card-alt);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+
+    &:hover {
+      background: var(--bg-hover);
+      color: #60a5fa;
+      border-color: #3b82f6;
+    }
+  }
+
+  .code-badge {
+    color: #60a5fa;
+    background-color: rgba(59, 130, 246, 0.15);
+
+    &.secondary {
+      color: var(--text-secondary);
+      background-color: var(--bg-card-alt);
+    }
+  }
+
+  /* Table Header in Dark Mode */
+  .pos-table th {
+    background-color: var(--bg-table-header, #162032);
+    color: var(--text-primary, #f1f5f9);
+    border-bottom: 1px solid var(--border-color, #1e3048);
+  }
 }

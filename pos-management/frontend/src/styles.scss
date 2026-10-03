@@ -76,6 +76,14 @@ body, body.theme-light {
 
   --scrollbar-track: #F1F5F9;
   --scrollbar-thumb: #CBD5E1;
+
+  /* Aliases cho các component cũ */
+  --pos-bg-card:         #FFFFFF;
+  --pos-border-color:    #E5E7EB;
+  --pos-text-main:       #1A2332;
+  --pos-text-secondary:  #6B7A8D;
+  --pos-bg-page:         #F8FAFC;
+  --pos-primary-color:   #1A56DB;
 }
 
 /* ─── DARK THEME ────────────────────────────────────────────────── */
@@ -113,6 +121,14 @@ body.theme-dark {
 
   --scrollbar-track: #111827;
   --scrollbar-thumb: #1E3048;
+
+  /* Aliases cho các component cũ */
+  --pos-bg-card:         #1C2A3A;
+  --pos-border-color:    #1E3048;
+  --pos-text-main:       #F1F5F9;
+  --pos-text-secondary:  #8899AA;
+  --pos-bg-page:         #162032;
+  --pos-primary-color:   #3B82F6;
 }
 
 /* ─── Shared / Brand Colors (không đổi theo theme) ─────────────── */
@@ -263,7 +279,7 @@ a {
   font-weight: 500;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: all var(--t-fast);
+  transition: transform 0.1s;
   white-space: nowrap;
   text-decoration: none;
 
@@ -322,7 +338,7 @@ a {
   border-radius: var(--radius-lg);
   padding: var(--content-padding);
   box-shadow: var(--shadow-card);
-  transition: background var(--t-normal), border-color var(--t-normal);
+  /* KHÔNG transition background/border — instant theme switch */
 }
 
 /* ─── Form Controls ─────────────────────────────────────────────── */
@@ -348,7 +364,7 @@ a {
   font-family: var(--font);
   font-size: var(--text-sm);
   outline: none;
-  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  transition: box-shadow var(--t-fast);
 
   &::placeholder { color: var(--text-muted); }
   &:focus {

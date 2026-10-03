@@ -90,7 +90,7 @@ import { CommonModule } from '@angular/common';
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: transform 0.1s;
 
       &:hover {
         background: #1d4ed8;
