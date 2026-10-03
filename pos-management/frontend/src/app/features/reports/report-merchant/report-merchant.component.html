@@ -1,9 +1,8 @@
 <div class="pos-page-container">
   <div class="search-zone-card">
     <div class="search-card-header">
-      <div class="card-title">
-        <i class="bi bi-pie-chart-fill icon-blue"></i>
-        <span>Báo cáo Hiệu quả Khai thác & Sản lượng GD Theo Merchant</span>
+      <div class="card-title-group">
+        <h3 class="card-title">Báo Cáo Hiệu Quả Khai Thác & Sản Lượng GD Theo Merchant</h3>
       </div>
     </div>
     <div class="search-card-body">
@@ -29,20 +28,19 @@
           [options]="ratingOptions"
           [(ngModel)]="selectedRating">
         </pos-select>
+      </div>
 
-        <div class="filter-actions">
-          <pos-button btnId="btn-export-excel" variant="success" icon="bi bi-file-earmark-excel" (clicked)="onExportExcel()">Xuất Excel</pos-button>
-          <pos-button btnId="btn-export-pdf" variant="danger" icon="bi bi-file-earmark-pdf" (clicked)="onExportPdf()">Xuất PDF</pos-button>
-        </div>
+      <div class="filter-actions-right">
+        <pos-button btnId="btn-export-excel" variant="ghost" (clicked)="onExportExcel()">📊 Xuất Excel</pos-button>
+        <pos-button btnId="btn-export-pdf" variant="ghost" (clicked)="onExportPdf()">📄 Xuất PDF</pos-button>
       </div>
     </div>
   </div>
 
   <div class="list-zone-card">
     <div class="list-card-header">
-      <div class="card-title">
-        <i class="bi bi-table icon-blue"></i>
-        <span>Bảng Tổng Hợp Sản Lượng & Doanh Số Thiết Bị</span>
+      <div class="card-title-group">
+        <h3 class="card-title">Bảng Tổng Hợp Sản Lượng & Doanh Số Thiết Bị</h3>
       </div>
     </div>
 

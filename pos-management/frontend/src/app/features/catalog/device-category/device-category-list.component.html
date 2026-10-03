@@ -48,26 +48,23 @@
       <div class="filter-actions-right">
         <pos-button
           btnId="btn-export-excel"
-          variant="secondary"
-          icon="bi bi-file-earmark-excel"
+          variant="ghost"
           (clicked)="onExportExcel()">
-          Xuất Excel
+          📊 Xuất Excel
         </pos-button>
 
         <pos-button
           btnId="btn-reset"
-          variant="secondary"
-          icon="bi bi-arrow-counterclockwise"
+          variant="ghost"
           (clicked)="onReset()">
-          Xóa bộ lọc
+          🔄 Xóa bộ lọc
         </pos-button>
 
         <pos-button
           btnId="btn-search"
           variant="primary"
-          icon="bi bi-search"
           (clicked)="onSearch()">
-          Tìm kiếm
+          🔍 Tìm kiếm
         </pos-button>
       </div>
     </div>
@@ -84,21 +81,18 @@
       <div class="card-header-actions">
         <!-- Dropdown select Ẩn/Hiển thị cột -->
         <pos-dropdown
+          buttonVariant="ghost"
           [items]="columnToggleItems()"
           (itemClick)="toggleColumn($event)">
-          <button class="col-toggle-btn" type="button">
-            <i class="bi bi-columns-gap"></i>
-            <span>Hiển thị cột</span>
-          </button>
+          <span class="col-toggle-btn">👁️ Hiển thị cột</span>
         </pos-dropdown>
 
         <!-- Button Thêm mới -->
         <pos-button
           btnId="btn-create-category"
           variant="primary"
-          icon="bi bi-plus-lg"
           (clicked)="openCreateModal()">
-          Thêm danh mục mới
+          ➕ Thêm danh mục mới
         </pos-button>
       </div>
     </div>
