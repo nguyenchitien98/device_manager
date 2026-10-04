@@ -30,6 +30,44 @@ OVERALL: 74/210 tasks (35%) — FRONTEND READY 100%
 
 ---
 
+## 🚀 BACKEND API EXECUTION FLOW (ĐỌC TRƯỚC KHI CODE BACKEND)
+
+> **Tài liệu chính:** `docs/16_Backend_API_Implementation_Flow.md` (bảng endpoint master FE↔BE, gap, DoD).
+> Checklist này **thay thế** thứ tự Backend trong các Sprint 01–15 bên dưới; khi xong một bước, tick cả task tương ứng trong Sprint.
+> **Trạng thái BE thực tế:** đã có Auth cơ bản (`AuthController`, JWT, Security), Flyway V1–V4. V5+ trong `target/` là artifact cũ → bỏ qua, chạy `mvn clean`.
+
+- `[ ]` **B0 — Blockers:** proxy.conf.json (G1), sửa trailing slash `BaseApiService.put/patch` (G2), `PageResponse` khớp FE (G3), thêm `code` vào `ApiResponse` (G4), chuẩn `page` 0-based (G5)
+- `[ ]` **B1 — Identity & System:** refresh rotation, rate limit/lock, `/admin/users|roles|permissions|config`, `/auth/me`, `/auth/change-password`
+- `[ ]` **B2 — Catalog & Organization:** 8 resource CRUD + export + soft delete + hierarchy validate
+- `[ ]` **B3 — Merchant & Terminal:** CRUD, auto MID/TID, status, fee policy, export
+- `[ ]` **B4 — Inventory Nhập kho:** PO lifecycle (submit/approve/receive/close), imports, devices, stock, ledger, outbox polling
+- `[ ]` **B5 — Approval Engine:** inbox/my-requests/all/stats/detail, approve/reject/return/cancel, không tự duyệt
+- `[ ]` **B6 — Export/Transfer/Logistics:** tạo approval request, execute khi APPROVED
+- `[ ]` **B7 — Device & Repair:** detail 8 tab, FSM, lifecycle, repairs, dispose
+- `[ ]` **B8 — Assignment:** idempotency key, optimistic lock, return, transfer, history
+- `[ ]` **B9 — Audit/Notification/Outbox/Dashboard/Monitoring/Reports/Jobs**
+- `[ ]` **B10 — FE cleanup:** xóa mock fallback (G6), thêm method ➕ (G7), thay `any` bằng typed models (G8)
+- `[ ]` **Gate cuối:** `mvn clean verify` + `npm run build` 0 lỗi; click thử 38 màn hình trên `ng serve` không 404
+
+### 📋 Prompt dùng để giao cho AI Agent (copy nguyên văn)
+
+```text
+Đọc theo thứ tự: AGENTS.md, task.md (section BACKEND API EXECUTION FLOW),
+docs/16_Backend_API_Implementation_Flow.md, docs/06_Database_Schema.md,
+docs/11_Business_Flow.md, docs/09_API_Contract.md, docs/01_Architecture_Bible.md,
+docs/02_Coding_Guideline.md.
+
+Thực hiện tuần tự B0 → B10. Quy tắc:
+- URL/method/field theo Bảng §3 của docs/16 và code FE trong core/services/api; FE là source of truth.
+- Mỗi bước: viết Flyway → entity/repo → service → controller → test → nối FE (bỏ mock, toast lỗi thật).
+- Hết mỗi bước chạy `mvn clean verify` (pos-management/backend) và `npm run build` (frontend);
+  chỉ sang bước sau khi cả hai xanh. Tick [x] vào task.md ngay sau mỗi bước.
+- Không dùng `any`, không nuốt exception, không đổi URL FE đã có trừ khi docs/16 yêu cầu.
+- Nếu gặp mâu thuẫn tài liệu không tự giải quyết được: dừng và hỏi.
+```
+
+---
+
 ## 🔐 Sprint 01 — Auth, RBAC & Admin Layout
 
 ### Backend
