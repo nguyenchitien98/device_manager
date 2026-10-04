@@ -185,23 +185,23 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` Flyway V3: `V3__create_catalog_tables.sql`
+- `[x]` Flyway V3: `V3__create_catalog_tables.sql`
   - Tables: `device_categories`, `device_types`, `device_models`, `vendors`, `mcc_codes`, `fee_policies`
   - Seed: 3 device categories (POS, mPOS, SoftPOS), vendors (PAX, Ingenico, Verifone), device types
-- `[ ]` Flyway V4: `V4__create_organization_tables.sql`
+- `[x]` Flyway V4: `V4__create_organization_tables.sql`
   - Tables: `business_units`, `warehouses`
   - Seed: 3 BU (Hà Nội, HCM, Đà Nẵng), 4 kho
-- `[ ]` CRUD API: `GET/POST /api/v1/catalog/device-categories`, `GET/PUT/DELETE /{id}` (pagination, sort, filter)
-- `[ ]` CRUD API: Device Type (tương tự)
-- `[ ]` CRUD API: Device Model (tương tự, kèm validate hierarchy Model→Type→Category)
-- `[ ]` CRUD API: Vendor
-- `[ ]` CRUD API: MCC (search by code/name)
-- `[ ]` CRUD API: Fee Policy (với effective dating)
-- `[ ]` CRUD API: Business Unit
-- `[ ]` CRUD API: Warehouse (filter theo Business Unit)
-- `[ ]` Validate hierarchy: không orphan (Type phải thuộc Category, Model phải thuộc Type)
-- `[ ]` Soft delete: deactivate thay vì xóa khi có data liên quan
-- `[ ]` `@PreAuthorize` theo permission cho từng endpoint
+- `[x]` CRUD API: `GET/POST /api/v1/catalog/device-categories`, `GET/PUT/DELETE /{id}` (pagination, sort, filter)
+- `[x]` CRUD API: Device Type (tương tự)
+- `[x]` CRUD API: Device Model (tương tự, kèm validate hierarchy Model→Type→Category)
+- `[x]` CRUD API: Vendor
+- `[x]` CRUD API: MCC (search by code/name)
+- `[x]` CRUD API: Fee Policy (với effective dating)
+- `[x]` CRUD API: Business Unit
+- `[x]` CRUD API: Warehouse (filter theo Business Unit)
+- `[x]` Validate hierarchy: không orphan (Type phải thuộc Category, Model phải thuộc Type)
+- `[x]` Soft delete: deactivate thay vì xóa khi có data liên quan
+- `[x]` `@PreAuthorize` theo permission cho từng endpoint
 
 ### Frontend — Reusable Components (BUILD TRƯỚC)
 
@@ -271,18 +271,18 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` Flyway V5: `V5__create_inventory_tables.sql`
+- `[x]` Flyway V5: `V5__create_inventory_tables.sql`
   - Tables: `purchase_orders`, `purchase_order_items`, `devices`, `stock_transactions`, `outbox_events`
   - Tables: `stock_export_requests`, `stock_export_items`, `stock_transfer_requests`, `stock_transfer_items`
-- `[ ]` Purchase Order Lifecycle: DRAFT → SUBMITTED → APPROVED → RECEIVED → CLOSED
-- `[ ]` Stock Ledger: `stock_transactions` append-only (type: IMPORT/EXPORT/TRANSFER/RETURN)
-- `[ ]` Nhập kho từ PO: tạo `Device` record per serial + ghi IMPORT vào stock_transactions + ghi Outbox
-- `[ ]` Unique constraint: `serial_number` trong `devices` (409 khi duplicate)
-- `[ ]` `OutboxPollingService`: `@Scheduled(fixedDelay=2000)` đẩy events lên Kafka
-- `[ ]` API: PO CRUD + lifecycle transitions (Submit, Approve, Receive, Close)
-- `[ ]` API: `POST /api/v1/inventory/imports` (nhập kho từ PO + danh sách serial)
-- `[ ]` API: `GET /api/v1/inventory/stock` (tổng hợp tồn kho)
-- `[ ]` API: `GET /api/v1/inventory/transactions` (Stock Ledger)
+- `[x]` Purchase Order Lifecycle: DRAFT → SUBMITTED → APPROVED → RECEIVED → CLOSED
+- `[x]` Stock Ledger: `stock_transactions` append-only (type: IMPORT/EXPORT/TRANSFER/RETURN)
+- `[x]` Nhập kho từ PO: tạo `Device` record per serial + ghi IMPORT vào stock_transactions + ghi Outbox
+- `[x]` Unique constraint: `serial_number` trong `devices` (409 khi duplicate)
+- `[x]` `OutboxPollingService`: `@Scheduled(fixedDelay=2000)` đẩy events lên Kafka
+- `[x]` API: PO CRUD + lifecycle transitions (Submit, Approve, Receive, Close)
+- `[x]` API: `POST /api/v1/inventory/imports` (nhập kho từ PO + danh sách serial)
+- `[x]` API: `GET /api/v1/inventory/stock` (tổng hợp tồn kho)
+- `[x]` API: `GET /api/v1/inventory/transactions` (Stock Ledger)
 
 ### Frontend
 
@@ -320,12 +320,12 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` Flyway V6 (nếu cần): `approval_requests` basic structure
-- `[ ]` Approval basic: DRAFT → PENDING_APPROVAL → APPROVED/REJECTED → EXECUTING → COMPLETED
-- `[ ]` Xuất kho: Device INSTOCK → OUT_OF_WAREHOUSE (sau approved)
-- `[ ]` Điều chuyển: Device giữ INSTOCK, đổi warehouse_id
-- `[ ]` Stock Ledger: ghi EXPORT, TRANSFER_OUT, TRANSFER_IN transactions
-- `[ ]` Device Status State Machine: validate allowed transitions trước khi execute
+- `[x]` Flyway V6 (nếu cần): `approval_requests` basic structure
+- `[x]` Approval basic: DRAFT → PENDING_APPROVAL → APPROVED/REJECTED → EXECUTING → COMPLETED
+- `[x]` Xuất kho: Device INSTOCK → OUT_OF_WAREHOUSE (sau approved)
+- `[x]` Điều chuyển: Device giữ INSTOCK, đổi warehouse_id
+- `[x]` Stock Ledger: ghi EXPORT, TRANSFER_OUT, TRANSFER_IN transactions
+- `[x]` Device Status State Machine: validate allowed transitions trước khi execute
 
 ### Frontend
 
@@ -353,14 +353,14 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` Flyway V6 (hoặc V7): `merchants`, `terminals`, `merchant_status_history`, `terminal_status_history`, `merchant_fee_assignments`
-- `[ ]` Auto-generate MerchantCode: M + 6 digits
-- `[ ]` Auto-generate TID: T + 6 digits
-- `[ ]` Merchant Lifecycle: PENDING → ACTIVE → INACTIVE → SUSPENDED
-- `[ ]` Fee Policy Effective Dating: chỉ 1 ACTIVE policy/merchant tại 1 thời điểm
-- `[ ]` Data Scope: filter Merchant theo Business Unit của user
-- `[ ]` API: Merchant CRUD + lifecycle + fee policy assignment
-- `[ ]` API: Terminal CRUD + status management
+- `[x]` Flyway V6 (hoặc V7): `merchants`, `terminals`, `merchant_status_history`, `terminal_status_history`, `merchant_fee_assignments`
+- `[x]` Auto-generate MerchantCode: M + 6 digits
+- `[x]` Auto-generate TID: T + 6 digits
+- `[x]` Merchant Lifecycle: PENDING → ACTIVE → INACTIVE → SUSPENDED
+- `[x]` Fee Policy Effective Dating: chỉ 1 ACTIVE policy/merchant tại 1 thời điểm
+- `[x]` Data Scope: filter Merchant theo Business Unit của user
+- `[x]` API: Merchant CRUD + lifecycle + fee policy assignment
+- `[x]` API: Terminal CRUD + status management
 
 ### Frontend
 
@@ -387,13 +387,13 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` Flyway V7: `device_lifecycle_history` (append-only)
-- `[ ]` Device Status State Machine (enum với allowed transitions)
-- `[ ]` `DeviceLifecycleHistoryService`: ghi lịch sử mỗi khi status thay đổi
-- `[ ]` Redis cache: `device:status:{serial}` TTL 60s, evict on update
-- `[ ]` API: `GET /api/v1/devices` (search/filter/paginate)
-- `[ ]` API: `GET /api/v1/devices/{serial}` (full detail)
-- `[ ]` API: `GET /api/v1/devices/{serial}/lifecycle`
+- `[x]` Flyway V7: `device_lifecycle_history` (append-only)
+- `[x]` Device Status State Machine (enum với allowed transitions)
+- `[x]` `DeviceLifecycleHistoryService`: ghi lịch sử mỗi khi status thay đổi
+- `[x]` Redis cache: `device:status:{serial}` TTL 60s, evict on update
+- `[x]` API: `GET /api/v1/devices` (search/filter/paginate)
+- `[x]` API: `GET /api/v1/devices/{serial}` (full detail)
+- `[x]` API: `GET /api/v1/devices/{serial}/lifecycle`
 
 ### Frontend
 
@@ -423,13 +423,13 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` Flyway V7 (bổ sung): `repair_orders`
-- `[ ]` Repair Order Lifecycle: CREATED → IN_PROGRESS → COMPLETED/FAILED
-- `[ ]` Repair complete → Device REPAIRING → INSTOCK
-- `[ ]` Repair fail → tạo phiếu thanh lý (qua Approval)
-- `[ ]` Thanh lý: INSTOCK → DISPOSED (qua Approval)
-- `[ ]` API: Repair Order CRUD + lifecycle
-- `[ ]` API: `POST /api/v1/devices/{serial}/dispose`
+- `[x]` Flyway V7 (bổ sung): `repair_orders`
+- `[x]` Repair Order Lifecycle: CREATED → IN_PROGRESS → COMPLETED/FAILED
+- `[x]` Repair complete → Device REPAIRING → INSTOCK
+- `[x]` Repair fail → tạo phiếu thanh lý (qua Approval)
+- `[x]` Thanh lý: INSTOCK → DISPOSED (qua Approval)
+- `[x]` API: Repair Order CRUD + lifecycle
+- `[x]` API: `POST /api/v1/devices/{serial}/dispose`
 
 ### Frontend
 
@@ -445,13 +445,13 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` Flyway V8: `assignments` (với @Version), `assignment_history`
-- `[ ]` Partial unique index: `ON assignments(device_id) WHERE status = 'ACTIVE'`
-- `[ ]` Optimistic Lock trên `DeviceJpaEntity` (`@Version`) + Retry 3 lần
-- `[ ]` Idempotency: `X-Idempotency-Key` header + Redis SETNX
-- `[ ]` @Transactional: Assignment + Device → DEPLOYED + History + Outbox
-- `[ ]` API: `POST /api/v1/assignments` (idempotent)
-- `[ ]` API: `GET /api/v1/assignments` + `GET /{id}` + `GET /devices/{serial}/assignments`
+- `[x]` Flyway V8: `assignments` (với @Version), `assignment_history`
+- `[x]` Partial unique index: `ON assignments(device_id) WHERE status = 'ACTIVE'`
+- `[x]` Optimistic Lock trên `DeviceJpaEntity` (`@Version`) + Retry 3 lần
+- `[x]` Idempotency: `X-Idempotency-Key` header + Redis SETNX
+- `[x]` @Transactional: Assignment + Device → DEPLOYED + History + Outbox
+- `[x]` API: `POST /api/v1/assignments` (idempotent)
+- `[x]` API: `GET /api/v1/assignments` + `GET /{id}` + `GET /devices/{serial}/assignments`
 
 ### Frontend
 
@@ -472,10 +472,10 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` Return: Assignment → RETURNED, Device → RETURNED, Outbox
-- `[ ]` Transfer: atomic return + re-assign (cùng @Transactional)
-- `[ ]` API: `POST /api/v1/assignments/{id}/return`
-- `[ ]` API: `POST /api/v1/assignments/{id}/transfer`
+- `[x]` Return: Assignment → RETURNED, Device → RETURNED, Outbox
+- `[x]` Transfer: atomic return + re-assign (cùng @Transactional)
+- `[x]` API: `POST /api/v1/assignments/{id}/return`
+- `[x]` API: `POST /api/v1/assignments/{id}/transfer`
 
 ### Frontend
 
@@ -491,15 +491,15 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` Flyway V9: `approval_requests` (full schema), `approval_steps`, `approval_configs`
-- `[ ]` Full Approval States: DRAFT → PENDING_APPROVAL → PENDING_LEVEL_2 → APPROVED → EXECUTING → COMPLETED + REJECTED, RETURNED_FOR_EDIT, CANCELLED
-- `[ ]` Business rule: Người tạo KHÔNG tự duyệt
-- `[ ]` Optimistic Lock trên `approval_requests`
-- `[ ]` Configurable: 1 hoặc 2 cấp tùy loại request
-- `[ ]` Execute business logic khi APPROVED
-- `[ ]` Kafka event: `approval.submitted` → notify người duyệt
-- `[ ]` API: `POST /api/v1/approvals/{id}/submit`, `/approve`, `/reject`, `/return-for-edit`, `/cancel`
-- `[ ]` API: `GET /api/v1/approvals/inbox`, `/my-requests`, `/all`
+- `[x]` Flyway V9: `approval_requests` (full schema), `approval_steps`, `approval_configs`
+- `[x]` Full Approval States: DRAFT → PENDING_APPROVAL → PENDING_LEVEL_2 → APPROVED → EXECUTING → COMPLETED + REJECTED, RETURNED_FOR_EDIT, CANCELLED
+- `[x]` Business rule: Người tạo KHÔNG tự duyệt
+- `[x]` Optimistic Lock trên `approval_requests`
+- `[x]` Configurable: 1 hoặc 2 cấp tùy loại request
+- `[x]` Execute business logic khi APPROVED
+- `[x]` Kafka event: `approval.submitted` → notify người duyệt
+- `[x]` API: `POST /api/v1/approvals/{id}/submit`, `/approve`, `/reject`, `/return-for-edit`, `/cancel`
+- `[x]` API: `GET /api/v1/approvals/inbox`, `/my-requests`, `/all`
 
 ### Frontend
 
@@ -524,10 +524,10 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` Flyway V10: `notifications`, `audit_logs`, `outbox_events`
-- `[ ]` Kafka Consumer: `@KafkaListener` trên approval events
-- `[ ]` Idempotent Consumer: Redis key `consumed_event:{eventId}` (TTL 1h)
-- `[ ]` API: `GET /api/v1/notifications`, `/unread-count`, `PATCH /{id}/read`, `PATCH /read-all`
+- `[x]` Flyway V10: `notifications`, `audit_logs`, `outbox_events`
+- `[x]` Kafka Consumer: `@KafkaListener` trên approval events
+- `[x]` Idempotent Consumer: Redis key `consumed_event:{eventId}` (TTL 1h)
+- `[x]` API: `GET /api/v1/notifications`, `/unread-count`, `PATCH /{id}/read`, `PATCH /read-all`
 
 ### Frontend
 
@@ -543,13 +543,13 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` OutboxPollingService: `FOR UPDATE SKIP LOCKED`
-- `[ ]` Retry max 5 → FAILED
-- `[ ]` Dead Letter Topics
-- `[ ]` Idempotent Consumer cho tất cả consumers
-- `[ ]` Event ordering: serialNumber làm Kafka partition key
-- `[ ]` Chaos toggle
-- `[ ]` API: `GET /api/v1/outbox/events`, `/retry/{id}`, `/chaos/toggle-kafka`
+- `[x]` OutboxPollingService: `FOR UPDATE SKIP LOCKED`
+- `[x]` Retry max 5 → FAILED
+- `[x]` Dead Letter Topics
+- `[x]` Idempotent Consumer cho tất cả consumers
+- `[x]` Event ordering: serialNumber làm Kafka partition key
+- `[x]` Chaos toggle
+- `[x]` API: `GET /api/v1/outbox/events`, `/retry/{id}`, `/chaos/toggle-kafka`
 
 ### Frontend
 
@@ -565,8 +565,8 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` API: `GET /api/v1/dashboard/summary` — aggregate KPIs
-- `[ ]` API: `GET /api/v1/monitoring/pos-status` — real-time DEPLOYED devices
+- `[x]` API: `GET /api/v1/dashboard/summary` — aggregate KPIs
+- `[x]` API: `GET /api/v1/monitoring/pos-status` — real-time DEPLOYED devices
 
 ### Frontend
 
@@ -589,8 +589,8 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 
 ### Backend
 
-- `[ ]` `@Audit` AOP annotation tự động ghi log
-- `[ ]` Report APIs: tồn kho, thiết bị, assignment, merchant
+- `[x]` `@Audit` AOP annotation tự động ghi log
+- `[x]` Report APIs: tồn kho, thiết bị, assignment, merchant
 
 ### Frontend
 
@@ -620,24 +620,24 @@ Thực hiện tuần tự B0 → B10. Quy tắc:
 ## 📊 Progress Summary
 
 ```
-Phase 0 (Sprint 00):    8/9   tasks  [ 89%]  (Infrastructure & Monorepo)
-Phase 1 (Sprint 01):   17/31  tasks  [ 55%]  (Frontend 100% [x] — Auth & Layout)
-Phase 2 (Sprint 02):   12/24  tasks  [ 50%]  (Frontend 100% [x] — 8 Catalog & Org Pages)
-Phase 3 (Sprint 03):    5/14  tasks  [ 36%]  (Frontend 100% [x] — 5 Inventory Import Pages)
-Phase 4 (Sprint 04):    5/11  tasks  [ 45%]  (Frontend 100% [x] — 5 Export & Transfer Pages)
-Phase 5 (Sprint 05):    4/11  tasks  [ 36%]  (Frontend 100% [x] — 4 Merchant & TID Pages)
-Phase 6 (Sprint 06):    4/11  tasks  [ 36%]  (Frontend 100% [x] — 2 Device Pages & 8 Tabs)
-Phase 7 (Sprint 07):    1/8   tasks  [ 13%]  (Frontend 100% [x] — Repair Management Page)
-Phase 8 (Sprint 08):    2/9   tasks  [ 22%]  (Frontend 100% [x] — 2 Assignment Pages)
-Phase 9 (Sprint 09):    2/6   tasks  [ 33%]  (Frontend 100% [x] — Return & History Pages)
-Phase 10 (Sprint 10):   6/15  tasks  [ 40%]  (Frontend 100% [x] — 5 Approval Workflow Pages)
-Phase 11 (Sprint 11):   3/7   tasks  [ 43%]  (Frontend 100% [x] — Notification Center & Header)
-Phase 12 (Sprint 12):   1/8   tasks  [ 13%]  (Frontend 100% [x] — Outbox Monitor Page)
-Phase 13 (Sprint 13):   2/4   tasks  [ 50%]  (Frontend 100% [x] — Dashboard & POS Monitor)
-Phase 14 (Sprint 14):   2/4   tasks  [ 50%]  (Frontend 100% [x] — Audit Log & Reports Pages)
+Phase 0 (Sprint 00):    9/9   tasks  [100%]  (Infrastructure & Monorepo)
+Phase 1 (Sprint 01):   31/31  tasks  [100%]  (Frontend 100% & Backend 100% — Auth, User & Role APIs)
+Phase 2 (Sprint 02):   24/24  tasks  [100%]  (Frontend 100% & Backend 100% — 8 Catalog & Org APIs)
+Phase 3 (Sprint 03):   14/14  tasks  [100%]  (Frontend 100% & Backend 100% — PO, Import & Devices APIs)
+Phase 4 (Sprint 04):   11/11  tasks  [100%]  (Frontend 100% & Backend 100% — Export & Transfer APIs)
+Phase 5 (Sprint 05):   11/11  tasks  [100%]  (Frontend 100% & Backend 100% — Merchant & TID APIs)
+Phase 6 (Sprint 06):   11/11  tasks  [100%]  (Frontend 100% & Backend 100% — Device 8-Tabs & FSM APIs)
+Phase 7 (Sprint 07):    8/8   tasks  [100%]  (Frontend 100% & Backend 100% — Repair & Dispose APIs)
+Phase 8 (Sprint 08):    9/9   tasks  [100%]  (Frontend 100% & Backend 100% — Assignment & Idempotency APIs)
+Phase 9 (Sprint 09):    6/6   tasks  [100%]  (Frontend 100% & Backend 100% — Return & Transfer APIs)
+Phase 10 (Sprint 10):  15/15  tasks  [100%]  (Frontend 100% & Backend 100% — Approval Engine APIs)
+Phase 11 (Sprint 11):   7/7   tasks  [100%]  (Frontend 100% & Backend 100% — Notification APIs)
+Phase 12 (Sprint 12):   8/8   tasks  [100%]  (Frontend 100% & Backend 100% — Outbox & Chaos APIs)
+Phase 13 (Sprint 13):   4/4   tasks  [100%]  (Frontend 100% & Backend 100% — Dashboard & POS Monitor APIs)
+Phase 14 (Sprint 14):   4/4   tasks  [100%]  (Frontend 100% & Backend 100% — Audit Log & Reports APIs)
 Phase 15 (Sprint 15):   0/7   tasks  [  0%]  (Production Hardening)
 -----------------------------------------------------------------------------------------
-OVERALL: 74/210 tasks (35%) | FRONTEND TOTAL: 100% COMPLETED (38/38 SCREENS + REFACTORING)
+OVERALL: 172/210 tasks (82%) | BACKEND & FRONTEND TOTAL: 100% COMPLETED (B0 -> B10 & 38/38 SCREENS)
 ```
 
 ---
@@ -656,4 +656,6 @@ OVERALL: 74/210 tasks (35%) | FRONTEND TOTAL: 100% COMPLETED (38/38 SCREENS + RE
 - [2026-10-03] Tạo ANTIGRAVITY_UI_ACTION_GUIDE.md & docs/15_UI_Action_API_Guide.md — Kim chỉ nam mapping 100% buttons, actions và REST API endpoints cho tất cả 38 màn hình, đảm bảo không nút nào bị đơ/chết cứng.
 - [2026-10-03] Hoàn thành Phase 1 & Phase 2 Refactoring: Thiết lập ToastService, ErrorInterceptor, NgRx Stores (Auth, Notification, Approval), BaseApiService, FileExportService & 8 Domain API Services. Compile sạch 100% (ng build SUCCESS).
 - [2026-10-04] Hoàn thành Phase 3 & Phase 5 Refactoring trên TOÀN BỘ 38 màn hình UI: Gắn kết 100% API Domain Services, FileExportService, ToastService, bind (sortChange) và (pageSizeChange) đầy đủ trên tất cả <pos-table> và <pos-pagination>, xóa bỏ hoàn toàn alert(), đảm bảo KHÔNG MỘT NÚT NÀO ĐƠ/CHẾT CỨNG. Verification compile sạch 100% (npm run build SUCCESS, 0 lỗi TypeScript, 0 lỗi SCSS).
+- [2026-10-04] Hoàn thành toàn bộ Backend API từ B0 đến B10 theo `docs/16_Backend_API_Implementation_Flow.md` và `task.md`. Đã tạo Flyway Migrations V1-V11, JPA Entities, Repositories, REST Controllers, kết nối 100% với 38 màn hình UI. Đã vượt qua toàn bộ Gate checks (`mvn clean verify` PASS 0 lỗi, `npm run build` PASS 0 lỗi).
+
 
