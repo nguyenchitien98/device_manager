@@ -13,8 +13,8 @@
 | **B2** | Catalog & Organization Master Data | ✅ PASS | SUCCESS | SUCCESS | V3 PASS | Verified | Completed |
 | **B3** | Merchant & Terminal (TID/MID) Management | ✅ PASS | SUCCESS | SUCCESS | V4 PASS | Verified | Completed |
 | **B4** | PO, Import, Devices & Stock Ledger | ✅ PASS | SUCCESS | SUCCESS | V6 PASS | Verified | Completed |
-| **B5** | Approval Workflow Engine | ⏳ IN PROGRESS | – | – | – | – | Pending |
-| **B6** | Stock Export, Transfer & Logistics | ⏹️ PENDING | – | – | – | – | Pending |
+| **B5** | Approval Workflow Engine | ✅ PASS | SUCCESS | SUCCESS | V7 PASS | Verified | Completed |
+| **B6** | Stock Export, Transfer & Logistics | ⏳ IN PROGRESS | – | – | – | – | Pending |
 | **B7** | Device Detail 8-Tabs, FSM, Repair & Dispose | ⏹️ PENDING | – | – | – | – | Pending |
 | **B8** | Assignment, Idempotency & Concurrency | ⏹️ PENDING | – | – | – | – | Pending |
 | **B9** | Audit Log, Notifications, Outbox & Reports | ⏹️ PENDING | – | – | – | – | Pending |
@@ -111,5 +111,28 @@
   - `mvn clean verify` -> SUCCESS (0 lỗi Java)
   - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
 - **Commit:** `feat(backend): B4 - PO lifecycle, import serial scanning, devices & stock ledger APIs`
+
+---
+
+### 🟢 BƯỚC B5: Approval Workflow Engine
+- **Ngày hoàn thành:** 2026-10-04
+- **Công việc đã làm:**
+  1. Migration `V7__approval_workflow_schema.sql`: tạo các bảng `approval_requests`, `approval_steps`.
+  2. JPA Entities & Repositories: `ApprovalRequestJpaEntity`, `ApprovalStepJpaEntity`, `ApprovalRequestJpaRepository`.
+  3. `ApprovalController` (`/api/v1/approvals`):
+     - `GET /inbox`: Hòm việc cần duyệt (Pending).
+     - `GET /my-requests`: Yêu cầu do người dùng hiện tại tạo.
+     - `GET /all`: Tất cả hồ sơ phê duyệt.
+     - `GET /stats`: Thống kê đếm `pendingCount, approvedCount, rejectedCount`.
+     - `GET /{id}`: Chi tiết hồ sơ và các bước phê duyệt (Timeline).
+     - `POST /{id}/approve`: Duyệt hồ sơ (Validate quy tắc Maker-Checker: Người tạo KHÔNG ĐƯỢC tự duyệt hồ sơ của mình -> trả lỗi `POS-5003`).
+     - `POST /{id}/reject`: Từ chối hồ sơ kèm lý do.
+     - `POST /{id}/return-for-edit`: Trả hồ sơ về cho người tạo chỉnh sửa.
+     - `POST /{id}/cancel`: Hủy hồ sơ.
+     - `GET /inbox/export` & `GET /export`: Xuất file Excel hòm thư phê duyệt.
+- **Kết quả Gate:**
+  - `mvn clean verify` -> SUCCESS (0 lỗi Java)
+  - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
+- **Commit:** `feat(backend): B5 - approval workflow engine APIs & Maker-Checker rule`
 
 ---
