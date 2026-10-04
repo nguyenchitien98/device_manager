@@ -70,43 +70,6 @@ export class AuthService {
   }
 
   /**
-   * Mock login cho mục đích test UI local khi chưa bật backend server.
-   */
-  mockLogin(role: string = 'SUPER_ADMIN'): void {
-    const mockUser: UserInfo = {
-      id: '00000000-0000-0000-0000-000000000001',
-      username: 'admin',
-      email: 'admin@posbank.com.vn',
-      fullName: 'Quản Trị Viên Hệ Thống (Demo)',
-      roles: [role],
-      permissions: [
-        'CATALOG_VIEW', 'CATALOG_MANAGE',
-        'INVENTORY_VIEW', 'INVENTORY_IMPORT', 'INVENTORY_EXPORT', 'INVENTORY_TRANSFER', 'INVENTORY_APPROVE',
-        'MERCHANT_VIEW', 'MERCHANT_MANAGE',
-        'ASSIGNMENT_VIEW', 'ASSIGNMENT_MANAGE',
-        'DEVICE_VIEW', 'DEVICE_MANAGE',
-        'APPROVAL_VIEW', 'APPROVAL_MANAGE',
-        'REPORT_VIEW', 'REPORT_EXPORT',
-        'AUDIT_VIEW',
-        'ADMIN_USER_MANAGE', 'ADMIN_ROLE_MANAGE'
-      ],
-      businessUnitId: 'HO-001',
-      businessUnitName: 'Hội Sở Chính',
-      branchCode: 'HO-HA-NOI'
-    };
-
-    const mockTokens: AuthTokens = {
-      accessToken: 'mock-jwt-access-token-demo',
-      refreshToken: 'mock-jwt-refresh-token-demo',
-      tokenType: 'Bearer',
-      expiresIn: 86400,
-      user: mockUser
-    };
-
-    this.handleAuthSuccess(mockTokens);
-  }
-
-  /**
    * Làm mới Access Token bằng Refresh Token.
    *
    * @returns Observable với tokens mới
@@ -122,16 +85,29 @@ export class AuthService {
   }
 
   /**
+   * Xóa auth state và chuyển hướng về /login mà không bắn HTTP request phụ
+   */
+  clearAuthStateAndRedirect(): void {
+    this.clearAuthState();
+    if (!this.router.url.includes('/login')) {
+      this.router.navigate(['/login']);
+    }
+  }
+
+  /**
    * Đăng xuất — xóa toàn bộ auth state.
    */
   logout(): void {
     const refreshToken = this.getRefreshToken();
-    // Gọi logout API (best effort — không block nếu lỗi)
-    this.http.post(`${this.apiUrl}/auth/logout`, { refreshToken })
-      .subscribe({ error: () => {} });
+    const token = this.getAccessToken();
 
-    this.clearAuthState();
-    this.router.navigate(['/login']);
+    if (refreshToken && token) {
+      // Gọi logout API (best effort — không block nếu lỗi)
+      this.http.post(`${this.apiUrl}/auth/logout`, { refreshToken })
+        .subscribe({ error: () => {} });
+    }
+
+    this.clearAuthStateAndRedirect();
   }
 
   /**

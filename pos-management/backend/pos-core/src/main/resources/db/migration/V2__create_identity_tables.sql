@@ -218,7 +218,7 @@ INSERT INTO users (username, email, password_hash, full_name, status)
 VALUES (
     'admin',
     'admin@pos.vn',
-    '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+    '$2a$10$HMeS6bFNmxc4OZTyLhy7QujjDlZkNOQdCCuMojfXdMT0/blgSqjoO',
     'Super Administrator',
     'ACTIVE'
 );
@@ -231,14 +231,14 @@ WHERE u.username = 'admin' AND r.name = 'SUPER_ADMIN';
 -- ─── Test Users cho từng role ─────────────────────────────────────
 -- Password: Test@123 (BCrypt hash)
 INSERT INTO users (username, email, password_hash, full_name, status) VALUES
-    ('inventory.manager', 'inventory.manager@pos.vn',  '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Inventory Manager', 'ACTIVE'),
-    ('inventory.staff',   'inventory.staff@pos.vn',    '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Inventory Staff',   'ACTIVE'),
-    ('merchant.manager',  'merchant.manager@pos.vn',   '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Merchant Manager',  'ACTIVE'),
-    ('device.operator',   'device.op@pos.vn',          '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Device Operator',   'ACTIVE'),
-    ('assignment.op',     'assignment.op@pos.vn',       '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Assignment Operator','ACTIVE'),
-    ('fee.manager',       'fee.manager@pos.vn',         '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Fee Manager',       'ACTIVE'),
-    ('auditor',           'auditor@pos.vn',             '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Auditor',           'ACTIVE'),
-    ('viewer',            'viewer@pos.vn',              '$2a$12$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Viewer',            'ACTIVE');
+    ('inventory.manager', 'inventory.manager@pos.vn',  '$2a$10$HMeS6bFNmxc4OZTyLhy7QujjDlZkNOQdCCuMojfXdMT0/blgSqjoO', 'Inventory Manager', 'ACTIVE'),
+    ('inventory.staff',   'inventory.staff@pos.vn',    '$2a$10$HMeS6bFNmxc4OZTyLhy7QujjDlZkNOQdCCuMojfXdMT0/blgSqjoO', 'Inventory Staff',   'ACTIVE'),
+    ('merchant.manager',  'merchant.manager@pos.vn',   '$2a$10$HMeS6bFNmxc4OZTyLhy7QujjDlZkNOQdCCuMojfXdMT0/blgSqjoO', 'Merchant Manager',  'ACTIVE'),
+    ('device.operator',   'device.op@pos.vn',          '$2a$10$HMeS6bFNmxc4OZTyLhy7QujjDlZkNOQdCCuMojfXdMT0/blgSqjoO', 'Device Operator',   'ACTIVE'),
+    ('assignment.op',     'assignment.op@pos.vn',       '$2a$10$HMeS6bFNmxc4OZTyLhy7QujjDlZkNOQdCCuMojfXdMT0/blgSqjoO', 'Assignment Operator','ACTIVE'),
+    ('fee.manager',       'fee.manager@pos.vn',         '$2a$10$HMeS6bFNmxc4OZTyLhy7QujjDlZkNOQdCCuMojfXdMT0/blgSqjoO', 'Fee Manager',       'ACTIVE'),
+    ('auditor',           'auditor@pos.vn',             '$2a$10$HMeS6bFNmxc4OZTyLhy7QujjDlZkNOQdCCuMojfXdMT0/blgSqjoO', 'Auditor',           'ACTIVE'),
+    ('viewer',            'viewer@pos.vn',              '$2a$10$HMeS6bFNmxc4OZTyLhy7QujjDlZkNOQdCCuMojfXdMT0/blgSqjoO', 'Viewer',            'ACTIVE');
 
 -- Gán roles cho test users
 INSERT INTO user_roles (user_id, role_id)

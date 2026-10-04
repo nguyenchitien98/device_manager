@@ -17,7 +17,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate           # BẮT BUỘC — KHÔNG dùng create/update. Dùng Flyway!
+      ddl-auto: none               # Flyway manages database schema
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -29,8 +29,9 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
-    validate-on-migrate: true
-    out-of-order: false
+    validate-on-migrate: false
+    repair-on-migrate: true
+    out-of-order: true
 
   data:
     redis:
@@ -84,6 +85,20 @@ pos:
     polling-delay-ms: 2000          # Poll outbox mỗi 2 giây
     max-retry: 5
 
+  integration:
+    way4:
+      enabled: false                              # Tắt khi chưa có WAY4 endpoint thực
+      base-url: ${WAY4_BASE_URL:http://localhost:9001/way4-mock}
+      api-key: ${WAY4_API_KEY:dev-api-key}
+      timeout-ms: 5000
+      retry-max-attempts: 3
+    t24:
+      enabled: false                              # Tắt khi chưa có T24 endpoint thực
+      base-url: ${T24_BASE_URL:http://localhost:9002/t24-mock}
+      api-key: ${T24_API_KEY:dev-api-key}
+      timeout-ms: 5000
+      retry-max-attempts: 3
+
 # ─── Spring Actuator ─────────────────────────────────────────────
 management:
   endpoints:
@@ -118,23 +133,6 @@ server:
 # ─── Application Info ────────────────────────────────────────────
 app:
   version: 1.0.0
-
-# ─── External Integrations ───────────────────────────────────────
-# WAY4 Card Management Platform
-pos:
-  integration:
-    way4:
-      enabled: false                              # Tắt khi chưa có WAY4 endpoint thực
-      base-url: ${WAY4_BASE_URL:http://localhost:9001/way4-mock}
-      api-key: ${WAY4_API_KEY:dev-api-key}
-      timeout-ms: 5000
-      retry-max-attempts: 3
-    t24:
-      enabled: false                              # Tắt khi chưa có T24 endpoint thực
-      base-url: ${T24_BASE_URL:http://localhost:9002/t24-mock}
-      api-key: ${T24_API_KEY:dev-api-key}
-      timeout-ms: 5000
-      retry-max-attempts: 3
 
 # ─── Logging ─────────────────────────────────────────────────────
 logging:

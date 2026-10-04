@@ -37,16 +37,20 @@ export const jwtInterceptor: HttpInterceptorFn = (
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !req.url.includes('/auth/refresh')) {
-        // Thử refresh token
+      if (error.status === 401 && !isAuthEndpoint(req.url)) {
+        const refreshToken = authService.getRefreshToken();
+        if (!refreshToken) {
+          authService.clearAuthStateAndRedirect();
+          return throwError(() => error);
+        }
+
         return authService.refreshToken().pipe(
           switchMap((response) => {
             const newToken = response.data.accessToken;
             return next(addToken(req, newToken));
           }),
           catchError((refreshError) => {
-            // Refresh thất bại → logout
-            authService.logout();
+            authService.clearAuthStateAndRedirect();
             return throwError(() => refreshError);
           })
         );
@@ -62,7 +66,11 @@ function addToken(req: HttpRequest<unknown>, token: string): HttpRequest<unknown
   });
 }
 
+function isAuthEndpoint(url: string): boolean {
+  return url.includes('/auth/login') || url.includes('/auth/refresh') || url.includes('/auth/logout');
+}
+
 function isPublicEndpoint(url: string): boolean {
-  const publicPaths = ['/auth/login', '/auth/refresh', '/health'];
+  const publicPaths = ['/auth/login', '/auth/refresh', '/auth/logout', '/health'];
   return publicPaths.some(path => url.includes(path));
 }
