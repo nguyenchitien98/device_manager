@@ -1,22 +1,19 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LanguageService } from '../../../core/services/language.service';
+import { TranslatePipe } from '../../pipes/translate.pipe';
 
-/**
- * Reusable Empty State Component — Hiển thị khi tìm kiếm không ra kết quả, danh sách trống, hoặc 404/no data.
- *
- * Directives / Signal Input supported.
- */
 @Component({
   selector: 'app-empty-state',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="empty-state-card" [ngClass]="type">
       <div class="icon-wrapper">
         <span class="material-icons empty-icon">{{ icon }}</span>
       </div>
-      <h3 class="empty-title">{{ title }}</h3>
+      <h3 class="empty-title">{{ title || ('COMMON.NO_DATA' | translate) }}</h3>
       <p class="empty-message">{{ message }}</p>
 
       <div class="empty-actions" *ngIf="actionLabel">
@@ -121,8 +118,8 @@ import { CommonModule } from '@angular/common';
 })
 export class EmptyStateComponent {
   @Input() icon = 'search_off';
-  @Input() title = 'Không tìm thấy dữ liệu';
-  @Input() message = 'Không tìm thấy sản phẩm hoặc thông tin phù hợp với từ khóa tìm kiếm. Vui lòng thử lại với từ khóa khác.';
+  @Input() title = '';
+  @Input() message = '';
   @Input() type: 'search' | 'info' | 'warning' = 'search';
   @Input() actionLabel?: string;
   @Input() actionIcon?: string;

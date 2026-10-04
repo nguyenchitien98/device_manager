@@ -11,6 +11,8 @@ import { ApprovalApiService } from '../../../core/services/api/approval-api.serv
 import { FileExportService } from '../../../core/services/file-export.service';
 import { ToastService } from '../../../core/services/toast.service';
 
+import { ApprovalNotificationService } from '../../../core/services/approval-notification.service';
+
 export interface ApprovalItem {
   id: string;
   requestCode: string;
@@ -41,6 +43,7 @@ export class ApprovalInboxPageComponent implements OnInit {
   private readonly approvalApi = inject(ApprovalApiService);
   private readonly fileExport = inject(FileExportService);
   private readonly toast = inject(ToastService);
+  private readonly approvalNotif = inject(ApprovalNotificationService);
 
   readonly searchRequestCode = signal('');
   readonly searchTitle = signal('');
@@ -49,7 +52,7 @@ export class ApprovalInboxPageComponent implements OnInit {
   readonly loading = signal(false);
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
-  readonly totalItems = signal(3);
+  readonly totalItems = signal(0);
   readonly sortField = signal('requestCode');
   readonly sortOrder = signal<'asc' | 'desc'>('asc');
 
@@ -95,11 +98,7 @@ export class ApprovalInboxPageComponent implements OnInit {
     { field: 'status', header: 'Trạng Thái', width: '140px', align: 'center' }
   ];
 
-  readonly approvals = signal<ApprovalItem[]>([
-    { id: '1', requestCode: 'REQ-2026-001', requestType: 'Nhập kho mua mới', title: 'Nhập kho 100 máy PAX A920 đợt 1/2026', creatorName: 'Lê Văn Nam', department: 'Kho Trung Tâm', createdDate: '2026-03-10', priority: 'High', status: 'PENDING' },
-    { id: '2', requestCode: 'REQ-2026-002', requestType: 'Xuất kho cấp mới', title: 'Xuất kho 15 máy cho Chi nhánh Ba Đình', creatorName: 'Nguyễn Thị Hoa', department: 'Khối POS', createdDate: '2026-03-12', priority: 'Medium', status: 'PENDING' },
-    { id: '3', requestCode: 'REQ-2026-003', requestType: 'Điều chuyển kho', title: 'Điều chuyển 20 máy từ Kho HN vào Kho HCM', creatorName: 'Phạm Minh Tuấn', department: 'Quản Lý Kho', createdDate: '2026-03-08', priority: 'Low', status: 'APPROVED' }
-  ]);
+  readonly approvals = signal<ApprovalItem[]>([]);
 
   readonly filteredApprovals = computed(() => {
     const code = this.searchRequestCode().toLowerCase().trim();
@@ -129,13 +128,22 @@ export class ApprovalInboxPageComponent implements OnInit {
       status: this.selectedStatus()
     }).subscribe({
       next: (res) => {
-        if (res?.data?.content) {
+        if (res?.data?.content && res.data.content.length > 0) {
           this.approvals.set(res.data.content);
           this.totalItems.set(res.data.totalElements);
+        } else {
+          this.approvals.set([]);
+          this.totalItems.set(0);
         }
         this.loading.set(false);
+        this.approvalNotif.refreshPendingCount();
       },
-      error: () => this.loading.set(false)
+      error: () => {
+        this.approvals.set([]);
+        this.totalItems.set(0);
+        this.loading.set(false);
+        this.approvalNotif.setPendingCount(0);
+      }
     });
   }
 

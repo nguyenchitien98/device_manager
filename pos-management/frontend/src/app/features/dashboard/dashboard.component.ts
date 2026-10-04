@@ -5,10 +5,12 @@ import {
   signal,
 } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
+import { TranslatePipe } from '../../shared/pipes/translate.pipe';
+
 
 /** KPI Card (Gradient) */
 interface KpiCard {
-  label: string;
+  labelKey: string;
   value: number;
   icon: string;       // SVG path string
   colorClass: string; // kpi-blue, kpi-green, etc.
@@ -16,7 +18,7 @@ interface KpiCard {
 
 /** Secondary stat card */
 interface StatCard {
-  label: string;
+  labelKey: string;
   value: number;
   iconColor: string;
   icon: string;
@@ -48,7 +50,7 @@ interface ActivityItem {
 
 /** Donut slice */
 interface DonutSlice {
-  label: string;
+  labelKey: string;
   color: string;
   count: number;
   percent: number;
@@ -64,7 +66,7 @@ interface DonutSlice {
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, DecimalPipe],
+  imports: [CommonModule, DecimalPipe, TranslatePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -72,31 +74,31 @@ export class DashboardComponent implements OnInit {
   // ─── KPI Row 1: 5 Gradient Cards ────────────────────────────────
   readonly kpiCards: KpiCard[] = [
     {
-      label: 'Tổng thiết bị',
+      labelKey: 'DASHBOARD.TOTAL_DEVICES',
       value: 1245,
       colorClass: 'kpi-blue',
       icon: 'M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18',
     },
     {
-      label: 'Tồn kho',
+      labelKey: 'NAV.STOCK',
       value: 423,
       colorClass: 'kpi-green',
       icon: 'M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16',
     },
     {
-      label: 'Đang triển khai',
+      labelKey: 'DASHBOARD.ACTIVE_DEVICES',
       value: 756,
       colorClass: 'kpi-indigo',
       icon: 'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z M9 12h6 M12 9v6',
     },
     {
-      label: 'Đang sửa chữa',
+      labelKey: 'STOCK.FAULTY',
       value: 42,
       colorClass: 'kpi-amber',
       icon: 'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z',
     },
     {
-      label: 'Thanh lý',
+      labelKey: 'COMMON.CANCELLED',
       value: 24,
       colorClass: 'kpi-red',
       icon: 'M3 6h18 M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
@@ -106,19 +108,19 @@ export class DashboardComponent implements OnInit {
   // ─── KPI Row 2: 3 Secondary Stats ───────────────────────────────
   readonly statCards: StatCard[] = [
     {
-      label: 'Merchant Active',
+      labelKey: 'DASHBOARD.TOTAL_MERCHANTS',
       value: 238,
       iconColor: '#1976D2',
       icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75',
     },
     {
-      label: 'Tổng TID',
+      labelKey: 'NAV.TERMINALS',
       value: 892,
       iconColor: '#059669',
       icon: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M2 10h20',
     },
     {
-      label: 'Chờ phê duyệt',
+      labelKey: 'DASHBOARD.PENDING_APPROVALS',
       value: 8,
       iconColor: '#D97706',
       icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
@@ -145,13 +147,13 @@ export class DashboardComponent implements OnInit {
 
   // ─── Donut Chart ─────────────────────────────────────────────────
   readonly donutSlices: DonutSlice[] = this.buildDonut([
-    { label: 'Tổng thiết bị',   color: '#1976D2', count: 1245 },
-    { label: 'Đang triển khai', color: '#059669', count: 756 },
-    { label: 'Đang sửa chữa',  color: '#F57C00', count: 42 },
-    { label: 'Thanh lý',        color: '#D32F2F', count: 24 },
+    { labelKey: 'DASHBOARD.TOTAL_DEVICES',   color: '#1976D2', count: 1245 },
+    { labelKey: 'DASHBOARD.ACTIVE_DEVICES', color: '#059669', count: 756 },
+    { labelKey: 'STOCK.FAULTY',  color: '#F57C00', count: 42 },
+    { labelKey: 'COMMON.CANCELLED',        color: '#D32F2F', count: 24 },
   ]);
 
-  private buildDonut(items: { label: string; color: string; count: number }[]): DonutSlice[] {
+  private buildDonut(items: { labelKey: string; color: string; count: number }[]): DonutSlice[] {
     const total  = items.reduce((s, i) => s + i.count, 0);
     const r      = 54;
     const circ   = 2 * Math.PI * r;
