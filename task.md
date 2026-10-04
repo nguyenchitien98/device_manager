@@ -38,7 +38,7 @@ OVERALL: 74/210 tasks (35%) — FRONTEND READY 100%
 
 - `[x]` **B0 — Blockers:** proxy.conf.json (G1), sửa trailing slash `BaseApiService.put/patch` (G2), `PageResponse` khớp FE (G3), thêm `code` vào `ApiResponse` (G4), chuẩn `page` 0-based (G5)
 - `[x]` **B1 — Identity & System:** refresh rotation, rate limit/lock, `/admin/users|roles|permissions|config`, `/auth/me`, `/auth/change-password`
-- `[ ]` **B2 — Catalog & Organization:** 8 resource CRUD + export + soft delete + hierarchy validate
+- `[x]` **B2 — Catalog & Organization:** 8 resource CRUD + export + soft delete + hierarchy validate
 - `[ ]` **B3 — Merchant & Terminal:** CRUD, auto MID/TID, status, fee policy, export
 - `[ ]` **B4 — Inventory Nhập kho:** PO lifecycle (submit/approve/receive/close), imports, devices, stock, ledger, outbox polling
 - `[ ]` **B5 — Approval Engine:** inbox/my-requests/all/stats/detail, approve/reject/return/cancel, không tự duyệt

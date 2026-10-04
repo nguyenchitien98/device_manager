@@ -10,8 +10,8 @@
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
 | **B0** | Pre-requisites & Core Infrastructure Fixes | ✅ PASS | SUCCESS | SUCCESS | N/A | N/A | Completed |
 | **B1** | Identity, Auth & System Core APIs | ✅ PASS | SUCCESS | SUCCESS | V5 PASS | Verified | Completed |
-| **B2** | Catalog & Organization Master Data | ⏳ IN PROGRESS | – | – | – | – | Pending |
-| **B3** | Merchant & Terminal (TID/MID) Management | ⏹️ PENDING | – | – | – | – | Pending |
+| **B2** | Catalog & Organization Master Data | ✅ PASS | SUCCESS | SUCCESS | V3 PASS | Verified | Completed |
+| **B3** | Merchant & Terminal (TID/MID) Management | ⏳ IN PROGRESS | – | – | – | – | Pending |
 | **B4** | PO, Import, Devices & Stock Ledger | ⏹️ PENDING | – | – | – | – | Pending |
 | **B5** | Approval Workflow Engine | ⏹️ PENDING | – | – | – | – | Pending |
 | **B6** | Stock Export, Transfer & Logistics | ⏹️ PENDING | – | – | – | – | Pending |
@@ -50,5 +50,25 @@
   - `mvn clean verify` -> SUCCESS (0 lỗi Java)
   - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
 - **Commit:** `feat(backend): B1 - identity, auth profile, admin users, roles & system config APIs`
+
+---
+
+### 🟢 BƯỚC B2: Catalog & Organization Master Data
+- **Ngày hoàn thành:** 2026-10-04
+- **Công việc đã làm:**
+  1. Catalog (6 resource):
+     - `DeviceCategory`: Controller (`/api/v1/catalog/device-categories`), JPA Entity, Repository. Hỗ trợ CRUD, phân trang, filter `code/name/status`, soft delete (kiểm tra `POS-2008` nếu còn `DeviceType` active), export CSV.
+     - `DeviceType`: Controller (`/api/v1/catalog/device-types`), JPA Entity, Repository. Hỗ trợ CRUD, filter `categoryId`, soft delete (kiểm tra `POS-2008` nếu còn `DeviceModel` active), export CSV.
+     - `DeviceModel`: Controller (`/api/v1/catalog/device-models`), JPA Entity, Repository. Hỗ trợ CRUD, filter `deviceTypeId` & `vendorId`, soft delete, export CSV.
+     - `Vendor`: Controller (`/api/v1/catalog/vendors`), JPA Entity, Repository. Hỗ trợ CRUD, search, soft delete, export CSV.
+     - `MccCode`: Controller (`/api/v1/catalog/mcc`), JPA Entity, Repository. Hỗ trợ CRUD, search code/name/category, soft delete, export CSV.
+     - `FeePolicy`: Controller (`/api/v1/catalog/fee-policies`), JPA Entity, Repository. Hỗ trợ CRUD, filter `effectiveDate`, soft delete, export CSV.
+  2. Organization (2 resource):
+     - `BusinessUnit`: Controller (`/api/v1/organization/business-units`), JPA Entity, Repository. Hỗ trợ CRUD, soft delete (kiểm tra `POS-2008` nếu còn `Warehouse` active), export CSV.
+     - `Warehouse`: Controller (`/api/v1/organization/warehouses`), JPA Entity, Repository. Hỗ trợ CRUD, filter `businessUnitId`, soft delete, export CSV.
+- **Kết quả Gate:**
+  - `mvn clean verify` -> SUCCESS (0 lỗi Java)
+  - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
+- **Commit:** `feat(backend): B2 - catalog (6 resources) & organization (2 resources) master data APIs`
 
 ---
