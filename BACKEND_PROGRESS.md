@@ -11,8 +11,8 @@
 | **B0** | Pre-requisites & Core Infrastructure Fixes | ✅ PASS | SUCCESS | SUCCESS | N/A | N/A | Completed |
 | **B1** | Identity, Auth & System Core APIs | ✅ PASS | SUCCESS | SUCCESS | V5 PASS | Verified | Completed |
 | **B2** | Catalog & Organization Master Data | ✅ PASS | SUCCESS | SUCCESS | V3 PASS | Verified | Completed |
-| **B3** | Merchant & Terminal (TID/MID) Management | ⏳ IN PROGRESS | – | – | – | – | Pending |
-| **B4** | PO, Import, Devices & Stock Ledger | ⏹️ PENDING | – | – | – | – | Pending |
+| **B3** | Merchant & Terminal (TID/MID) Management | ✅ PASS | SUCCESS | SUCCESS | V4 PASS | Verified | Completed |
+| **B4** | PO, Import, Devices & Stock Ledger | ⏳ IN PROGRESS | – | – | – | – | Pending |
 | **B5** | Approval Workflow Engine | ⏹️ PENDING | – | – | – | – | Pending |
 | **B6** | Stock Export, Transfer & Logistics | ⏹️ PENDING | – | – | – | – | Pending |
 | **B7** | Device Detail 8-Tabs, FSM, Repair & Dispose | ⏹️ PENDING | – | – | – | – | Pending |
@@ -70,5 +70,29 @@
   - `mvn clean verify` -> SUCCESS (0 lỗi Java)
   - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
 - **Commit:** `feat(backend): B2 - catalog (6 resources) & organization (2 resources) master data APIs`
+
+---
+
+### 🟢 BƯỚC B3: Merchant & Terminal (TID/MID) Management
+- **Ngày hoàn thành:** 2026-10-04
+- **Công việc đã làm:**
+  1. Merchants (`/api/v1/merchants`): `MerchantController`, `MerchantJpaEntity`, `MerchantJpaRepository`.
+     - `GET /api/v1/merchants`: Danh sách phân trang, filter `status, mccId, businessUnitId, search`.
+     - `GET /api/v1/merchants/{id}`: Chi tiết Merchant.
+     - `POST /api/v1/merchants`: Tạo mới (tự động sinh mã `Mxxxxxx` nếu không truyền).
+     - `PUT /api/v1/merchants/{id}`: Cập nhật thông tin Merchant.
+     - `PATCH /api/v1/merchants/{id}/status`: Cập nhật trạng thái (`{status, reason}`).
+     - `POST /api/v1/merchants/{merchantId}/fee-policy`: Gán chính sách phí.
+     - `GET /api/v1/merchants/export`: Xuất file CSV/Excel Merchant.
+  2. Terminals (`/api/v1/terminals`): `TerminalController`, `TerminalJpaEntity`, `TerminalJpaRepository`.
+     - `GET /api/v1/terminals`: Danh sách phân trang, filter `status, search`.
+     - `GET /api/v1/terminals/{id}`: Chi tiết Terminal TID.
+     - `POST /api/v1/terminals`: Cấp mới TID (tự động sinh mã `Txxxxxx` nếu không truyền).
+     - `PATCH /api/v1/terminals/{id}/status`: Cập nhật trạng thái (`{status}`).
+     - `GET /api/v1/terminals/export`: Xuất file CSV/Excel Terminal TID.
+- **Kết quả Gate:**
+  - `mvn clean verify` -> SUCCESS (0 lỗi Java)
+  - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
+- **Commit:** `feat(backend): B3 - merchant & terminal (TID/MID) management APIs`
 
 ---
