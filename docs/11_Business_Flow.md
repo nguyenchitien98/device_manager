@@ -2,6 +2,8 @@
 
 > Tài liệu này là **kim chỉ nam nghiệp vụ** dành cho lập trình viên và AI Agent trước khi code bất kỳ tính năng nào.
 > Đọc tài liệu này để hiểu: dữ liệu nào cần tồn tại trước, flow nào phụ thuộc flow nào, và Angular hiển thị gì khi không có dữ liệu.
+>
+> 🎓 **Người mới làm banking?** Đọc [11a_Business_Onboarding_Guide.md](./11a_Business_Onboarding_Guide.md) trước — giải thích *tại sao* đằng sau mỗi flow, glossary, và danh sách các điểm còn mâu thuẫn trong tài liệu này (§6).
 
 ---
 
