@@ -16,8 +16,8 @@
 | **B5** | Approval Workflow Engine | ✅ PASS | SUCCESS | SUCCESS | V7 PASS | Verified | Completed |
 | **B6** | Stock Export, Transfer & Logistics | ✅ PASS | SUCCESS | SUCCESS | V8 PASS | Verified | Completed |
 | **B7** | Device Detail 8-Tabs, FSM, Repair & Dispose | ✅ PASS | SUCCESS | SUCCESS | V9 PASS | Verified | Completed |
-| **B8** | Assignment, Idempotency & Concurrency | ⏳ IN PROGRESS | – | – | – | – | Pending |
-| **B9** | Audit Log, Notifications, Outbox & Reports | ⏹️ PENDING | – | – | – | – | Pending |
+| **B8** | Assignment, Idempotency & Concurrency | ✅ PASS | SUCCESS | SUCCESS | V10 PASS | Verified | Completed |
+| **B9** | Audit Log, Notifications, Outbox & Reports | ⏳ IN PROGRESS | – | – | – | – | Pending |
 | **B10** | FE Cleanup & Integration Final Pass | ⏹️ PENDING | – | – | – | – | Pending |
 
 ---
@@ -177,4 +177,30 @@
 - **Commit:** `feat(backend): B7 - device detail 8-tabs, FSM status transition, repair & dispose APIs`
 
 ---
+
+### 🟢 BƯỚC B8: Assignment, Idempotency & Concurrency
+- **Ngày hoàn thành:** 2026-10-04
+- **Công việc đã làm:**
+  1. Migration `V10__assignment_schema.sql`: tạo các bảng `assignments`, `assignment_history`.
+  2. JPA Entities & Repositories: `AssignmentJpaEntity`, `AssignmentHistoryJpaEntity`, `AssignmentJpaRepository`, `AssignmentHistoryJpaRepository`.
+  3. `AssignmentController` (`/api/v1/assignments`):
+     - `GET /assignments`: Danh sách bàn giao (phân trang, filter `search, status, merchantId, terminalId`).
+     - `GET /assignments/{id}`: Chi tiết thông tin bàn giao thiết bị.
+     - `POST /assignments`: Cấp phát bàn giao thiết bị cho Merchant.
+       - Hỗ trợ header `X-Idempotency-Key` ngăn chặn trùng lặp request giao dịch.
+       - Áp dụng Optimistic Locking (`@Version` trên `devices`) tránh xung đột đồng thời.
+       - Validate trạng thái thiết bị phải là `INSTOCK` (trả về `409 CONFLICT` nếu không sẵn sàng).
+       - Cập nhật trạng thái thiết bị sang `DEPLOYED`, ghi nhật ký `assignment_history` & `device_lifecycle_history`.
+     - `POST /assignments/{id}/return`: Thu hồi thiết bị về kho, đổi trạng thái bàn giao thành `RETURNED` và thiết bị thành `INSTOCK`.
+     - `POST /assignments/{id}/transfer`: Điều chuyển thiết bị sang Merchant mới, tạo bàn giao mới `AS-YYYYMMDD-xxxx`.
+     - `GET /assignments/history`: Danh sách lịch sử điều chuyển/thu hồi.
+     - `GET /assignments/export` & `GET /assignments/history/export`: Xuất CSV/Excel.
+  4. FE Alignment: Bổ sung `X-Idempotency-Key` header và export endpoints vào `assignment-api.service.ts` và `BaseApiService.post` support `options`.
+- **Kết quả Gate:**
+  - `mvn clean verify` -> SUCCESS (0 lỗi Java)
+  - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
+- **Commit:** `feat(backend): B8 - assignment, idempotency key & concurrency control APIs`
+
+---
+
 

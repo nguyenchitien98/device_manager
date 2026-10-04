@@ -38,8 +38,8 @@ export class BaseApiService {
     return this.http.get<ApiResponse<T>>(`${this.baseUrl}${endpoint}/${id}`);
   }
 
-  post<T, D = any>(endpoint: string, body: D): Observable<ApiResponse<T>> {
-    return this.http.post<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, body);
+  post<T, D = any>(endpoint: string, body: D, options?: any): Observable<ApiResponse<T>> {
+    return this.http.post<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, body, options) as unknown as Observable<ApiResponse<T>>;
   }
 
   put<T, D = any>(endpoint: string, id?: string | number, body?: D): Observable<ApiResponse<T>> {
