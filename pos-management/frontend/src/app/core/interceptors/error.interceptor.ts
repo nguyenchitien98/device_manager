@@ -9,6 +9,8 @@ import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { ToastService } from '../services/toast.service';
 
+import { AuthService } from '../services/auth.service';
+
 export interface ApiErrorPayload {
   errorCode?: string;
   message?: string;
@@ -23,6 +25,7 @@ export const errorInterceptor: HttpInterceptorFn = (
 ) => {
   const toastService = inject(ToastService);
   const router = inject(Router);
+  const authService = inject(AuthService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -47,7 +50,7 @@ export const errorInterceptor: HttpInterceptorFn = (
         case 401:
           if (!req.url.includes('/auth/login') && !req.url.includes('/auth/refresh')) {
             toastService.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'Hết phiên làm việc');
-            router.navigate(['/login']);
+            authService.clearAuthStateAndRedirect();
           }
           break;
 

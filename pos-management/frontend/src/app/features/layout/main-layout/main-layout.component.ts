@@ -195,6 +195,8 @@ const PAGE_TITLE_MAP: Record<string, string> = {
   '/system/profile': 'NAV.PROFILE',
 };
 
+import { ApprovalNotificationService } from '../../../core/services/approval-notification.service';
+
 /**
  * Main Layout Component — App shell bao gồm Sidebar, Header, Content.
  * Composed từ Standalone Components: HeaderComponent & SidebarComponent.
@@ -211,13 +213,14 @@ export class MainLayoutComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   readonly langService = inject(LanguageService);
+  private readonly approvalNotif = inject(ApprovalNotificationService);
 
   // ─── Signals ────────────────────────────────────────────────────
   readonly isSidebarCollapsed = signal(false);
   readonly isDarkMode = signal(false);
   readonly activeRoute = signal('/dashboard');
-  readonly approvalBadge = signal(8);
-  readonly notificationCount = signal(8);
+  readonly approvalBadge = computed(() => this.approvalNotif.pendingCount());
+  readonly notificationCount = computed(() => this.approvalNotif.pendingCount());
 
   // ─── Derived from Auth ───────────────────────────────────────────
   readonly currentUser = this.authService.currentUser;
