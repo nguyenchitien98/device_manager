@@ -14,8 +14,8 @@
 | **B3** | Merchant & Terminal (TID/MID) Management | ✅ PASS | SUCCESS | SUCCESS | V4 PASS | Verified | Completed |
 | **B4** | PO, Import, Devices & Stock Ledger | ✅ PASS | SUCCESS | SUCCESS | V6 PASS | Verified | Completed |
 | **B5** | Approval Workflow Engine | ✅ PASS | SUCCESS | SUCCESS | V7 PASS | Verified | Completed |
-| **B6** | Stock Export, Transfer & Logistics | ⏳ IN PROGRESS | – | – | – | – | Pending |
-| **B7** | Device Detail 8-Tabs, FSM, Repair & Dispose | ⏹️ PENDING | – | – | – | – | Pending |
+| **B6** | Stock Export, Transfer & Logistics | ✅ PASS | SUCCESS | SUCCESS | V8 PASS | Verified | Completed |
+| **B7** | Device Detail 8-Tabs, FSM, Repair & Dispose | ⏳ IN PROGRESS | – | – | – | – | Pending |
 | **B8** | Assignment, Idempotency & Concurrency | ⏹️ PENDING | – | – | – | – | Pending |
 | **B9** | Audit Log, Notifications, Outbox & Reports | ⏹️ PENDING | – | – | – | – | Pending |
 | **B10** | FE Cleanup & Integration Final Pass | ⏹️ PENDING | – | – | – | – | Pending |
@@ -134,5 +134,21 @@
   - `mvn clean verify` -> SUCCESS (0 lỗi Java)
   - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
 - **Commit:** `feat(backend): B5 - approval workflow engine APIs & Maker-Checker rule`
+
+---
+
+### 🟢 BƯỚC B6: Stock Export, Transfer & Logistics
+- **Ngày hoàn thành:** 2026-10-04
+- **Công việc đã làm:**
+  1. Migration `V8__stock_export_transfer_logistics_schema.sql`: tạo các bảng `stock_exports`, `stock_export_items`, `stock_transfers`, `stock_transfer_items`, `logistics_shipments`.
+  2. JPA Entities & Repositories: `StockExportJpaEntity`, `StockExportItemJpaEntity`, `StockTransferJpaEntity`, `StockTransferItemJpaEntity`, `LogisticsShipmentJpaEntity`.
+  3. `StockExportTransferController` (`/api/v1`):
+     - `GET /inventory/exports` & `POST /inventory/exports`: Tạo phiếu xuất kho, tự động sinh Hồ sơ phê duyệt `STOCK_EXPORT` trong `approval_requests`. `GET /exports/export`.
+     - `GET /inventory/transfers` & `POST /inventory/transfers`: Tạo Lệnh điều chuyển kho, tự động sinh Hồ sơ phê duyệt `STOCK_TRANSFER`. `GET /transfers/export`.
+     - `GET /logistics/shipments` & `GET /logistics/shipments/export`: Danh sách vận đơn logistics và xuất Excel.
+- **Kết quả Gate:**
+  - `mvn clean verify` -> SUCCESS (0 lỗi Java)
+  - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
+- **Commit:** `feat(backend): B6 - stock export, transfer & logistics APIs linked to approval engine`
 
 ---
