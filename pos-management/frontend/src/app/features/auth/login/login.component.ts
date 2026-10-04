@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { LanguageService } from '../../../core/services/language.service';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 /**
  * Login Page Component — Sprint 01.
@@ -15,15 +17,17 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-login',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  readonly langService = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+
 
   // ─── Signals ────────────────────────────────────────────────────
   readonly isLoading = signal(false);

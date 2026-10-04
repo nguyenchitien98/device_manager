@@ -11,4 +11,6 @@ export * from './components/pos-dropdown/pos-dropdown.component';
 export * from './components/pos-confirm-dialog/pos-confirm-dialog.component';
 export * from './components/empty-state/empty-state.component';
 export * from './components/pos-toast/pos-toast.component';
+export * from '../core/services/language.service';
+export * from './pipes/translate.pipe';
 

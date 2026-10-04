@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, Input, signal, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslatePipe],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })

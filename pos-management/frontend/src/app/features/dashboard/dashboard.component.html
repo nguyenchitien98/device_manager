@@ -2,22 +2,21 @@
 
   <!-- ─── Page Header ────────────────────────────────────────────── -->
   <div class="dash-header">
-    <h1 class="dash-title">Dashboard</h1>
+    <h1 class="dash-title">{{ 'NAV.DASHBOARD' | translate }}</h1>
     <div class="dash-actions">
-      <span class="last-updated">Cập nhật lúc 10:45 AM</span>
       <button class="btn btn-secondary btn-sm" id="btn-refresh-dashboard">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
         </svg>
-        Làm mới
+        {{ 'COMMON.REFRESH' | translate }}
       </button>
     </div>
   </div>
 
   <!-- ─── Row 1: 5 KPI Gradient Cards ───────────────────────────── -->
   <div class="kpi-grid">
-    @for (card of kpiCards; track card.label) {
+    @for (card of kpiCards; track card.labelKey) {
       <div class="kpi-card {{ card.colorClass }}">
         <div class="kpi-icon">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -25,7 +24,7 @@
           </svg>
         </div>
         <div class="kpi-body">
-          <span class="kpi-label">{{ card.label }}</span>
+          <span class="kpi-label">{{ card.labelKey | translate }}</span>
           <span class="kpi-value">{{ card.value | number }}</span>
         </div>
       </div>
@@ -34,7 +33,7 @@
 
   <!-- ─── Row 2: 3 Secondary Stat Cards ─────────────────────────── -->
   <div class="stat-grid">
-    @for (stat of statCards; track stat.label) {
+    @for (stat of statCards; track stat.labelKey) {
       <div class="stat-card">
         <div class="stat-icon" [style.background]="stat.iconColor + '1A'" [style.color]="stat.iconColor">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -42,7 +41,7 @@
           </svg>
         </div>
         <div class="stat-body">
-          <span class="stat-label">{{ stat.label }}</span>
+          <span class="stat-label">{{ stat.labelKey | translate }}</span>
           <span class="stat-value">{{ stat.value | number }}</span>
         </div>
       </div>
@@ -55,10 +54,10 @@
     <!-- Bar Chart: Nhập/Xuất kho theo tháng -->
     <div class="chart-card chart-wide">
       <div class="chart-header">
-        <h3 class="chart-title">Nhập/Xuất kho theo tháng</h3>
+        <h3 class="chart-title">{{ 'NAV.INVENTORY_MANAGEMENT' | translate }}</h3>
         <div class="chart-legend">
-          <span class="legend-dot blue"></span><span>Nhập kho</span>
-          <span class="legend-dot green"></span><span>Xuất kho</span>
+          <span class="legend-dot blue"></span><span>{{ 'NAV.IMPORTS' | translate }}</span>
+          <span class="legend-dot green"></span><span>{{ 'NAV.EXPORTS' | translate }}</span>
         </div>
       </div>
 
@@ -77,12 +76,12 @@
                 <div
                   class="bar bar-import"
                   [style.height.%]="barHeight(m.import)"
-                  [title]="'Nhập: ' + m.import">
+                  [title]="('NAV.IMPORTS' | translate) + ': ' + m.import">
                 </div>
                 <div
                   class="bar bar-export"
                   [style.height.%]="barHeight(m.export)"
-                  [title]="'Xuất: ' + m.export">
+                  [title]="('NAV.EXPORTS' | translate) + ': ' + m.export">
                 </div>
               </div>
               <span class="month-label">{{ m.month }}</span>
@@ -95,12 +94,12 @@
     <!-- Donut Chart: Phân bổ thiết bị -->
     <div class="chart-card chart-narrow">
       <div class="chart-header">
-        <h3 class="chart-title">Phân bổ thiết bị theo trạng thái</h3>
+        <h3 class="chart-title">{{ 'DASHBOARD.DEVICE_STATUS_CHART' | translate }}</h3>
       </div>
 
       <div class="donut-wrap">
         <svg class="donut-svg" viewBox="0 0 120 120">
-          @for (slice of donutSlices; track slice.label) {
+          @for (slice of donutSlices; track slice.labelKey) {
             <circle
               cx="60" cy="60" r="54"
               fill="none"
@@ -115,10 +114,10 @@
       </div>
 
       <div class="donut-legend">
-        @for (slice of donutSlices; track slice.label) {
+        @for (slice of donutSlices; track slice.labelKey) {
           <div class="donut-legend-item">
             <span class="donut-dot" [style.background]="slice.color"></span>
-            <span class="donut-label">{{ slice.label }}</span>
+            <span class="donut-label">{{ slice.labelKey | translate }}</span>
           </div>
         }
       </div>
@@ -132,7 +131,7 @@
     <!-- Horizontal Bar: Top 5 Kho -->
     <div class="chart-card chart-wide">
       <div class="chart-header">
-        <h3 class="chart-title">Top 5 Kho tồn nhiều nhất</h3>
+        <h3 class="chart-title">{{ 'NAV.WAREHOUSE' | translate }}</h3>
       </div>
 
       <div class="hbar-container">
@@ -155,8 +154,8 @@
     <!-- Activity Feed -->
     <div class="chart-card chart-narrow">
       <div class="chart-header">
-        <h3 class="chart-title">Hoạt động gần đây</h3>
-        <button class="btn-link" id="btn-view-all-activity">Xem tất cả</button>
+        <h3 class="chart-title">{{ 'DASHBOARD.RECENT_ACTIVITIES' | translate }}</h3>
+        <button class="btn-link" id="btn-view-all-activity">{{ 'DASHBOARD.VIEW_ALL' | translate }}</button>
       </div>
 
       <div class="activity-feed">

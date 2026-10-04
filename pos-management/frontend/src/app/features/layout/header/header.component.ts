@@ -1,17 +1,21 @@
-import { ChangeDetectionStrategy, Component, Input, Output, EventEmitter, signal, HostListener, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, Output, EventEmitter, signal, HostListener, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { UserInfo } from '../../../core/models/auth.models';
+import { LanguageService } from '../../../core/services/language.service';
+import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslatePipe],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent {
+  readonly langService = inject(LanguageService);
+
   @Input() isDarkMode = false;
   @Input() currentPageTitle = 'Dashboard';
   @Input() notificationCount = 8;
@@ -39,6 +43,10 @@ export class HeaderComponent {
 
   closeUserMenu(): void {
     this.isUserMenuOpen.set(false);
+  }
+
+  onToggleLanguage(): void {
+    this.langService.toggleLanguage();
   }
 
   onLogout(): void {

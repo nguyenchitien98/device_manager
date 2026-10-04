@@ -26,38 +26,37 @@
     </div>
 
     <h2 class="brand-heading">
-      Quản lý vòng đời<br>
+      {{ 'AUTH.TITLE' | translate }}<br>
       <span>POS & Merchant</span><br>
-      toàn diện
+      {{ 'AUTH.SUBTITLE' | translate }}
     </h2>
 
     <p class="brand-desc">
-      Hệ thống quản lý thiết bị POS, Merchant và quy trình nghiệp vụ
-      dành riêng cho ngân hàng. Tích hợp Kafka, Approval Workflow
+      {{ 'AUTH.SUBTITLE' | translate }}. Tích hợp Kafka, Approval Workflow
       và Audit Log đầy đủ.
     </p>
 
     <div class="features">
       <div class="feature-item">
         <div class="feature-icon-wrap">📦</div>
-        <span class="feature-text">Quản lý kho & vòng đời thiết bị POS</span>
+        <span class="feature-text">{{ 'NAV.INVENTORY_MANAGEMENT' | translate }} &amp; {{ 'NAV.DEVICE_MANAGEMENT' | translate }}</span>
       </div>
       <div class="feature-item">
         <div class="feature-icon-wrap">🏪</div>
-        <span class="feature-text">Quản lý Merchant & Terminal (TID)</span>
+        <span class="feature-text">{{ 'NAV.MERCHANT_MANAGEMENT' | translate }} &amp; {{ 'NAV.TERMINALS' | translate }}</span>
       </div>
       <div class="feature-item">
         <div class="feature-icon-wrap">✅</div>
-        <span class="feature-text">Quy trình phê duyệt Maker-Checker 2 cấp</span>
+        <span class="feature-text">{{ 'NAV.WORKFLOW' | translate }} Maker-Checker</span>
       </div>
       <div class="feature-item">
         <div class="feature-icon-wrap">📊</div>
-        <span class="feature-text">Dashboard, Báo cáo & Xuất Excel</span>
+        <span class="feature-text">{{ 'NAV.DASHBOARD' | translate }}, {{ 'NAV.REPORTS_MONITORING' | translate }}</span>
       </div>
     </div>
 
     <div class="brand-footer">
-      Hệ thống Quản lý POS — Dành cho nội bộ ngân hàng
+      POS Management System — Enterprise Banking Solution
     </div>
   </div>
 
@@ -76,8 +75,8 @@
             <rect x="3"  y="24" width="22"  height="2"  rx="0.8" fill="white"/>
           </svg>
         </div>
-        <h1>Đăng Nhập</h1>
-        <p>Nhập thông tin tài khoản để tiếp tục</p>
+        <h1>{{ 'AUTH.TITLE' | translate }}</h1>
+        <p>{{ 'AUTH.SUBTITLE' | translate }}</p>
       </div>
 
       <!-- Error Alert -->
@@ -93,7 +92,7 @@
 
         <!-- Username -->
         <div class="form-group" [class.has-error]="isFieldInvalid('username')">
-          <label class="form-label" for="login-username">Tên đăng nhập</label>
+          <label class="form-label" for="login-username">{{ 'AUTH.USERNAME' | translate }}</label>
           <div class="input-wrapper">
             <span class="input-icon">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -106,21 +105,20 @@
               type="text"
               class="form-input"
               formControlName="username"
-              placeholder="admin@pos.vn hoặc admin"
+              [placeholder]="'AUTH.USERNAME' | translate"
               autocomplete="username"
             />
           </div>
           @if (isFieldInvalid('username')) {
             <span class="field-error">
-              @if (usernameControl.errors?.['required']) { Vui lòng nhập tên đăng nhập }
-              @else { Tên đăng nhập không hợp lệ }
+              {{ 'AUTH.REQUIRED_FIELD' | translate }}
             </span>
           }
         </div>
 
         <!-- Password -->
         <div class="form-group" [class.has-error]="isFieldInvalid('password')">
-          <label class="form-label" for="login-password">Mật khẩu</label>
+          <label class="form-label" for="login-password">{{ 'AUTH.PASSWORD' | translate }}</label>
           <div class="input-wrapper">
             <span class="input-icon">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -133,10 +131,10 @@
               [type]="showPassword() ? 'text' : 'password'"
               class="form-input"
               formControlName="password"
-              placeholder="Nhập mật khẩu"
+              [placeholder]="'AUTH.PASSWORD' | translate"
               autocomplete="current-password"
             />
-            <button type="button" class="password-toggle" (click)="togglePasswordVisibility()" tabindex="-1" title="Hiện/ẩn mật khẩu">
+            <button type="button" class="password-toggle" (click)="togglePasswordVisibility()" tabindex="-1" title="Toggle password">
               @if (showPassword()) {
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
@@ -153,8 +151,7 @@
           </div>
           @if (isFieldInvalid('password')) {
             <span class="field-error">
-              @if (passwordControl.errors?.['required']) { Vui lòng nhập mật khẩu }
-              @else { Mật khẩu ít nhất 6 ký tự }
+              {{ 'AUTH.REQUIRED_FIELD' | translate }}
             </span>
           }
         </div>
@@ -168,9 +165,9 @@
         >
           @if (isLoading()) {
             <span class="spinner"></span>
-            <span>Đang đăng nhập...</span>
+            <span>{{ 'COMMON.LOADING' | translate }}</span>
           } @else {
-            <span>Đăng nhập</span>
+            <span>{{ 'AUTH.SUBMIT' | translate }}</span>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="5" y1="12" x2="19" y2="12"/>
               <polyline points="12,5 19,12 12,19"/>
@@ -181,7 +178,7 @@
 
       <!-- Hint -->
       <div class="login-hint">
-        <p>Tài khoản hệ thống: <code>admin</code> / <code>Admin@123</code></p>
+        <p>Demo Account: <code>admin</code> / <code>Admin@123</code></p>
       </div>
     </div>
 

@@ -18,30 +18,35 @@ import { CommonModule } from '@angular/common';
  * />
  * ```
  */
+import { TranslatePipe } from '../../pipes/translate.pipe';
+
+/**
+ * PosPaginationComponent — Component Phân trang dùng chung cho mọi bảng dữ liệu.
+ */
 @Component({
   selector: 'pos-pagination',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   template: `
     <div class="pos-pagination">
       <!-- Information -->
       <div class="pos-pagination-info">
-        Hiển thị <strong>{{ startItem }}</strong> - <strong>{{ endItem }}</strong> / <strong>{{ totalItems }}</strong> kết quả
+        {{ 'COMMON.TOTAL_ITEMS' | translate:{ total: totalItems } }} ({{ startItem }} - {{ endItem }})
       </div>
 
       <div class="pos-pagination-controls">
         <!-- Page size selector -->
         @if (showPageSizeOptions) {
           <div class="pos-pagination-size-select">
-            <span>Hiển thị:</span>
+            <span>{{ 'COMMON.ITEMS_PER_PAGE' | translate }}:</span>
             <select
               [value]="pageSize"
               (change)="onSizeSelect($event)"
               class="pos-pagination-select"
             >
               @for (size of pageSizeOptions; track size) {
-                <option [value]="size">{{ size }} dòng</option>
+                <option [value]="size">{{ size }}</option>
               }
             </select>
           </div>

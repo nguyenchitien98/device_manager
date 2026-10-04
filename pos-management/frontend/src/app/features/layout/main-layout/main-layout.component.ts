@@ -10,183 +10,189 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { LanguageService } from '../../../core/services/language.service';
 import { HeaderComponent } from '../header/header.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 
-/** Breadcrumb item */
-interface Breadcrumb {
+/** Breadcrumb item interface */
+interface BreadcrumbKey {
+  labelKey: string;
+  url: string;
+}
+
+export interface Breadcrumb {
   label: string;
   url: string;
 }
 
-/** Mapping route → breadcrumb */
-const BREADCRUMB_MAP: Record<string, Breadcrumb[]> = {
-  '/dashboard': [{ label: 'Dashboard', url: '/dashboard' }],
+/** Mapping route → breadcrumb translation keys */
+const BREADCRUMB_MAP: Record<string, BreadcrumbKey[]> = {
+  '/dashboard': [{ labelKey: 'NAV.DASHBOARD', url: '/dashboard' }],
   '/catalog/device-categories': [
-    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
-    { label: 'Device Category', url: '/catalog/device-categories' },
+    { labelKey: 'NAV.CATALOG', url: '/catalog/device-categories' },
+    { labelKey: 'NAV.DEVICE_CATEGORY', url: '/catalog/device-categories' },
   ],
   '/catalog/device-types': [
-    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
-    { label: 'Device Type', url: '/catalog/device-types' },
+    { labelKey: 'NAV.CATALOG', url: '/catalog/device-categories' },
+    { labelKey: 'NAV.DEVICE_TYPE', url: '/catalog/device-types' },
   ],
   '/catalog/device-models': [
-    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
-    { label: 'Device Model', url: '/catalog/device-models' },
+    { labelKey: 'NAV.CATALOG', url: '/catalog/device-categories' },
+    { labelKey: 'NAV.DEVICE_MODEL', url: '/catalog/device-models' },
   ],
   '/catalog/vendors': [
-    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
-    { label: 'Vendor', url: '/catalog/vendors' },
+    { labelKey: 'NAV.CATALOG', url: '/catalog/device-categories' },
+    { labelKey: 'NAV.VENDOR', url: '/catalog/vendors' },
   ],
   '/catalog/mcc': [
-    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
-    { label: 'Quản lý MCC', url: '/catalog/mcc' },
+    { labelKey: 'NAV.CATALOG', url: '/catalog/device-categories' },
+    { labelKey: 'NAV.MCC', url: '/catalog/mcc' },
   ],
   '/catalog/fee-policies': [
-    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
-    { label: 'Chính sách phí', url: '/catalog/fee-policies' },
+    { labelKey: 'NAV.CATALOG', url: '/catalog/device-categories' },
+    { labelKey: 'NAV.FEE_POLICY', url: '/catalog/fee-policies' },
   ],
   '/organization/business-units': [
-    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
-    { label: 'Đơn vị Kinh doanh', url: '/organization/business-units' },
+    { labelKey: 'NAV.CATALOG', url: '/catalog/device-categories' },
+    { labelKey: 'NAV.BUSINESS_UNIT', url: '/organization/business-units' },
   ],
   '/organization/warehouses': [
-    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
-    { label: 'Quản lý kho', url: '/organization/warehouses' },
+    { labelKey: 'NAV.CATALOG', url: '/catalog/device-categories' },
+    { labelKey: 'NAV.WAREHOUSE', url: '/organization/warehouses' },
   ],
   '/inventory/purchase-orders': [
-    { label: 'Quản Lý Danh Mục', url: '/catalog/device-categories' },
-    { label: 'Purchase order', url: '/inventory/purchase-orders' },
+    { labelKey: 'NAV.CATALOG', url: '/catalog/device-categories' },
+    { labelKey: 'NAV.PURCHASE_ORDER', url: '/inventory/purchase-orders' },
   ],
   '/inventory/imports': [
-    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/imports' },
-    { label: 'Thông tin Nhập kho', url: '/inventory/imports' },
+    { labelKey: 'NAV.INVENTORY_MANAGEMENT', url: '/inventory/imports' },
+    { labelKey: 'NAV.IMPORTS', url: '/inventory/imports' },
   ],
   '/inventory/import-create': [
-    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/imports' },
-    { label: 'Tạo phiếu Nhập kho', url: '/inventory/import-create' },
+    { labelKey: 'NAV.INVENTORY_MANAGEMENT', url: '/inventory/imports' },
+    { labelKey: 'INVENTORY_IMPORT.ADD_TITLE', url: '/inventory/import-create' },
   ],
   '/inventory/exports': [
-    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/exports' },
-    { label: 'Thông tin Xuất kho', url: '/inventory/exports' },
+    { labelKey: 'NAV.INVENTORY_MANAGEMENT', url: '/inventory/exports' },
+    { labelKey: 'NAV.EXPORTS', url: '/inventory/exports' },
   ],
   '/inventory/export-create': [
-    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/exports' },
-    { label: 'Tạo phiếu Xuất kho', url: '/inventory/export-create' },
+    { labelKey: 'NAV.INVENTORY_MANAGEMENT', url: '/inventory/exports' },
+    { labelKey: 'INVENTORY_EXPORT.ADD_TITLE', url: '/inventory/export-create' },
   ],
   '/inventory/stock': [
-    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/stock' },
-    { label: 'Thông tin tồn kho', url: '/inventory/stock' },
+    { labelKey: 'NAV.INVENTORY_MANAGEMENT', url: '/inventory/stock' },
+    { labelKey: 'NAV.STOCK', url: '/inventory/stock' },
   ],
   '/inventory/transfers': [
-    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/transfers' },
-    { label: 'Điều chuyển kho', url: '/inventory/transfers' },
+    { labelKey: 'NAV.INVENTORY_MANAGEMENT', url: '/inventory/transfers' },
+    { labelKey: 'NAV.TRANSFERS', url: '/inventory/transfers' },
   ],
   '/inventory/transfer-create': [
-    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/transfers' },
-    { label: 'Tạo phiếu Điều chuyển', url: '/inventory/transfer-create' },
+    { labelKey: 'NAV.INVENTORY_MANAGEMENT', url: '/inventory/transfers' },
+    { labelKey: 'TRANSFER.ADD_TITLE', url: '/inventory/transfer-create' },
   ],
   '/inventory/logistics': [
-    { label: 'Quản Lý Xuất/Nhập Kho', url: '/inventory/logistics' },
-    { label: 'Theo dõi vận chuyển', url: '/inventory/logistics' },
+    { labelKey: 'NAV.INVENTORY_MANAGEMENT', url: '/inventory/logistics' },
+    { labelKey: 'NAV.LOGISTICS', url: '/inventory/logistics' },
   ],
   '/merchant/merchants': [
-    { label: 'Quản Lý Merchant', url: '/merchant/merchants' },
-    { label: 'Danh sách Merchant', url: '/merchant/merchants' },
+    { labelKey: 'NAV.MERCHANT_MANAGEMENT', url: '/merchant/merchants' },
+    { labelKey: 'NAV.MERCHANTS', url: '/merchant/merchants' },
   ],
   '/merchant/terminals': [
-    { label: 'Quản Lý Merchant', url: '/merchant/merchants' },
-    { label: 'Quản lý TID', url: '/merchant/terminals' },
+    { labelKey: 'NAV.MERCHANT_MANAGEMENT', url: '/merchant/merchants' },
+    { labelKey: 'NAV.TERMINALS', url: '/merchant/terminals' },
   ],
   '/device/search': [
-    { label: 'Quản Lý Thiết Bị', url: '/device/search' },
-    { label: 'Tra cứu thiết bị', url: '/device/search' },
+    { labelKey: 'NAV.DEVICE_MANAGEMENT', url: '/device/search' },
+    { labelKey: 'NAV.DEVICE_SEARCH', url: '/device/search' },
   ],
   '/assignment/list': [
-    { label: 'Quản Lý Assignment', url: '/assignment/list' },
-    { label: 'Quản lý assignment', url: '/assignment/list' },
+    { labelKey: 'NAV.ASSIGNMENT_MANAGEMENT', url: '/assignment/list' },
+    { labelKey: 'NAV.ASSIGNMENTS', url: '/assignment/list' },
   ],
   '/assignment/create': [
-    { label: 'Quản Lý Assignment', url: '/assignment/list' },
-    { label: 'Tạo lệnh assignment', url: '/assignment/create' },
+    { labelKey: 'NAV.ASSIGNMENT_MANAGEMENT', url: '/assignment/list' },
+    { labelKey: 'ASSIGNMENT.ADD_TITLE', url: '/assignment/create' },
   ],
   '/assignment/history': [
-    { label: 'Quản Lý Assignment', url: '/assignment/list' },
-    { label: 'Lịch sử assignment', url: '/assignment/history' },
+    { labelKey: 'NAV.ASSIGNMENT_MANAGEMENT', url: '/assignment/list' },
+    { labelKey: 'NAV.ASSIGNMENT_HISTORY', url: '/assignment/history' },
   ],
   '/approval/inbox': [
-    { label: 'Quy Trình Nghiệp Vụ', url: '/approval/inbox' },
-    { label: 'Hộp việc cần duyệt', url: '/approval/inbox' },
+    { labelKey: 'NAV.WORKFLOW', url: '/approval/inbox' },
+    { labelKey: 'NAV.APPROVAL_INBOX', url: '/approval/inbox' },
   ],
   '/monitoring/pos': [
-    { label: 'Báo Cáo & Giám Sát', url: '/monitoring/pos' },
-    { label: 'Giám sát hệ thống Realtime', url: '/monitoring/pos' },
+    { labelKey: 'NAV.REPORTS_MONITORING', url: '/monitoring/pos' },
+    { labelKey: 'NAV.POS_MONITORING', url: '/monitoring/pos' },
   ],
   '/monitoring/audit-logs': [
-    { label: 'Báo Cáo & Giám Sát', url: '/monitoring/pos' },
-    { label: 'Nhật ký tác động (Audit Logs)', url: '/monitoring/audit-logs' },
+    { labelKey: 'NAV.REPORTS_MONITORING', url: '/monitoring/pos' },
+    { labelKey: 'NAV.AUDIT_LOGS', url: '/monitoring/audit-logs' },
   ],
   '/reports/inventory': [
-    { label: 'Báo Cáo & Giám Sát', url: '/reports/inventory' },
-    { label: 'Báo cáo tồn kho', url: '/reports/inventory' },
+    { labelKey: 'NAV.REPORTS_MONITORING', url: '/reports/inventory' },
+    { labelKey: 'NAV.REPORT_INVENTORY', url: '/reports/inventory' },
   ],
   '/reports/merchant': [
-    { label: 'Báo Cáo & Giám Sát', url: '/reports/merchant' },
-    { label: 'Báo cáo merchant', url: '/reports/merchant' },
+    { labelKey: 'NAV.REPORTS_MONITORING', url: '/reports/merchant' },
+    { labelKey: 'NAV.REPORT_MERCHANT', url: '/reports/merchant' },
   ],
   '/system/users': [
-    { label: 'Quản Trị Hệ Thống', url: '/system/users' },
-    { label: 'Quản lý người dùng', url: '/system/users' },
+    { labelKey: 'NAV.SYSTEM_ADMIN', url: '/system/users' },
+    { labelKey: 'NAV.USERS', url: '/system/users' },
   ],
   '/system/roles': [
-    { label: 'Quản Trị Hệ Thống', url: '/system/roles' },
-    { label: 'Quản lý vai trò & quyền', url: '/system/roles' },
+    { labelKey: 'NAV.SYSTEM_ADMIN', url: '/system/roles' },
+    { labelKey: 'NAV.ROLES', url: '/system/roles' },
   ],
   '/system/config': [
-    { label: 'Quản Trị Hệ Thống', url: '/system/config' },
-    { label: 'Cấu hình tham số', url: '/system/config' },
+    { labelKey: 'NAV.SYSTEM_ADMIN', url: '/system/config' },
+    { labelKey: 'NAV.CONFIG', url: '/system/config' },
   ],
   '/system/profile': [
-    { label: 'Tài Khoản Cá Nhân', url: '/system/profile' },
-    { label: 'Hồ sơ cá nhân', url: '/system/profile' },
+    { labelKey: 'HEADER.PROFILE', url: '/system/profile' },
+    { labelKey: 'NAV.PROFILE', url: '/system/profile' },
   ],
 };
 
-/** Mapping route → page title hiển thị trên header */
+/** Mapping route → page title translation keys */
 const PAGE_TITLE_MAP: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/catalog/device-categories': 'Device Category',
-  '/catalog/device-types': 'Device Type',
-  '/catalog/device-models': 'Device Model',
-  '/catalog/vendors': 'Vendor',
-  '/catalog/mcc': 'Quản lý MCC',
-  '/catalog/fee-policies': 'Chính sách phí',
-  '/organization/business-units': 'Đơn vị Kinh doanh',
-  '/organization/warehouses': 'Quản lý kho',
-  '/inventory/purchase-orders': 'Purchase Order',
-  '/inventory/imports': 'Thông tin Nhập kho',
-  '/inventory/import-create': 'Tạo Phiếu Nhập Kho',
-  '/inventory/exports': 'Thông tin Xuất kho',
-  '/inventory/export-create': 'Tạo Phiếu Xuất Kho',
-  '/inventory/stock': 'Thông tin Tồn kho',
-  '/inventory/transfers': 'Điều chuyển kho',
-  '/inventory/transfer-create': 'Tạo Phiếu Điều Chuyển',
-  '/inventory/logistics': 'Theo dõi Vận chuyển',
-  '/merchant/merchants': 'Danh sách Merchant',
-  '/merchant/terminals': 'Quản lý TID',
-  '/device/search': 'Tra cứu thiết bị',
-  '/assignment/list': 'Quản lý Assignment',
-  '/assignment/create': 'Tạo Lệnh Assignment',
-  '/assignment/history': 'Lịch sử Assignment',
-  '/approval/inbox': 'Hộp việc cần duyệt',
-  '/monitoring/pos': 'Giám sát hệ thống',
-  '/monitoring/audit-logs': 'Nhật ký tác động (Audit Logs)',
-  '/reports/inventory': 'Báo cáo tồn kho',
-  '/reports/merchant': 'Báo cáo merchant',
-  '/system/users': 'Quản lý người dùng',
-  '/system/roles': 'Quản lý vai trò',
-  '/system/config': 'Cấu hình hệ thống',
-  '/system/profile': 'Thông tin cá nhân',
+  '/dashboard': 'NAV.DASHBOARD',
+  '/catalog/device-categories': 'NAV.DEVICE_CATEGORY',
+  '/catalog/device-types': 'NAV.DEVICE_TYPE',
+  '/catalog/device-models': 'NAV.DEVICE_MODEL',
+  '/catalog/vendors': 'NAV.VENDOR',
+  '/catalog/mcc': 'NAV.MCC',
+  '/catalog/fee-policies': 'NAV.FEE_POLICY',
+  '/organization/business-units': 'NAV.BUSINESS_UNIT',
+  '/organization/warehouses': 'NAV.WAREHOUSE',
+  '/inventory/purchase-orders': 'NAV.PURCHASE_ORDER',
+  '/inventory/imports': 'NAV.IMPORTS',
+  '/inventory/import-create': 'INVENTORY_IMPORT.ADD_TITLE',
+  '/inventory/exports': 'NAV.EXPORTS',
+  '/inventory/export-create': 'INVENTORY_EXPORT.ADD_TITLE',
+  '/inventory/stock': 'NAV.STOCK',
+  '/inventory/transfers': 'NAV.TRANSFERS',
+  '/inventory/transfer-create': 'TRANSFER.ADD_TITLE',
+  '/inventory/logistics': 'NAV.LOGISTICS',
+  '/merchant/merchants': 'NAV.MERCHANTS',
+  '/merchant/terminals': 'NAV.TERMINALS',
+  '/device/search': 'NAV.DEVICE_SEARCH',
+  '/assignment/list': 'NAV.ASSIGNMENTS',
+  '/assignment/create': 'ASSIGNMENT.ADD_TITLE',
+  '/assignment/history': 'NAV.ASSIGNMENT_HISTORY',
+  '/approval/inbox': 'NAV.APPROVAL_INBOX',
+  '/monitoring/pos': 'NAV.POS_MONITORING',
+  '/monitoring/audit-logs': 'NAV.AUDIT_LOGS',
+  '/reports/inventory': 'NAV.REPORT_INVENTORY',
+  '/reports/merchant': 'NAV.REPORT_MERCHANT',
+  '/system/users': 'NAV.USERS',
+  '/system/roles': 'NAV.ROLES',
+  '/system/config': 'NAV.CONFIG',
+  '/system/profile': 'NAV.PROFILE',
 };
 
 /**
@@ -204,6 +210,7 @@ const PAGE_TITLE_MAP: Record<string, string> = {
 export class MainLayoutComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  readonly langService = inject(LanguageService);
 
   // ─── Signals ────────────────────────────────────────────────────
   readonly isSidebarCollapsed = signal(false);
@@ -215,23 +222,29 @@ export class MainLayoutComponent implements OnInit {
   // ─── Derived from Auth ───────────────────────────────────────────
   readonly currentUser = this.authService.currentUser;
 
-  // ─── Page title & Breadcrumb ─────────────────────────────────────
+  // ─── Page title & Breadcrumb (i18n reactive) ─────────────────────
   readonly currentPageTitle = computed(() => {
+    // Reading currentLang() establishes signal dependency so title re-evaluates on lang toggle
+    this.langService.currentLang(); 
     const route = this.activeRoute();
     for (const key of Object.keys(PAGE_TITLE_MAP)) {
       if (route === key || route.startsWith(key + '/')) {
-        return PAGE_TITLE_MAP[key];
+        return this.langService.translate(PAGE_TITLE_MAP[key]);
       }
     }
-    return 'POS Management';
+    return this.langService.translate('NAV.BRAND');
   });
 
   readonly breadcrumbs = computed<Breadcrumb[]>(() => {
+    this.langService.currentLang();
     const route = this.activeRoute();
     if (route === '/dashboard') return [];
     for (const key of Object.keys(BREADCRUMB_MAP)) {
       if (route === key || route.startsWith(key + '/')) {
-        return BREADCRUMB_MAP[key];
+        return BREADCRUMB_MAP[key].map(item => ({
+          label: this.langService.translate(item.labelKey),
+          url: item.url
+        }));
       }
     }
     return [];

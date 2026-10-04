@@ -3,34 +3,19 @@ import { CommonModule } from '@angular/common';
 import { PosButtonComponent } from '../pos-button/pos-button.component';
 import { PosModalComponent } from '../pos-modal/pos-modal.component';
 
+import { TranslatePipe } from '../../pipes/translate.pipe';
+
 export type ConfirmType = 'danger' | 'warning' | 'info';
 
-/**
- * PosConfirmDialogComponent — Hộp thoại xác nhận hành động nguy hiểm/quan trọng (Xóa, Khóa, Cập nhật).
- *
- * ## Sử dụng:
- * ```html
- * <pos-confirm-dialog
- *   [isOpen]="showDeleteConfirm"
- *   title="Xóa Merchant này?"
- *   message="Bạn có chắc chắn muốn xóa Merchant này? Hành động này không thể hoàn tác."
- *   type="danger"
- *   confirmText="Xóa vĩnh viễn"
- *   [loading]="deleting"
- *   (confirm)="onDeleteConfirmed()"
- *   (cancel)="showDeleteConfirm = false"
- * />
- * ```
- */
 @Component({
   selector: 'pos-confirm-dialog',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, PosModalComponent, PosButtonComponent],
+  imports: [CommonModule, PosModalComponent, PosButtonComponent, TranslatePipe],
   template: `
     <pos-modal
       [isOpen]="isOpen"
-      [title]="title"
+      [title]="title || ('COMMON.CONFIRM_DELETE_TITLE' | translate)"
       size="sm"
       [showCloseButton]="!loading"
       [closeOnBackdrop]="!loading"
@@ -46,7 +31,7 @@ export type ConfirmType = 'danger' | 'warning' | 'info';
             }
           </span>
         </div>
-        <p class="pos-confirm-message">{{ message }}</p>
+        <p class="pos-confirm-message">{{ message || ('COMMON.CONFIRM_DELETE_MSG' | translate) }}</p>
       </div>
 
       <div modal-footer class="pos-confirm-footer">
@@ -55,7 +40,7 @@ export type ConfirmType = 'danger' | 'warning' | 'info';
           [disabled]="loading"
           (clicked)="cancel.emit()"
         >
-          {{ cancelText }}
+          {{ cancelText || ('COMMON.CANCEL' | translate) }}
         </pos-button>
 
         <pos-button
@@ -63,7 +48,7 @@ export type ConfirmType = 'danger' | 'warning' | 'info';
           [loading]="loading"
           (clicked)="confirm.emit()"
         >
-          {{ confirmText }}
+          {{ confirmText || ('COMMON.CONFIRM' | translate) }}
         </pos-button>
       </div>
     </pos-modal>
@@ -72,11 +57,11 @@ export type ConfirmType = 'danger' | 'warning' | 'info';
 })
 export class PosConfirmDialogComponent {
   @Input() isOpen = false;
-  @Input() title = 'Xác nhận hành động';
-  @Input() message = 'Bạn có chắc chắn muốn thực hiện hành động này?';
+  @Input() title = '';
+  @Input() message = '';
   @Input() type: ConfirmType = 'danger';
-  @Input() confirmText = 'Xác nhận';
-  @Input() cancelText = 'Hủy bỏ';
+  @Input() confirmText = '';
+  @Input() cancelText = '';
   @Input() loading = false;
 
   @Output() confirm = new EventEmitter<void>();
