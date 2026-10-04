@@ -60,6 +60,29 @@ export class SidebarComponent implements OnChanges {
     return !!this.expandedGroups()[key];
   }
 
+  /** Kiểm tra nhóm danh mục có chứa route active không (dùng cho collapsed mode) */
+  isGroupActive(key: string): boolean {
+    const url = this.activeRoute || '';
+    if (key === 'catalog') {
+      return url.startsWith('/catalog') || url.startsWith('/organization') || url.startsWith('/inventory/purchase-orders');
+    } else if (key === 'merchant') {
+      return url.startsWith('/merchant');
+    } else if (key === 'inventory') {
+      return url.startsWith('/inventory') && !url.startsWith('/inventory/purchase-orders');
+    } else if (key === 'device') {
+      return url.startsWith('/device');
+    } else if (key === 'assignment') {
+      return url.startsWith('/assignment');
+    } else if (key === 'approval') {
+      return url.startsWith('/approval');
+    } else if (key === 'reports') {
+      return url.startsWith('/monitoring') || url.startsWith('/reports');
+    } else if (key === 'system') {
+      return url.startsWith('/system');
+    }
+    return false;
+  }
+
   /** Kiểm tra route có active không */
   isActive(route: string): boolean {
     return this.activeRoute === route || this.activeRoute.startsWith(route + '/');

@@ -31,16 +31,33 @@
         </span>
         <span class="nav-label">Dashboard</span>
       </a>
+
+      <!-- Collapsed Tooltip Flyout for Single Item -->
+      <div class="collapsed-flyout single-flyout">
+        <a routerLink="/dashboard" class="flyout-item" [class.active]="isActive('/dashboard')">
+          <span class="nav-icon icon-blue">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+      </div>
     </div>
 
     <!-- QUẢN LÝ DANH MỤC -->
     <div class="nav-section">
-      <button class="section-toggle" (click)="toggleGroup('catalog')" [class.open]="isGroupOpen('catalog')">
+      <button class="section-toggle" (click)="toggleGroup('catalog')" [class.open]="isGroupOpen('catalog')" [class.active]="isGroupActive('catalog')">
+        <span class="nav-icon icon-indigo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        </span>
         <span class="section-label">QUẢN LÝ DANH MỤC</span>
         <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
+
       @if (isGroupOpen('catalog')) {
         <div class="nav-children">
           <a routerLink="/catalog/device-categories" class="nav-item" [class.active]="isActive('/catalog/device-categories')" title="Device Category">
@@ -81,14 +98,64 @@
           </a>
         </div>
       }
+
+      <!-- Collapsed Floating Flyout Popover -->
+      <div class="collapsed-flyout">
+        <div class="flyout-header">
+          <span class="nav-icon icon-indigo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+          <span class="flyout-title">QUẢN LÝ DANH MỤC</span>
+        </div>
+        <div class="flyout-items">
+          <a routerLink="/catalog/device-categories" class="flyout-item" [class.active]="isActive('/catalog/device-categories')">
+            <span class="nav-icon icon-blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+            <span class="nav-label">Device Category</span>
+          </a>
+          <a routerLink="/catalog/device-types" class="flyout-item" [class.active]="isActive('/catalog/device-types')">
+            <span class="nav-icon icon-indigo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg></span>
+            <span class="nav-label">Device Type</span>
+          </a>
+          <a routerLink="/catalog/device-models" class="flyout-item" [class.active]="isActive('/catalog/device-models')">
+            <span class="nav-icon icon-violet"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></span>
+            <span class="nav-label">Device model</span>
+          </a>
+          <a routerLink="/catalog/vendors" class="flyout-item" [class.active]="isActive('/catalog/vendors')">
+            <span class="nav-icon icon-purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
+            <span class="nav-label">Vendor</span>
+          </a>
+          <a routerLink="/organization/warehouses" class="flyout-item" [class.active]="isActive('/organization/warehouses')">
+            <span class="nav-icon icon-amber"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+            <span class="nav-label">Quản lý kho</span>
+          </a>
+          <a routerLink="/catalog/fee-policies" class="flyout-item" [class.active]="isActive('/catalog/fee-policies')">
+            <span class="nav-icon icon-emerald"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+            <span class="nav-label">Chính sách phí</span>
+          </a>
+          <a routerLink="/organization/business-units" class="flyout-item" [class.active]="isActive('/organization/business-units')">
+            <span class="nav-icon icon-cyan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 1-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <span class="nav-label">Đơn vị Kinh doanh</span>
+          </a>
+          <a routerLink="/inventory/purchase-orders" class="flyout-item" [class.active]="isActive('/inventory/purchase-orders')">
+            <span class="nav-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+            <span class="nav-label">Purchase order</span>
+          </a>
+          <a routerLink="/catalog/mcc" class="flyout-item" [class.active]="isActive('/catalog/mcc')">
+            <span class="nav-icon icon-pink"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span>
+            <span class="nav-label">Quản lý MCC</span>
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- QUẢN LÝ MERCHANT -->
     <div class="nav-section">
-      <button class="section-toggle" (click)="toggleGroup('merchant')" [class.open]="isGroupOpen('merchant')">
+      <button class="section-toggle" (click)="toggleGroup('merchant')" [class.open]="isGroupOpen('merchant')" [class.active]="isGroupActive('merchant')">
+        <span class="nav-icon icon-emerald">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7l9-4 9 4v14H3V7z"/></svg>
+        </span>
         <span class="section-label">QUẢN LÝ MERCHANT</span>
         <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
+
       @if (isGroupOpen('merchant')) {
         <div class="nav-children">
           <a routerLink="/merchant/merchants" class="nav-item" [class.active]="isActive('/merchant/merchants')" title="Danh sách merchant">
@@ -101,14 +168,35 @@
           </a>
         </div>
       }
+
+      <div class="collapsed-flyout">
+        <div class="flyout-header">
+          <span class="nav-icon icon-emerald"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7l9-4 9 4v14H3V7z"/></svg></span>
+          <span class="flyout-title">QUẢN LÝ MERCHANT</span>
+        </div>
+        <div class="flyout-items">
+          <a routerLink="/merchant/merchants" class="flyout-item" [class.active]="isActive('/merchant/merchants')">
+            <span class="nav-icon icon-emerald"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 1-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <span class="nav-label">Danh sách merchant</span>
+          </a>
+          <a routerLink="/merchant/terminals" class="flyout-item" [class.active]="isActive('/merchant/terminals')">
+            <span class="nav-icon icon-sky"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+            <span class="nav-label">Quản lý TID</span>
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- QUẢN LÝ XUẤT/NHẬP KHO -->
     <div class="nav-section">
-      <button class="section-toggle" (click)="toggleGroup('inventory')" [class.open]="isGroupOpen('inventory')">
+      <button class="section-toggle" (click)="toggleGroup('inventory')" [class.open]="isGroupOpen('inventory')" [class.active]="isGroupActive('inventory')">
+        <span class="nav-icon icon-orange">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </span>
         <span class="section-label">QUẢN LÝ XUẤT/NHẬP KHO</span>
         <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
+
       @if (isGroupOpen('inventory')) {
         <div class="nav-children">
           <a routerLink="/inventory/imports" class="nav-item" [class.active]="isActive('/inventory/imports')" title="Thông tin Nhập kho">
@@ -133,14 +221,47 @@
           </a>
         </div>
       }
+
+      <div class="collapsed-flyout">
+        <div class="flyout-header">
+          <span class="nav-icon icon-orange"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+          <span class="flyout-title">QUẢN LÝ XUẤT/NHẬP KHO</span>
+        </div>
+        <div class="flyout-items">
+          <a routerLink="/inventory/imports" class="flyout-item" [class.active]="isActive('/inventory/imports')">
+            <span class="nav-icon icon-blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v10M7 7l5 5 5-5"/><path d="M20 14v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5"/></svg></span>
+            <span class="nav-label">Thông tin Nhập kho</span>
+          </a>
+          <a routerLink="/inventory/exports" class="flyout-item" [class.active]="isActive('/inventory/exports')">
+            <span class="nav-icon icon-orange"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M7 17l5-5 5 5"/><path d="M20 10V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v5"/></svg></span>
+            <span class="nav-label">Thông tin xuất kho</span>
+          </a>
+          <a routerLink="/inventory/stock" class="flyout-item" [class.active]="isActive('/inventory/stock')">
+            <span class="nav-icon icon-amber"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+            <span class="nav-label">Thông tin tồn kho</span>
+          </a>
+          <a routerLink="/inventory/transfers" class="flyout-item" [class.active]="isActive('/inventory/transfers')">
+            <span class="nav-icon icon-teal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
+            <span class="nav-label">Điều chuyển kho</span>
+          </a>
+          <a routerLink="/inventory/logistics" class="flyout-item" [class.active]="isActive('/inventory/logistics')">
+            <span class="nav-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
+            <span class="nav-label">Theo dõi vận chuyển</span>
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- QUẢN LÝ THIẾT BỊ -->
     <div class="nav-section">
-      <button class="section-toggle" (click)="toggleGroup('device')" [class.open]="isGroupOpen('device')">
+      <button class="section-toggle" (click)="toggleGroup('device')" [class.open]="isGroupOpen('device')" [class.active]="isGroupActive('device')">
+        <span class="nav-icon icon-sky">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
         <span class="section-label">QUẢN LÝ THIẾT BỊ</span>
         <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
+
       @if (isGroupOpen('device')) {
         <div class="nav-children">
           <a routerLink="/device/search" class="nav-item" [class.active]="isActive('/device/search')" title="Tra cứu thiết bị">
@@ -149,14 +270,31 @@
           </a>
         </div>
       }
+
+      <div class="collapsed-flyout">
+        <div class="flyout-header">
+          <span class="nav-icon icon-sky"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+          <span class="flyout-title">QUẢN LÝ THIẾT BỊ</span>
+        </div>
+        <div class="flyout-items">
+          <a routerLink="/device/search" class="flyout-item" [class.active]="isActive('/device/search')">
+            <span class="nav-icon icon-sky"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+            <span class="nav-label">Tra cứu thiết bị</span>
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- QUẢN LÝ ASSIGNMENT -->
     <div class="nav-section">
-      <button class="section-toggle" (click)="toggleGroup('assignment')" [class.open]="isGroupOpen('assignment')">
+      <button class="section-toggle" (click)="toggleGroup('assignment')" [class.open]="isGroupOpen('assignment')" [class.active]="isGroupActive('assignment')">
+        <span class="nav-icon icon-violet">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </span>
         <span class="section-label">QUẢN LÝ ASSIGNMENT</span>
         <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
+
       @if (isGroupOpen('assignment')) {
         <div class="nav-children">
           <a routerLink="/assignment/list" class="nav-item" [class.active]="isActive('/assignment/list')" title="Quản lý assignment">
@@ -169,14 +307,35 @@
           </a>
         </div>
       }
+
+      <div class="collapsed-flyout">
+        <div class="flyout-header">
+          <span class="nav-icon icon-violet"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+          <span class="flyout-title">QUẢN LÝ ASSIGNMENT</span>
+        </div>
+        <div class="flyout-items">
+          <a routerLink="/assignment/list" class="flyout-item" [class.active]="isActive('/assignment/list')">
+            <span class="nav-icon icon-indigo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+            <span class="nav-label">Quản lý assignment</span>
+          </a>
+          <a routerLink="/assignment/history" class="flyout-item" [class.active]="isActive('/assignment/history')">
+            <span class="nav-icon icon-violet"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+            <span class="nav-label">Lịch sử assignment</span>
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- QUY TRÌNH NGHIỆP VỤ -->
     <div class="nav-section">
-      <button class="section-toggle" (click)="toggleGroup('approval')" [class.open]="isGroupOpen('approval')">
+      <button class="section-toggle" (click)="toggleGroup('approval')" [class.open]="isGroupOpen('approval')" [class.active]="isGroupActive('approval')">
+        <span class="nav-icon icon-rose">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </span>
         <span class="section-label">QUY TRÌNH NGHIỆP VỤ</span>
         <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
+
       @if (isGroupOpen('approval')) {
         <div class="nav-children">
           <a routerLink="/approval/inbox" class="nav-item" [class.active]="isActive('/approval/inbox')" title="Hộp việc cần duyệt">
@@ -188,14 +347,34 @@
           </a>
         </div>
       }
+
+      <div class="collapsed-flyout">
+        <div class="flyout-header">
+          <span class="nav-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+          <span class="flyout-title">QUY TRÌNH NGHIỆP VỤ</span>
+        </div>
+        <div class="flyout-items">
+          <a routerLink="/approval/inbox" class="flyout-item" [class.active]="isActive('/approval/inbox')">
+            <span class="nav-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+            <span class="nav-label">Hộp việc cần duyệt</span>
+            @if (approvalBadge > 0) {
+              <span class="nav-badge">{{ approvalBadge }}</span>
+            }
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- BÁO CÁO & GIÁM SÁT -->
     <div class="nav-section">
-      <button class="section-toggle" (click)="toggleGroup('reports')" [class.open]="isGroupOpen('reports')">
+      <button class="section-toggle" (click)="toggleGroup('reports')" [class.open]="isGroupOpen('reports')" [class.active]="isGroupActive('reports')">
+        <span class="nav-icon icon-cyan">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </span>
         <span class="section-label">BÁO CÁO &amp; GIÁM SÁT</span>
         <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
+
       @if (isGroupOpen('reports')) {
         <div class="nav-children">
           <a routerLink="/monitoring/pos" class="nav-item" [class.active]="isActive('/monitoring/pos')" title="Giám sát POS Realtime">
@@ -216,14 +395,43 @@
           </a>
         </div>
       }
+
+      <div class="collapsed-flyout">
+        <div class="flyout-header">
+          <span class="nav-icon icon-cyan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+          <span class="flyout-title">BÁO CÁO &amp; GIÁM SÁT</span>
+        </div>
+        <div class="flyout-items">
+          <a routerLink="/monitoring/pos" class="flyout-item" [class.active]="isActive('/monitoring/pos')">
+            <span class="nav-icon icon-cyan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+            <span class="nav-label">Giám sát POS Realtime</span>
+          </a>
+          <a routerLink="/monitoring/audit-logs" class="flyout-item" [class.active]="isActive('/monitoring/audit-logs')">
+            <span class="nav-icon icon-violet"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            <span class="nav-label">Nhật ký Audit Logs</span>
+          </a>
+          <a routerLink="/reports/inventory" class="flyout-item" [class.active]="isActive('/reports/inventory')">
+            <span class="nav-icon icon-emerald"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+            <span class="nav-label">Báo cáo Tồn kho</span>
+          </a>
+          <a routerLink="/reports/merchant" class="flyout-item" [class.active]="isActive('/reports/merchant')">
+            <span class="nav-icon icon-amber"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>
+            <span class="nav-label">Báo cáo Merchant</span>
+          </a>
+        </div>
+      </div>
     </div>
 
     <!-- QUẢN TRỊ HỆ THỐNG -->
     <div class="nav-section">
-      <button class="section-toggle" (click)="toggleGroup('system')" [class.open]="isGroupOpen('system')">
+      <button class="section-toggle" (click)="toggleGroup('system')" [class.open]="isGroupOpen('system')" [class.active]="isGroupActive('system')">
+        <span class="nav-icon icon-purple">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span>
         <span class="section-label">QUẢN TRỊ HỆ THỐNG</span>
         <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
+
       @if (isGroupOpen('system')) {
         <div class="nav-children">
           <a routerLink="/system/users" class="nav-item" [class.active]="isActive('/system/users')" title="Quản lý Người dùng">
@@ -240,6 +448,27 @@
           </a>
         </div>
       }
+
+      <div class="collapsed-flyout">
+        <div class="flyout-header">
+          <span class="nav-icon icon-purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+          <span class="flyout-title">QUẢN TRỊ HỆ THỐNG</span>
+        </div>
+        <div class="flyout-items">
+          <a routerLink="/system/users" class="flyout-item" [class.active]="isActive('/system/users')">
+            <span class="nav-icon icon-blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
+            <span class="nav-label">Quản lý Người dùng</span>
+          </a>
+          <a routerLink="/system/roles" class="flyout-item" [class.active]="isActive('/system/roles')">
+            <span class="nav-icon icon-purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <span class="nav-label">Quản lý Vai trò</span>
+          </a>
+          <a routerLink="/system/config" class="flyout-item" [class.active]="isActive('/system/config')">
+            <span class="nav-icon icon-teal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+            <span class="nav-label">Cấu hình Tham số</span>
+          </a>
+        </div>
+      </div>
     </div>
   </nav>
 </aside>

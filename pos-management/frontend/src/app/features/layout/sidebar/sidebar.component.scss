@@ -6,23 +6,222 @@
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   flex-shrink: 0;
   transition: width var(--t-normal);
   z-index: 100;
+  position: relative;
+
+  .collapsed-flyout {
+    display: none;
+  }
 
   &.collapsed {
     width: var(--sidebar-collapsed);
 
     .brand-name,
     .section-label,
+    .chevron,
     .nav-label,
-    .nav-badge,
-    .chevron { display: none; }
+    .nav-badge {
+      display: none;
+    }
 
-    .section-toggle { justify-content: center; padding: 8px; }
-    .nav-item { justify-content: center; padding: 10px; }
-    .nav-icon { margin: 0; }
+    .sidebar-brand {
+      justify-content: center;
+      padding: 16px 0;
+    }
+
+    .sidebar-nav {
+      overflow-y: visible;
+      overflow-x: visible;
+    }
+
+    .nav-children {
+      display: none !important;
+    }
+
+    .nav-section {
+      position: relative;
+      margin: 4px 6px;
+
+      &:hover {
+        .collapsed-flyout {
+          display: flex;
+        }
+      }
+    }
+
+    .section-toggle {
+      justify-content: center;
+      padding: 6px 0;
+      width: 100%;
+      border-radius: var(--radius-md);
+
+      .nav-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        margin: 0;
+        transition: all var(--t-fast);
+      }
+
+      &.active .nav-icon {
+        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(29, 78, 216, 0.35);
+
+        svg {
+          stroke: #ffffff !important;
+        }
+      }
+    }
+
+    .nav-item {
+      justify-content: center;
+      padding: 6px 0;
+      margin: 4px 0;
+
+      .nav-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        margin: 0;
+      }
+    }
+
+    /* Floating Flyout Submenu on Hover */
+    .collapsed-flyout {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      left: calc(var(--sidebar-collapsed) - 10px);
+      top: -4px;
+      width: 250px;
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+      padding: 10px;
+      z-index: 1000;
+      animation: flyoutIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+
+      /* Invisible Bridge area so moving mouse from icon to flyout never breaks :hover */
+      &::before {
+        content: '';
+        position: absolute;
+        top: -12px;
+        left: -24px;
+        bottom: -12px;
+        width: 30px;
+        background: transparent;
+      }
+
+      &.single-flyout {
+        width: 180px;
+        .flyout-header { display: none; }
+      }
+
+      .flyout-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 10px 10px;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 6px;
+
+        .nav-icon {
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .flyout-title {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          color: var(--text-primary);
+          white-space: nowrap;
+        }
+      }
+
+      .flyout-items {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .flyout-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        color: var(--sidebar-item-text);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 400;
+        white-space: nowrap;
+        transition: all var(--t-fast);
+
+        .nav-icon {
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .nav-label {
+          display: inline-block !important;
+          flex: 1;
+        }
+
+        .nav-badge {
+          display: inline-block !important;
+          background: #E53E3E;
+          color: #FFF;
+          font-size: 10px;
+          font-weight: 700;
+          border-radius: 10px;
+          padding: 1px 6px;
+        }
+
+        &:hover:not(.active) {
+          background: var(--sidebar-hover);
+          color: var(--text-primary);
+        }
+
+        &.active {
+          background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+          color: #ffffff;
+          font-weight: 600;
+
+          .nav-icon {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes flyoutIn {
+  from {
+    opacity: 0;
+    transform: translateX(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
   }
 }
 
@@ -78,12 +277,37 @@
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 10px 16px 6px;
   background: transparent;
   border: none;
   cursor: pointer;
   text-align: left;
+
+  .nav-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform var(--t-fast);
+    background: rgba(0, 0, 0, 0.03);
+
+    &.icon-blue    { color: #2563eb; background: rgba(37, 99, 235, 0.09); }
+    &.icon-indigo  { color: #4f46e5; background: rgba(79, 70, 229, 0.09); }
+    &.icon-violet  { color: #7c3aed; background: rgba(124, 58, 237, 0.09); }
+    &.icon-purple  { color: #9333ea; background: rgba(147, 51, 234, 0.09); }
+    &.icon-pink    { color: #db2777; background: rgba(219, 39, 119, 0.09); }
+    &.icon-rose    { color: #e11d48; background: rgba(225, 29, 72, 0.09); }
+    &.icon-amber   { color: #d97706; background: rgba(217, 119, 6, 0.09); }
+    &.icon-orange  { color: #ea580c; background: rgba(234, 88, 12, 0.09); }
+    &.icon-emerald { color: #059669; background: rgba(5, 150, 105, 0.09); }
+    &.icon-teal    { color: #0d9488; background: rgba(13, 148, 136, 0.09); }
+    &.icon-cyan    { color: #0891b2; background: rgba(8, 145, 178, 0.09); }
+    &.icon-sky     { color: #0284c7; background: rgba(2, 132, 199, 0.09); }
+  }
 
   .section-label {
     flex: 1;
@@ -227,6 +451,21 @@
       .nav-icon {
         color: #ffffff !important;
         background: rgba(255, 255, 255, 0.25) !important;
+      }
+    }
+  }
+
+  .collapsed {
+    .collapsed-flyout {
+      background: #1e293b;
+      border-color: #334155;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+      .flyout-header {
+        border-color: #334155;
+        .flyout-title {
+          color: #94a3b8;
+        }
       }
     }
   }
