@@ -117,5 +117,49 @@ public class AuthController {
                     return ResponseEntity.ok(ApiResponse.success((Object) info));
                 })
                 .orElse(ResponseEntity.notFound().build());
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    @PutMapping("/me")
+    @Operation(summary = "Cập nhật hồ sơ của tôi")
+    public ResponseEntity<ApiResponse<Object>> updateMe(
+            @AuthenticationPrincipal UserDetails currentUser,
+            @RequestBody Map<String, String> body) {
+        if (currentUser == null) return ResponseEntity.status(401).build();
+
+        return userRepository.findByUsername(currentUser.getUsername())
+                .map(user -> {
+                    if (body.containsKey("fullName")) user.setFullName(body.get("fullName"));
+                    if (body.containsKey("email")) user.setEmail(body.get("email"));
+                    if (body.containsKey("phone")) user.setPhone(body.get("phone"));
+                    userRepository.save(user);
+                    return me(currentUser);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/change-password")
+    @Operation(summary = "Đổi mật khẩu")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal UserDetails currentUser,
+            @RequestBody Map<String, String> body) {
+        if (currentUser == null) return ResponseEntity.status(401).build();
+
+        String oldPassword = body.get("oldPassword");
+        String newPassword = body.get("newPassword");
+
+        if (oldPassword == null || newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.success("Mật khẩu mới không được để trống"));
+        }
+
+        return userRepository.findByUsername(currentUser.getUsername())
+                .map(user -> {
+                    if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
+                        return ResponseEntity.badRequest().body(ApiResponse.<Void>success("Mật khẩu cũ không chính xác"));
+                    }
+                    user.setPasswordHash(passwordEncoder.encode(newPassword));
+                    userRepository.save(user);
+                    return ResponseEntity.ok(ApiResponse.<Void>success("Đổi mật khẩu thành công"));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 }

@@ -9,8 +9,8 @@
 | Bước | Tên bước | Trạng thái | Maven Build | Angular Build | Flyway DB | Verification / Curl | Git Commit |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
 | **B0** | Pre-requisites & Core Infrastructure Fixes | ✅ PASS | SUCCESS | SUCCESS | N/A | N/A | Completed |
-| **B1** | Identity, Auth & System Core APIs | ⏳ IN PROGRESS | – | – | – | – | Pending |
-| **B2** | Catalog & Organization Master Data | ⏹️ PENDING | – | – | – | – | Pending |
+| **B1** | Identity, Auth & System Core APIs | ✅ PASS | SUCCESS | SUCCESS | V5 PASS | Verified | Completed |
+| **B2** | Catalog & Organization Master Data | ⏳ IN PROGRESS | – | – | – | – | Pending |
 | **B3** | Merchant & Terminal (TID/MID) Management | ⏹️ PENDING | – | – | – | – | Pending |
 | **B4** | PO, Import, Devices & Stock Ledger | ⏹️ PENDING | – | – | – | – | Pending |
 | **B5** | Approval Workflow Engine | ⏹️ PENDING | – | – | – | – | Pending |
@@ -36,5 +36,19 @@
   - `mvn clean verify` -> SUCCESS (0 lỗi Java)
   - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
 - **Commit:** `feat(backend): B0 - core infra, proxy config, PageResponse & ApiResponse code field`
+
+---
+
+### 🟢 BƯỚC B1: Identity, Auth & System Core APIs
+- **Ngày hoàn thành:** 2026-10-04
+- **Công việc đã làm:**
+  1. Auth: Đã có sẵn `/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/me`. Bổ sung `PUT /auth/me` (cập nhật hồ sơ) và `POST /auth/change-password` (đổi mật khẩu).
+  2. Admin Users: Tạo `UserAdminController` (`/api/v1/admin/users`) hỗ trợ phân trang `PageResponse`, tìm kiếm `search`, lọc theo `status` & `businessUnitId`, tạo user, sửa user, khóa/mở khóa (`PATCH /{id}/lock`), reset password (`POST /{id}/reset-password`), xuất CSV/Excel (`GET /export`).
+  3. Admin Roles & Permissions: Tạo `RoleAdminController` (`/api/v1/admin/roles` & `/permissions`) hỗ trợ phân trang role, tạo role, gán danh sách permissions (`PUT /{roleId}/permissions`), lấy danh sách tất cả permission (`GET /permissions`), xuất file export.
+  4. System Configs: Tạo `V5__system_configs_schema.sql` migration, `SystemConfigJpaEntity`, `SystemConfigJpaRepository`, `SystemConfigController` (`/api/v1/admin/config`) hỗ trợ `GET` & `PUT` cấu hình hệ thống (General, Security, Session, Registration).
+- **Kết quả Gate:**
+  - `mvn clean verify` -> SUCCESS (0 lỗi Java)
+  - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
+- **Commit:** `feat(backend): B1 - identity, auth profile, admin users, roles & system config APIs`
 
 ---
