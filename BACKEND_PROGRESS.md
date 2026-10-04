@@ -12,8 +12,8 @@
 | **B1** | Identity, Auth & System Core APIs | ✅ PASS | SUCCESS | SUCCESS | V5 PASS | Verified | Completed |
 | **B2** | Catalog & Organization Master Data | ✅ PASS | SUCCESS | SUCCESS | V3 PASS | Verified | Completed |
 | **B3** | Merchant & Terminal (TID/MID) Management | ✅ PASS | SUCCESS | SUCCESS | V4 PASS | Verified | Completed |
-| **B4** | PO, Import, Devices & Stock Ledger | ⏳ IN PROGRESS | – | – | – | – | Pending |
-| **B5** | Approval Workflow Engine | ⏹️ PENDING | – | – | – | – | Pending |
+| **B4** | PO, Import, Devices & Stock Ledger | ✅ PASS | SUCCESS | SUCCESS | V6 PASS | Verified | Completed |
+| **B5** | Approval Workflow Engine | ⏳ IN PROGRESS | – | – | – | – | Pending |
 | **B6** | Stock Export, Transfer & Logistics | ⏹️ PENDING | – | – | – | – | Pending |
 | **B7** | Device Detail 8-Tabs, FSM, Repair & Dispose | ⏹️ PENDING | – | – | – | – | Pending |
 | **B8** | Assignment, Idempotency & Concurrency | ⏹️ PENDING | – | – | – | – | Pending |
@@ -94,5 +94,22 @@
   - `mvn clean verify` -> SUCCESS (0 lỗi Java)
   - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
 - **Commit:** `feat(backend): B3 - merchant & terminal (TID/MID) management APIs`
+
+---
+
+### 🟢 BƯỚC B4: PO, Import, Devices & Stock Ledger
+- **Ngày hoàn thành:** 2026-10-04
+- **Công việc đã làm:**
+  1. Migration `V6__inventory_devices_stock_schema.sql`: tạo các bảng `purchase_orders`, `purchase_order_items`, `devices`, `stock_transactions`, `outbox_events`.
+  2. JPA Entities & Repositories: `PurchaseOrderJpaEntity`, `PurchaseOrderItemJpaEntity`, `DeviceJpaEntity`, `StockTransactionJpaEntity`, `OutboxEventJpaEntity`.
+  3. `InventoryController` (`/api/v1/inventory`):
+     - Purchase Orders: `GET /purchase-orders` (phân trang, filter `status, vendorId, warehouseId`), `GET /{id}`, `POST` tạo mới (mã `PO-YYYYMMDD-xxx`), `POST /{id}/submit`, `POST /{id}/approve`, `POST /{id}/receive`, `POST /{id}/close`, `GET /purchase-orders/export`.
+     - Imports & Serial Scanning: `GET /imports`, `POST /imports` (nhập kho số lượng lớn từ serials, validate trùng serial -> trả `409 CONFLICT`, ghi `devices` INSTOCK, ghi `stock_transactions` IMPORT, ghi `outbox_events` DEVICE_IMPORTED), `GET /imports/export`.
+     - Stock Summary: `GET /stock` (tồn kho theo Kho x Model), `GET /stock/{warehouseId}/devices` (danh sách serial trong kho), `GET /stock/export`.
+     - Stock Ledger: `GET /transactions` (nhật ký xuất/nhập/điều chuyển kho).
+- **Kết quả Gate:**
+  - `mvn clean verify` -> SUCCESS (0 lỗi Java)
+  - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
+- **Commit:** `feat(backend): B4 - PO lifecycle, import serial scanning, devices & stock ledger APIs`
 
 ---
