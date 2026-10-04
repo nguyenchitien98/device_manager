@@ -40,7 +40,7 @@ public class OutboxEventJpaEntity {
     @Builder.Default
     private Integer retryCount = 0;
 
-    @Column(name = "error_message", columnDefinition = "TEXT")
+    @Transient
     private String errorMessage;
 
     @CreationTimestamp

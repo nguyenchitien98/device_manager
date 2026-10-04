@@ -48,12 +48,12 @@ public class CatalogModelController {
             if (search != null && !search.isBlank()) {
                 String pattern = "%" + search.trim().toLowerCase() + "%";
                 predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("code")), pattern),
-                        cb.like(cb.lower(root.get("name")), pattern)
+                        cb.like(cb.lower(root.get("modelCode")), pattern),
+                        cb.like(cb.lower(root.get("modelName")), pattern)
                 ));
             }
             if (deviceTypeId != null) {
-                predicates.add(cb.equal(root.get("deviceTypeId"), deviceTypeId));
+                predicates.add(cb.equal(root.get("typeId"), deviceTypeId));
             }
             if (vendorId != null) {
                 predicates.add(cb.equal(root.get("vendorId"), vendorId));
@@ -68,7 +68,7 @@ public class CatalogModelController {
     @PostMapping
     @Operation(summary = "Tạo Model POS mới")
     public ResponseEntity<ApiResponse<DeviceModelJpaEntity>> createModel(@RequestBody DeviceModelJpaEntity request) {
-        if (modelRepository.findByCode(request.getCode()).isPresent()) {
+        if (modelRepository.findByModelCode(request.getModelCode()).isPresent()) {
             return ResponseEntity.badRequest().body(ApiResponse.success(null, "Mã Model đã tồn tại"));
         }
         request.setIsActive(true);
@@ -83,9 +83,8 @@ public class CatalogModelController {
             @RequestBody DeviceModelJpaEntity request) {
 
         return modelRepository.findById(id).map(model -> {
-            model.setName(request.getName());
-            model.setDescription(request.getDescription());
-            if (request.getDeviceTypeId() != null) model.setDeviceTypeId(request.getDeviceTypeId());
+            model.setModelName(request.getModelName());
+            if (request.getTypeId() != null) model.setTypeId(request.getTypeId());
             if (request.getVendorId() != null) model.setVendorId(request.getVendorId());
             if (request.getIsActive() != null) model.setIsActive(request.getIsActive());
             DeviceModelJpaEntity saved = modelRepository.save(model);

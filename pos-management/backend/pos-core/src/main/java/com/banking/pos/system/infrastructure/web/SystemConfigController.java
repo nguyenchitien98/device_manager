@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/admin/config")
+@RequestMapping({"/api/v1/admin/config", "/api/v1/admin/configs", "/api/v1/system/configs"})
 @RequiredArgsConstructor
 @Tag(name = "System Configuration", description = "APIs quản lý cấu hình hệ thống")
 public class SystemConfigController {

@@ -116,7 +116,7 @@ public class AssignmentController {
                 .deviceId(device.getId())
                 .serialNumber(device.getSerialNumber())
                 .merchantId(merchantId)
-                .terminalId(terminalId)
+                .terminalId(terminalId != null ? terminalId.toString() : null)
                 .status("ACTIVE")
                 .note((String) req.get("note"))
                 .build();
@@ -215,7 +215,7 @@ public class AssignmentController {
                 .deviceId(oldAssignment.getDeviceId())
                 .serialNumber(oldAssignment.getSerialNumber())
                 .merchantId(newMerchantId)
-                .terminalId(newTerminalId)
+                .terminalId(newTerminalId != null ? newTerminalId.toString() : null)
                 .status("ACTIVE")
                 .note("Điều chuyển từ Merchant ID: " + oldAssignment.getMerchantId())
                 .build();

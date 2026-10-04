@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "stock_exports")
+@Table(name = "stock_export_requests")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,20 +23,23 @@ public class StockExportJpaEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "export_code", nullable = false, unique = true, length = 50)
+    @Column(name = "request_code", nullable = false, unique = true, length = 50)
     private String exportCode;
 
-    @Column(name = "from_warehouse_id", nullable = false)
+    @Column(name = "warehouse_id", nullable = false)
     private UUID fromWarehouseId;
 
-    @Column(name = "approval_id")
+    @Transient
     private UUID approvalId;
+
+    @Column(name = "destination", length = 255)
+    private String destination;
 
     @Column(nullable = false, length = 30)
     @Builder.Default
     private String status = "PENDING_APPROVAL";
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String note;
 
     @Version

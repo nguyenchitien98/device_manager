@@ -27,7 +27,7 @@ public class RepairOrderJpaEntity {
     @Column(name = "device_id", nullable = false)
     private UUID deviceId;
 
-    @Column(name = "serial_number", nullable = false, length = 100)
+    @Transient
     private String serialNumber;
 
     @Column(name = "vendor_id")
@@ -36,23 +36,35 @@ public class RepairOrderJpaEntity {
     @Column(name = "issue_description", nullable = false, columnDefinition = "TEXT")
     private String issueDescription;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 30)
     @Builder.Default
-    private String status = "UNDER_REPAIR";
+    private String status = "CREATED";
 
     @Column(name = "repair_cost", precision = 15, scale = 2)
     private BigDecimal repairCost;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "technician_notes", columnDefinition = "TEXT")
     private String note;
 
-    @Column(name = "created_by")
-    private UUID createdBy;
+    @Version
+    @Column(nullable = false)
+    @Builder.Default
+    private Long version = 0L;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "completed_at")
+    @org.hibernate.annotations.UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Column(name = "created_by")
+    private UUID createdBy;
+
+    @Column(name = "updated_by")
+    private UUID updatedBy;
+
+    @Transient
     private Instant completedAt;
 }

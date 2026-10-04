@@ -26,18 +26,18 @@ public class PurchaseOrderItemJpaEntity {
     @JsonIgnore
     private PurchaseOrderJpaEntity po;
 
-    @Column(name = "device_model_id", nullable = false)
+    @Column(name = "model_id", nullable = false)
     private UUID deviceModelId;
 
     @Column(nullable = false)
     @Builder.Default
     private Integer quantity = 1;
 
-    @Column(name = "received_qty", nullable = false)
+    @Column(name = "received_quantity", nullable = false)
     @Builder.Default
     private Integer receivedQty = 0;
 
-    @Column(precision = 15, scale = 2)
+    @Column(name = "unit_price", precision = 15, scale = 2)
     private BigDecimal price;
 
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -47,7 +47,7 @@ public class CatalogMccController {
                 String pattern = "%" + search.trim().toLowerCase() + "%";
                 predicates.add(cb.or(
                         cb.like(cb.lower(root.get("code")), pattern),
-                        cb.like(cb.lower(root.get("name")), pattern),
+                        cb.like(cb.lower(root.get("description")), pattern),
                         cb.like(cb.lower(root.get("category")), pattern)
                 ));
             }
@@ -76,7 +76,6 @@ public class CatalogMccController {
             @RequestBody MccCodeJpaEntity request) {
 
         return mccRepository.findById(id).map(mcc -> {
-            mcc.setName(request.getName());
             mcc.setCategory(request.getCategory());
             mcc.setDescription(request.getDescription());
             if (request.getIsActive() != null) mcc.setIsActive(request.getIsActive());

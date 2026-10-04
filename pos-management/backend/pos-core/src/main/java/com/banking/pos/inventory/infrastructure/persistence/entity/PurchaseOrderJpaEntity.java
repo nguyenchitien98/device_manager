@@ -36,8 +36,11 @@ public class PurchaseOrderJpaEntity {
     @Builder.Default
     private String status = "DRAFT";
 
-    @Column(columnDefinition = "TEXT")
-    private String note;
+    @Column(name = "notes", columnDefinition = "TEXT")
+    private String notes;
+
+    public String getNote() { return notes; }
+    public void setNote(String note) { this.notes = note; }
 
     @Column(name = "total_quantity", nullable = false)
     @Builder.Default

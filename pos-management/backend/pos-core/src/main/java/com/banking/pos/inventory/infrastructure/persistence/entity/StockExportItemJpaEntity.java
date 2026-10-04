@@ -20,11 +20,11 @@ public class StockExportItemJpaEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "export_id", nullable = false)
+    @JoinColumn(name = "export_request_id", nullable = false)
     @JsonIgnore
     private StockExportJpaEntity export;
 
-    @Column(name = "serial_number", nullable = false, length = 100)
+    @Transient
     private String serialNumber;
 
     @Column(name = "device_id")

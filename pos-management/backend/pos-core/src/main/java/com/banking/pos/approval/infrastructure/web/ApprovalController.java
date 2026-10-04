@@ -33,6 +33,14 @@ public class ApprovalController {
     private final ApprovalRequestJpaRepository approvalRepository;
     private final UserJpaRepository userRepository;
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<PageResponse<ApprovalRequestJpaEntity>>> getApprovalsRoot(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String status) {
+        return getAllRequests(page, size, status);
+    }
+
     @GetMapping("/inbox")
     @Operation(summary = "Hòm việc cần duyệt (Pending Approvals)")
     public ResponseEntity<ApiResponse<PageResponse<ApprovalRequestJpaEntity>>> getInbox(

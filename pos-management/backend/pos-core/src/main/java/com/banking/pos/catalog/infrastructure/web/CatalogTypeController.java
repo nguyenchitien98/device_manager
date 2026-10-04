@@ -93,7 +93,7 @@ public class CatalogTypeController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Soft Delete Loại thiết bị")
     public ResponseEntity<ApiResponse<Void>> deleteType(@PathVariable UUID id) {
-        if (modelRepository.existsByDeviceTypeIdAndIsActiveTrue(id)) {
+        if (modelRepository.existsByTypeIdAndIsActiveTrue(id)) {
             return ResponseEntity.badRequest().body(ApiResponse.success("POS-2008: Loại thiết bị còn Model đang hoạt động, không thể xóa"));
         }
         return typeRepository.findById(id).map(type -> {

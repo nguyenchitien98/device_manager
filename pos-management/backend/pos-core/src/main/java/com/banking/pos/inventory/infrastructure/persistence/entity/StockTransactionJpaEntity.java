@@ -20,31 +20,35 @@ public class StockTransactionJpaEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "transaction_code", nullable = false, length = 50)
+    @Builder.Default
+    private String transactionCode = "TX-" + UUID.randomUUID().toString().substring(0, 8);
+
     @Column(name = "transaction_type", nullable = false, length = 30)
     private String transactionType;
 
     @Column(name = "device_id")
     private UUID deviceId;
 
-    @Column(name = "serial_number", nullable = false, length = 100)
+    @Transient
     private String serialNumber;
 
-    @Column(name = "from_warehouse_id")
+    @Column(name = "warehouse_id", nullable = false)
     private UUID fromWarehouseId;
 
-    @Column(name = "to_warehouse_id")
+    @Column(name = "target_warehouse_id")
     private UUID toWarehouseId;
 
     @Column(name = "po_id")
     private UUID poId;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String note;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "created_by")
+    @Column(name = "performed_by")
     private UUID createdBy;
 }

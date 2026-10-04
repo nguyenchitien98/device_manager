@@ -20,11 +20,11 @@ public class StockTransferItemJpaEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transfer_id", nullable = false)
+    @JoinColumn(name = "transfer_request_id", nullable = false)
     @JsonIgnore
     private StockTransferJpaEntity transfer;
 
-    @Column(name = "serial_number", nullable = false, length = 100)
+    @Transient
     private String serialNumber;
 
     @Column(name = "device_id")

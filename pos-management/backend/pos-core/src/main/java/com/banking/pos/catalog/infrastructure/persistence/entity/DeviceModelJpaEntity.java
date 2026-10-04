@@ -21,20 +21,17 @@ public class DeviceModelJpaEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "device_type_id", nullable = false)
-    private UUID deviceTypeId;
+    @Column(name = "type_id", nullable = false)
+    private UUID typeId;
 
     @Column(name = "vendor_id", nullable = false)
     private UUID vendorId;
 
-    @Column(nullable = false, unique = true, length = 50)
-    private String code;
+    @Column(name = "model_code", nullable = false, unique = true, length = 100)
+    private String modelCode;
 
-    @Column(nullable = false, length = 200)
-    private String name;
-
-    @Column(columnDefinition = "TEXT")
-    private String description;
+    @Column(name = "model_name", nullable = false, length = 200)
+    private String modelName;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default

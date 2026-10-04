@@ -56,7 +56,7 @@ public class InventoryController {
                 String pattern = "%" + search.trim().toLowerCase() + "%";
                 predicates.add(cb.or(
                         cb.like(cb.lower(root.get("poNumber")), pattern),
-                        cb.like(cb.lower(root.get("note")), pattern)
+                        cb.like(cb.lower(root.get("notes")), pattern)
                 ));
             }
             if (status != null && !status.isBlank()) {

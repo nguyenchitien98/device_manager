@@ -26,19 +26,19 @@ public class DeviceLifecycleJpaEntity {
     @Column(name = "serial_number", nullable = false, length = 100)
     private String serialNumber;
 
-    @Column(name = "from_status", length = 30)
+    @Column(name = "previous_status", length = 30)
     private String fromStatus;
 
-    @Column(name = "to_status", nullable = false, length = 30)
+    @Column(name = "new_status", nullable = false, length = 30)
     private String toStatus;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "action_type", nullable = false, length = 50)
     private String action;
 
     @Column(columnDefinition = "TEXT")
     private String reason;
 
-    @Column(name = "created_by")
+    @Column(name = "performed_by")
     private UUID createdBy;
 
     @CreationTimestamp

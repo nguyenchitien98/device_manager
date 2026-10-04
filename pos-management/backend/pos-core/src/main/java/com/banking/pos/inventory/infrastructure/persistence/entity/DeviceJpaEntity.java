@@ -24,15 +24,33 @@ public class DeviceJpaEntity {
     @Column(name = "serial_number", nullable = false, unique = true, length = 100)
     private String serialNumber;
 
-    @Column(name = "device_model_id", nullable = false)
+    @Column(name = "model_id", nullable = false)
     private UUID deviceModelId;
 
     @Column(name = "warehouse_id")
     private UUID warehouseId;
 
+    @Column(name = "po_id")
+    private UUID poId;
+
+    @Column(name = "terminal_id")
+    private UUID terminalId;
+
     @Column(nullable = false, length = 30)
     @Builder.Default
     private String status = "INSTOCK";
+
+    @Column(name = "mac_address", length = 50)
+    private String macAddress;
+
+    @Column(name = "sam_card_number", length = 100)
+    private String samCardNumber;
+
+    @Column(name = "sim_number", length = 50)
+    private String simNumber;
+
+    @Column(name = "firmware_version", length = 50)
+    private String firmwareVersion;
 
     @Version
     @Column(nullable = false)

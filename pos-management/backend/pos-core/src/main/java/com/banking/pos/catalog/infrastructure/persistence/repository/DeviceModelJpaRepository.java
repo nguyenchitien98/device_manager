@@ -9,6 +9,6 @@ import java.util.UUID;
 
 public interface DeviceModelJpaRepository extends JpaRepository<DeviceModelJpaEntity, UUID>,
         JpaSpecificationExecutor<DeviceModelJpaEntity> {
-    Optional<DeviceModelJpaEntity> findByCode(String code);
-    boolean existsByDeviceTypeIdAndIsActiveTrue(UUID deviceTypeId);
+    Optional<DeviceModelJpaEntity> findByModelCode(String modelCode);
+    boolean existsByTypeIdAndIsActiveTrue(UUID typeId);
 }

@@ -34,13 +34,20 @@ public class NotificationJpaEntity {
     @Builder.Default
     private boolean isRead = false;
 
-    @Column(name = "user_id")
-    private UUID userId;
+    @Column(name = "recipient_id", nullable = false)
+    private UUID recipientId;
 
-    @Column(length = 255)
+    public UUID getUserId() { return recipientId; }
+    public void setUserId(UUID id) { this.recipientId = id; }
+
+    @Column(name = "reference_id")
+    private UUID referenceId;
+
+    @Transient
     private String link;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 }
+

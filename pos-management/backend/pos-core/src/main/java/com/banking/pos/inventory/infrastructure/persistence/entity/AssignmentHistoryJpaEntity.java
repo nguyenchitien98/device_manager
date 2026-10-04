@@ -23,25 +23,34 @@ public class AssignmentHistoryJpaEntity {
     @Column(name = "assignment_id", nullable = false)
     private UUID assignmentId;
 
-    @Column(name = "serial_number", nullable = false, length = 100)
-    private String serialNumber;
+    @Column(name = "device_id", nullable = false)
+    private UUID deviceId;
 
-    @Column(nullable = false, length = 50)
-    private String action;
-
-    @Column(name = "from_merchant_id")
+    @Transient
     private UUID fromMerchantId;
 
-    @Column(name = "to_merchant_id")
+    @Transient
     private UUID toMerchantId;
 
-    @Column(columnDefinition = "TEXT")
+    @Transient
+    private String serialNumber;
+
+    @Column(name = "action_type", nullable = false, length = 50)
+    private String action;
+
+    @Column(name = "previous_status", length = 30)
+    private String previousStatus;
+
+    @Column(name = "new_status", nullable = false, length = 30)
+    private String newStatus;
+
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String reason;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @Column(name = "created_by")
+    @Column(name = "performed_by")
     private UUID createdBy;
 }
