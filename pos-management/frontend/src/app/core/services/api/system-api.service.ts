@@ -29,6 +29,10 @@ export class SystemApiService extends BaseApiService {
     return this.post(`/admin/users/${id}/reset-password`, {});
   }
 
+  exportUsers(params?: QueryParams): Observable<Blob> {
+    return this.exportFile('/admin/users/export', params);
+  }
+
   // Role Management
   getRoles(params?: QueryParams): Observable<ApiResponse<PageResponse<any>>> {
     return this.getPage('/admin/roles', params);
@@ -40,6 +44,10 @@ export class SystemApiService extends BaseApiService {
 
   updateRolePermissions(roleId: string | number, permissions: string[]): Observable<ApiResponse<any>> {
     return this.put(`/admin/roles/${roleId}/permissions`, '', { permissions });
+  }
+
+  exportRoles(params?: QueryParams): Observable<Blob> {
+    return this.exportFile('/admin/roles/export', params);
   }
 
   // Dashboard & POS Monitoring
@@ -55,6 +63,22 @@ export class SystemApiService extends BaseApiService {
     return this.getPage('/monitoring/audit-logs', params);
   }
 
+  exportAuditLogs(params?: QueryParams): Observable<Blob> {
+    return this.exportFile('/monitoring/audit-logs/export', params);
+  }
+
+  getOutboxEvents(params?: QueryParams): Observable<ApiResponse<PageResponse<any>>> {
+    return this.getPage('/outbox/events', params);
+  }
+
+  retryOutboxEvent(id: string): Observable<ApiResponse<any>> {
+    return this.post(`/outbox/events/${id}/retry`, {});
+  }
+
+  toggleKafkaChaos(): Observable<ApiResponse<any>> {
+    return this.post('/chaos/toggle-kafka', {});
+  }
+
   // System Configs
   getSystemConfigs(): Observable<ApiResponse<any>> {
     return this.get('/admin/config');
@@ -62,5 +86,18 @@ export class SystemApiService extends BaseApiService {
 
   updateSystemConfigs(configs: Record<string, any>): Observable<ApiResponse<any>> {
     return this.put('/admin/config', '', configs);
+  }
+
+  // Reports
+  getInventoryReport(params?: QueryParams): Observable<ApiResponse<any>> {
+    return this.get('/reports/inventory', params);
+  }
+
+  getMerchantReport(params?: QueryParams): Observable<ApiResponse<any>> {
+    return this.get('/reports/merchants', params);
+  }
+
+  exportReportPdf(type: string = 'inventory'): Observable<Blob> {
+    return this.exportFile('/reports/export-pdf', { type });
   }
 }

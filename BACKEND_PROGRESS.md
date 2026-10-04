@@ -17,8 +17,8 @@
 | **B6** | Stock Export, Transfer & Logistics | ✅ PASS | SUCCESS | SUCCESS | V8 PASS | Verified | Completed |
 | **B7** | Device Detail 8-Tabs, FSM, Repair & Dispose | ✅ PASS | SUCCESS | SUCCESS | V9 PASS | Verified | Completed |
 | **B8** | Assignment, Idempotency & Concurrency | ✅ PASS | SUCCESS | SUCCESS | V10 PASS | Verified | Completed |
-| **B9** | Audit Log, Notifications, Outbox & Reports | ⏳ IN PROGRESS | – | – | – | – | Pending |
-| **B10** | FE Cleanup & Integration Final Pass | ⏹️ PENDING | – | – | – | – | Pending |
+| **B9** | Audit Log, Notifications, Outbox & Reports | ✅ PASS | SUCCESS | SUCCESS | V11 PASS | Verified | Completed |
+| **B10** | FE Cleanup & Integration Final Pass | ⏳ IN PROGRESS | – | – | – | – | Pending |
 
 ---
 
@@ -202,5 +202,34 @@
 - **Commit:** `feat(backend): B8 - assignment, idempotency key & concurrency control APIs`
 
 ---
+
+### 🟢 BƯỚC B9: Audit Log, Notifications, Outbox & Reports
+- **Ngày hoàn thành:** 2026-10-04
+- **Công việc đã làm:**
+  1. Migration `V11__audit_notification_outbox_schema.sql`: tạo các bảng `notifications`, `audit_logs`.
+  2. JPA Entities & Repositories: `NotificationJpaEntity`, `AuditLogJpaEntity`, `NotificationJpaRepository`, `AuditLogJpaRepository`.
+  3. `DashboardController` (`/api/v1/dashboard/summary`): Tổng hợp KPI tổng quan hệ thống, biểu đồ nhập/xuất kho, tỷ lệ thiết bị.
+  4. `MonitoringController` (`/api/v1`):
+     - `GET /monitoring/pos-status`: Trạng thái thiết bị `DEPLOYED` thời gian thực (Signal, Battery, State).
+     - `GET /monitoring/audit-logs` & `/audit-logs`: Nhật ký kiểm toán hệ thống & `GET /monitoring/audit-logs/export`.
+     - `GET /outbox/events` & `POST /outbox/events/{id}/retry`: Giám sát và gửi lại các event thất bại trong Outbox Pattern.
+     - `POST /chaos/toggle-kafka`: Giả lập bật/tắt sự cố Kafka (Chaos Engineering).
+  5. `NotificationController` (`/api/v1/notifications`):
+     - `GET /notifications`: Danh sách thông báo.
+     - `GET /notifications/unread-count`: Đếm số lượng thông báo chưa đọc (`unreadCount`).
+     - `PATCH /notifications/{id}/read`: Đánh dấu 1 thông báo là đã đọc.
+     - `PATCH /notifications/read-all`: Đánh dấu tất cả là đã đọc.
+  6. `ReportController` (`/api/v1/reports`):
+     - `GET /reports/inventory`: Báo cáo thống kê tổng hợp kho thiết bị.
+     - `GET /reports/merchants`: Báo cáo thống kê phát triển Merchant.
+     - `GET /reports/export-pdf` & `/export`: Xuất PDF báo cáo tổng hợp.
+  7. FE Alignment: Tạo `notification-api.service.ts` và cập nhật `system-api.service.ts`.
+- **Kết quả Gate:**
+  - `mvn clean verify` -> SUCCESS (0 lỗi Java)
+  - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
+- **Commit:** `feat(backend): B9 - audit logs, notifications, outbox monitoring & report APIs`
+
+---
+
 
 
