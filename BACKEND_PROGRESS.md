@@ -15,8 +15,8 @@
 | **B4** | PO, Import, Devices & Stock Ledger | ✅ PASS | SUCCESS | SUCCESS | V6 PASS | Verified | Completed |
 | **B5** | Approval Workflow Engine | ✅ PASS | SUCCESS | SUCCESS | V7 PASS | Verified | Completed |
 | **B6** | Stock Export, Transfer & Logistics | ✅ PASS | SUCCESS | SUCCESS | V8 PASS | Verified | Completed |
-| **B7** | Device Detail 8-Tabs, FSM, Repair & Dispose | ⏳ IN PROGRESS | – | – | – | – | Pending |
-| **B8** | Assignment, Idempotency & Concurrency | ⏹️ PENDING | – | – | – | – | Pending |
+| **B7** | Device Detail 8-Tabs, FSM, Repair & Dispose | ✅ PASS | SUCCESS | SUCCESS | V9 PASS | Verified | Completed |
+| **B8** | Assignment, Idempotency & Concurrency | ⏳ IN PROGRESS | – | – | – | – | Pending |
 | **B9** | Audit Log, Notifications, Outbox & Reports | ⏹️ PENDING | – | – | – | – | Pending |
 | **B10** | FE Cleanup & Integration Final Pass | ⏹️ PENDING | – | – | – | – | Pending |
 
@@ -152,3 +152,29 @@
 - **Commit:** `feat(backend): B6 - stock export, transfer & logistics APIs linked to approval engine`
 
 ---
+
+### 🟢 BƯỚC B7: Device Detail 8-Tabs, FSM, Repair & Dispose
+- **Ngày hoàn thành:** 2026-10-04
+- **Công việc đã làm:**
+  1. Migration `V9__device_lifecycle_repair_schema.sql`: tạo các bảng `device_lifecycle_history`, `repair_orders`.
+  2. JPA Entities & Repositories: `DeviceLifecycleJpaEntity`, `RepairOrderJpaEntity`, `DeviceLifecycleJpaRepository`, `RepairOrderJpaRepository`.
+  3. `DeviceDetailController` (`/api/v1`):
+     - `GET /devices` (phân trang, filter `serialNumber, status, modelId, warehouseId, merchantId`).
+     - `GET /devices/{serialNumber}` (chi tiết thiết bị kèm tên Model, Kho, Merchant).
+     - `GET /devices/{serialNumber}/lifecycle`, `/assignments`, `/repairs`, `/stock-history`, `/audit-logs` (hỗ trợ 8 tabs màn hình chi tiết thiết bị).
+     - `PATCH /devices/{serialNumber}/status` (chuyển trạng thái FSM, ghi nhật ký lịch sử `device_lifecycle_history`).
+     - `POST /devices/{serialNumber}/repairs` (gửi bảo hành, tạo lệnh sửa chữa `RO-YYYYMMDD-xxxx`, chuyển trạng thái thiết bị sang `REPAIRING`).
+     - `POST /devices/{serialNumber}/dispose` (thanh lý / tiêu hủy thiết bị, chuyển trạng thái `DISPOSED`).
+     - `GET /devices/export` & `GET /devices/monitoring/export`.
+     - `GET /repairs`: Danh sách phiếu bảo hành sửa chữa.
+     - `PATCH /repairs/{id}/complete`: Hoàn thành sửa chữa -> trả thiết bị về `INSTOCK`.
+     - `PATCH /repairs/{id}/fail`: Sửa chữa thất bại -> thanh lý thiết bị `DISPOSED`.
+     - `GET /repairs/export`: Xuất Excel danh sách sửa chữa.
+  4. FE Alignment: Bổ sung các endpoint trong `device-api.service.ts`.
+- **Kết quả Gate:**
+  - `mvn clean verify` -> SUCCESS (0 lỗi Java)
+  - `npm run build` -> SUCCESS (0 lỗi TypeScript / SCSS)
+- **Commit:** `feat(backend): B7 - device detail 8-tabs, FSM status transition, repair & dispose APIs`
+
+---
+

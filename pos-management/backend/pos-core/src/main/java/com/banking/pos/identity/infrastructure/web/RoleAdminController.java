@@ -102,7 +102,7 @@ public class RoleAdminController {
                 entity.getId(),
                 entity.getName(),
                 entity.getDescription(),
-                entity.getIsActive(),
+                entity.isActive(),
                 permCodes
         );
     }

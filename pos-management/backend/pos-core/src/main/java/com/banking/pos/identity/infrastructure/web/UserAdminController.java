@@ -150,14 +150,16 @@ public class UserAdminController {
 
     @PostMapping("/{id}/reset-password")
     @Operation(summary = "Đặt lại mật khẩu mặc định")
-    public ResponseEntity<ApiResponse<String>> resetPassword(@PathVariable UUID id) {
-        return userRepository.findById(id).map(user -> {
-            user.setPasswordHash(passwordEncoder.encode("Admin@123"));
-            user.setFailedLoginAttempts(0);
-            user.setLockedUntil(null);
-            userRepository.save(user);
-            return ResponseEntity.ok(ApiResponse.success("Mật khẩu đã đặt lại thành 'Admin@123'"));
-        }).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@PathVariable UUID id) {
+        UserJpaEntity user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        user.setPasswordHash(passwordEncoder.encode("Admin@123"));
+        user.setFailedLoginAttempts(0);
+        user.setLockedUntil(null);
+        userRepository.save(user);
+        return ResponseEntity.ok(ApiResponse.success("Mật khẩu đã đặt lại thành 'Admin@123'"));
     }
 
     @GetMapping("/export")

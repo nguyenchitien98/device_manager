@@ -50,10 +50,15 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Spring TX / Data (cho DataIntegrityViolationException) -->
+        <!-- Spring TX / Data (cho DataIntegrityViolationException & Page) -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-commons</artifactId>
             <optional>true</optional>
         </dependency>
 

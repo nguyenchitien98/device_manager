@@ -38,6 +38,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserJpaRepository userRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     /**
      * Đăng nhập bằng username/password.
@@ -117,7 +118,7 @@ public class AuthController {
                     return ResponseEntity.ok(ApiResponse.success((Object) info));
                 })
                 .orElse(ResponseEntity.notFound().build());
-    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    }
 
     @PutMapping("/me")
     @Operation(summary = "Cập nhật hồ sơ của tôi")
