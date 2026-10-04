@@ -10,14 +10,11 @@ import java.util.List;
 /**
  * Wrapper chuẩn cho mọi API response lỗi trong POS Management System.
  *
- * <p>Tại sao dùng format này thay vì Spring Default Error? Spring mặc định trả về
- * /error endpoint với format khác nhau tùy version. Format này đảm bảo nhất quán,
- * phù hợp với error code system POS-1001 → POS-7006 được định nghĩa trong API Contract.
- *
  * <p>Format lỗi tuân theo RFC 7807 Problem Details (simplified):
  * <pre>
  * {
  *   "success": false,
+ *   "code": "POS-1001",             // Đồng bộ với code field của Frontend
  *   "errorCode": "POS-1001",        // Mã lỗi nội bộ
  *   "message": "...",               // Thông báo cho người dùng (tiếng Việt)
  *   "details": ["field: message"],  // Validation errors, có thể null
@@ -35,22 +32,16 @@ import java.util.List;
 public class ApiErrorResponse {
 
     private final boolean success = false;
+    private final String code;
     private final String errorCode;
     private final String message;
     private final List<String> details;
     private final String path;
     private final Instant timestamp;
 
-    /**
-     * Tạo error response nhanh từ mã lỗi và message.
-     *
-     * @param errorCode Mã lỗi chuẩn POS (ví dụ: "POS-1001")
-     * @param message   Thông báo lỗi cho người dùng
-     * @param path      Request URI gây ra lỗi
-     * @return ApiErrorResponse
-     */
     public static ApiErrorResponse of(String errorCode, String message, String path) {
         return ApiErrorResponse.builder()
+                .code(errorCode)
                 .errorCode(errorCode)
                 .message(message)
                 .path(path)
@@ -58,18 +49,10 @@ public class ApiErrorResponse {
                 .build();
     }
 
-    /**
-     * Tạo error response kèm danh sách validation errors (cho 422 Unprocessable Entity).
-     *
-     * @param errorCode Mã lỗi
-     * @param message   Thông báo tổng quát
-     * @param details   Danh sách lỗi validation cụ thể từng field
-     * @param path      Request URI
-     * @return ApiErrorResponse với validation details
-     */
     public static ApiErrorResponse ofValidation(String errorCode, String message,
                                                  List<String> details, String path) {
         return ApiErrorResponse.builder()
+                .code(errorCode)
                 .errorCode(errorCode)
                 .message(message)
                 .details(details)

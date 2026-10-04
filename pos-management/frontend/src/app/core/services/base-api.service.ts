@@ -42,16 +42,19 @@ export class BaseApiService {
     return this.http.post<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, body);
   }
 
-  put<T, D = any>(endpoint: string, id: string | number, body: D): Observable<ApiResponse<T>> {
-    return this.http.put<ApiResponse<T>>(`${this.baseUrl}${endpoint}/${id}`, body);
+  put<T, D = any>(endpoint: string, id?: string | number, body?: D): Observable<ApiResponse<T>> {
+    const url = (id !== undefined && id !== null && id !== '') ? `${this.baseUrl}${endpoint}/${id}` : `${this.baseUrl}${endpoint}`;
+    return this.http.put<ApiResponse<T>>(url, body);
   }
 
-  patch<T, D = any>(endpoint: string, id: string | number, body?: D): Observable<ApiResponse<T>> {
-    return this.http.patch<ApiResponse<T>>(`${this.baseUrl}${endpoint}/${id}`, body || {});
+  patch<T, D = any>(endpoint: string, id?: string | number, body?: D): Observable<ApiResponse<T>> {
+    const url = (id !== undefined && id !== null && id !== '') ? `${this.baseUrl}${endpoint}/${id}` : `${this.baseUrl}${endpoint}`;
+    return this.http.patch<ApiResponse<T>>(url, body || {});
   }
 
-  delete<T = void>(endpoint: string, id: string | number): Observable<ApiResponse<T>> {
-    return this.http.delete<ApiResponse<T>>(`${this.baseUrl}${endpoint}/${id}`);
+  delete<T = void>(endpoint: string, id?: string | number): Observable<ApiResponse<T>> {
+    const url = (id !== undefined && id !== null && id !== '') ? `${this.baseUrl}${endpoint}/${id}` : `${this.baseUrl}${endpoint}`;
+    return this.http.delete<ApiResponse<T>>(url);
   }
 
   exportFile(endpoint: string, params?: QueryParams): Observable<Blob> {
