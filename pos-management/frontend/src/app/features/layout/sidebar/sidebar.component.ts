@@ -33,7 +33,7 @@ export class SidebarComponent implements OnChanges {
       this.expandedGroups.set({ catalog: true });
     } else if (url.startsWith('/merchant')) {
       this.expandedGroups.set({ merchant: true });
-    } else if (url.startsWith('/inventory')) {
+    } else if (url.startsWith('/inventory') || url.startsWith('/telecom')) {
       this.expandedGroups.set({ inventory: true });
     } else if (url.startsWith('/device')) {
       this.expandedGroups.set({ device: true });

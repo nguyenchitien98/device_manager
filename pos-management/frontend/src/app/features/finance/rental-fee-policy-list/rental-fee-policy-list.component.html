@@ -1,0 +1,204 @@
+<div class="list-page-container">
+  <div class="page-header">
+    <div class="header-title">
+      <h2>Tính Phí Thuê Máy POS & Phạt Doanh Số Tự Động (Tariff Engine)</h2>
+      <p class="subtitle">Quản lý chính sách miễn giảm phí thuê máy theo KPI doanh số và trích nợ tự động Core Banking T24</p>
+    </div>
+    <div class="header-actions">
+      <pos-button
+        btnId="btn-calculate-period"
+        variant="secondary"
+        icon="bi bi-cpu"
+        (click)="onCalculatePeriod()"
+      >
+        Chạy Quét Tính Phí Kỳ Này
+      </pos-button>
+      <pos-button
+        btnId="btn-create-policy"
+        variant="primary"
+        icon="bi bi-plus-lg"
+        (click)="openCreatePolicyModal()"
+      >
+        Thêm Chính Sách Phí Mới
+      </pos-button>
+    </div>
+  </div>
+
+  <div class="tabs-header mb-4">
+    <button
+      id="tab-charges-btn"
+      class="tab-btn"
+      [class.active]="activeTab() === 'charges'"
+      (click)="onTabChange('charges')"
+    >
+      <i class="bi bi-receipt me-2"></i>Danh Sách Trích Nợ Kỳ (Monthly Charges)
+    </button>
+    <button
+      id="tab-policies-btn"
+      class="tab-btn"
+      [class.active]="activeTab() === 'policies'"
+      (click)="onTabChange('policies')"
+    >
+      <i class="bi bi-sliders me-2"></i>Cấu Hình Chính Sách Phí (Policies)
+    </button>
+  </div>
+
+  <!-- TAB 1: CHARGES -->
+  <div *ngIf="activeTab() === 'charges'" class="tab-content">
+    <div class="filter-card mb-4">
+      <div class="row align-items-center g-3">
+        <div class="col-md-4">
+          <pos-input
+            inputId="input-period-filter"
+            label="Lọc theo Kỳ (YYYY-MM)"
+            placeholder="Ví dụ: 2026-10"
+            [ngModel]="periodFilter()"
+            (ngModelChange)="onPeriodChange($event)"
+          ></pos-input>
+        </div>
+      </div>
+    </div>
+
+    <pos-table
+      [columns]="chargeColumns"
+      [data]="service.charges()"
+      [loading]="service.loading()"
+    >
+      <ng-template posTemplate="cell" let-col="column" let-row="row">
+        <ng-container [ngSwitch]="col.field">
+          <span *ngSwitchCase="'actualVolume'" class="fw-bold text-dark dark:text-white">
+            {{ row.actualVolume | number:'1.0-2' }} đ
+          </span>
+          <span *ngSwitchCase="'feeAmount'" class="fw-bold" [class.text-danger]="row.feeAmount > 0" [class.text-success]="row.feeAmount === 0">
+            {{ row.feeAmount | number:'1.0-2' }} đ
+          </span>
+          <span *ngSwitchCase="'status'">
+            <pos-badge [variant]="getBadgeVariant(row.status)">
+              {{ getBadgeLabel(row.status) }}
+            </pos-badge>
+          </span>
+          <span *ngSwitchCase="'t24ReferenceNo'" class="badge-code font-mono">
+            {{ row.t24ReferenceNo || '-' }}
+          </span>
+          <div *ngSwitchCase="'actions'" class="d-flex gap-2 justify-content-center">
+            <pos-button
+              *ngIf="row.status === 'PENDING'"
+              [btnId]="'btn-charge-' + row.id"
+              variant="success"
+              size="xs"
+              icon="bi bi-send-check"
+              (click)="onChargeFee(row)"
+            >
+              Trích Nợ T24
+            </pos-button>
+            <pos-button
+              *ngIf="row.status === 'PENDING'"
+              [btnId]="'btn-waive-' + row.id"
+              variant="secondary"
+              size="xs"
+              icon="bi bi-slash-circle"
+              (click)="onWaiveFee(row)"
+            >
+              Miễn Phí
+            </pos-button>
+          </div>
+        </ng-container>
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="service.totalCharges()"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage() + 1"
+      (pageChange)="onPageChange($event - 1)"
+    ></pos-pagination>
+  </div>
+
+  <!-- TAB 2: POLICIES -->
+  <div *ngIf="activeTab() === 'policies'" class="tab-content">
+    <pos-table
+      [columns]="policyColumns"
+      [data]="service.policies()"
+    >
+      <ng-template posTemplate="cell" let-col="column" let-row="row">
+        <ng-container [ngSwitch]="col.field">
+          <span *ngSwitchCase="'minMonthlyVolume'" class="fw-bold">
+            {{ row.minMonthlyVolume | number:'1.0-2' }} đ
+          </span>
+          <span *ngSwitchCase="'monthlyRentalFee'" class="text-primary fw-semibold">
+            {{ row.monthlyRentalFee | number:'1.0-2' }} đ
+          </span>
+          <span *ngSwitchCase="'penaltyFee'" class="text-danger">
+            {{ row.penaltyFee | number:'1.0-2' }} đ
+          </span>
+          <span *ngSwitchCase="'isActive'">
+            <pos-badge [variant]="row.isActive ? 'success' : 'danger'">
+              {{ row.isActive ? 'Đang áp dụng' : 'Khóa' }}
+            </pos-badge>
+          </span>
+        </ng-container>
+      </ng-template>
+    </pos-table>
+  </div>
+
+  <!-- CREATE POLICY MODAL -->
+  <pos-modal
+    [isOpen]="isCreateModalOpen()"
+    title="Tạo Chính Sách Phí Thuê POS Mới"
+    (closeModal)="closeCreatePolicyModal()"
+  >
+    <div class="d-flex flex-column gap-3">
+      <pos-input
+        inputId="input-policy-code"
+        label="Mã Chính Sách"
+        placeholder="VD: POL_VIP_RETAIL"
+        [(ngModel)]="newPolicyCode"
+      ></pos-input>
+
+      <pos-input
+        inputId="input-policy-name"
+        label="Tên Chính Sách Phí"
+        placeholder="VD: Gói VIP Chuỗi Bán Lẻ"
+        [(ngModel)]="newPolicyName"
+      ></pos-input>
+
+      <pos-input
+        inputId="input-policy-min-vol"
+        label="Hạn Mức Doanh Số Miễn Phí (VND/Tháng)"
+        type="number"
+        [(ngModel)]="newPolicyMinVolume"
+      ></pos-input>
+
+      <pos-input
+        inputId="input-policy-fee"
+        label="Mức Phí Thuê Máy Hàng Tháng (VND)"
+        type="number"
+        [(ngModel)]="newPolicyRentalFee"
+      ></pos-input>
+
+      <pos-input
+        inputId="input-policy-penalty"
+        label="Phí Phạt Phạt Không Đủ Doanh Số (VND)"
+        type="number"
+        [(ngModel)]="newPolicyPenaltyFee"
+      ></pos-input>
+    </div>
+
+    <div footer class="d-flex justify-content-end gap-2 mt-4">
+      <pos-button
+        btnId="btn-cancel-policy"
+        variant="secondary"
+        (click)="closeCreatePolicyModal()"
+      >
+        Hủy Bỏ
+      </pos-button>
+      <pos-button
+        btnId="btn-save-policy"
+        variant="primary"
+        (click)="savePolicy()"
+      >
+        Lưu Chính Sách
+      </pos-button>
+    </div>
+  </pos-modal>
+</div>

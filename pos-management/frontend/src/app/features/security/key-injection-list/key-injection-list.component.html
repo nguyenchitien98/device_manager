@@ -1,0 +1,62 @@
+<div class="page-container p-4">
+  <div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="page-title fw-bold text-primary mb-1">Quản Lý Nạp Khóa HSM & Bảo Mật PCI DSS</h2>
+      <p class="text-muted mb-0">Quản lý quy trình đưa máy POS trắng vào Phòng Bảo Mật HSM để nạp khóa TMK trước khi bàn giao Merchant</p>
+    </div>
+  </div>
+
+  <div class="card p-3 mb-4 border-0 shadow-sm">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <pos-select
+          selectId="select-hsm-status"
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus"
+          (ngModelChange)="loadData()">
+        </pos-select>
+      </div>
+    </div>
+  </div>
+
+  <pos-table
+    [columns]="columns"
+    [data]="service.orders()"
+    [loading]="service.loading()">
+    <ng-template #cellTemplate let-row let-col="column">
+      <ng-container [ngSwitch]="col.field">
+        <span *ngSwitchCase="'status'">
+          <pos-badge [variant]="row.status === 'PENDING' ? 'warning' : row.status === 'SUCCESS' ? 'success' : 'danger'">
+            {{ row.status }}
+          </pos-badge>
+        </span>
+        <span *ngSwitchCase="'createdAt'">
+          {{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}
+        </span>
+        <span *ngSwitchCase="'actions'">
+          @if (row.status === 'PENDING') {
+            <pos-button
+              [btnId]="'btn-inject-' + row.id"
+              variant="primary"
+              size="sm"
+              (click)="executeInjection(row.id)">
+              Nạp Khóa HSM
+            </pos-button>
+          } @else {
+            <span class="text-success fw-semibold fs-7">Đã Khóa PCI</span>
+          }
+        </span>
+        <span *ngSwitchDefault>{{ row[col.field] }}</span>
+      </ng-container>
+    </ng-template>
+  </pos-table>
+
+  <div class="mt-3">
+    <pos-pagination
+      [totalItems]="service.totalOrders()"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage() + 1"
+      (pageChange)="onPageChange($event - 1)">
+    </pos-pagination>
+  </div>
+</div>

@@ -84,6 +84,10 @@
             <span class="nav-icon icon-emerald"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
             <span class="nav-label">{{ 'NAV.FEE_POLICY' | translate }}</span>
           </a>
+          <a routerLink="/finance/rental-fees" class="nav-item" [class.active]="isActive('/finance/rental-fees')" title="Phí Thuê POS & Tariff Engine">
+            <span class="nav-icon icon-emerald"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+            <span class="nav-label">Phí Thuê POS & Tariff Engine</span>
+          </a>
           <a routerLink="/organization/business-units" class="nav-item" [class.active]="isActive('/organization/business-units')" [title]="'NAV.BUSINESS_UNIT' | translate">
             <span class="nav-icon icon-cyan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 1-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
             <span class="nav-label">{{ 'NAV.BUSINESS_UNIT' | translate }}</span>
@@ -166,6 +170,10 @@
             <span class="nav-icon icon-sky"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
             <span class="nav-label">{{ 'NAV.TERMINALS' | translate }}</span>
           </a>
+          <a routerLink="/crm/tickets" class="nav-item" [class.active]="isActive('/crm/tickets')" title="Ticket Hỗ Trợ CRM">
+            <span class="nav-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+            <span class="nav-label">Ticket Hỗ Trợ CRM</span>
+          </a>
         </div>
       }
 
@@ -182,6 +190,10 @@
           <a routerLink="/merchant/terminals" class="flyout-item" [class.active]="isActive('/merchant/terminals')">
             <span class="nav-icon icon-sky"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
             <span class="nav-label">{{ 'NAV.TERMINALS' | translate }}</span>
+          </a>
+          <a routerLink="/crm/tickets" class="flyout-item" [class.active]="isActive('/crm/tickets')">
+            <span class="nav-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>
+            <span class="nav-label">Ticket Hỗ Trợ CRM</span>
           </a>
         </div>
       </div>
@@ -219,6 +231,10 @@
             <span class="nav-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
             <span class="nav-label">{{ 'NAV.LOGISTICS' | translate }}</span>
           </a>
+          <a routerLink="/telecom/sims" class="nav-item" [class.active]="isActive('/telecom/sims')" title="Quản Lý SIM 4G & SAM">
+            <span class="nav-icon icon-cyan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></span>
+            <span class="nav-label">Quản Lý SIM 4G & SAM</span>
+          </a>
         </div>
       }
 
@@ -248,6 +264,10 @@
             <span class="nav-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
             <span class="nav-label">{{ 'NAV.LOGISTICS' | translate }}</span>
           </a>
+          <a routerLink="/telecom/sims" class="flyout-item" [class.active]="isActive('/telecom/sims')">
+            <span class="nav-icon icon-cyan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></span>
+            <span class="nav-label">Quản Lý SIM 4G & SAM</span>
+          </a>
         </div>
       </div>
     </div>
@@ -268,6 +288,10 @@
             <span class="nav-icon icon-sky"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
             <span class="nav-label">{{ 'NAV.DEVICE_SEARCH' | translate }}</span>
           </a>
+          <a routerLink="/security/key-injections" class="nav-item" [class.active]="isActive('/security/key-injections')" title="Nạp Khóa HSM PCI DSS">
+            <span class="nav-icon icon-violet"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <span class="nav-label">Nạp Khóa HSM PCI DSS</span>
+          </a>
         </div>
       }
 
@@ -280,6 +304,10 @@
           <a routerLink="/device/search" class="flyout-item" [class.active]="isActive('/device/search')">
             <span class="nav-icon icon-sky"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
             <span class="nav-label">{{ 'NAV.DEVICE_SEARCH' | translate }}</span>
+          </a>
+          <a routerLink="/security/key-injections" class="flyout-item" [class.active]="isActive('/security/key-injections')">
+            <span class="nav-icon icon-violet"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <span class="nav-label">Nạp Khóa HSM PCI DSS</span>
           </a>
         </div>
       </div>
@@ -385,6 +413,10 @@
             <span class="nav-icon icon-violet"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
             <span class="nav-label">{{ 'NAV.AUDIT_LOGS' | translate }}</span>
           </a>
+          <a routerLink="/monitoring/inactivity" class="nav-item" [class.active]="isActive('/monitoring/inactivity')" title="Cảnh Báo POS Inactive">
+            <span class="nav-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+            <span class="nav-label">Cảnh Báo POS Inactive</span>
+          </a>
           <a routerLink="/reports/inventory" class="nav-item" [class.active]="isActive('/reports/inventory')" [title]="'NAV.REPORT_INVENTORY' | translate">
             <span class="nav-icon icon-emerald"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
             <span class="nav-label">{{ 'NAV.REPORT_INVENTORY' | translate }}</span>
@@ -409,6 +441,10 @@
           <a routerLink="/monitoring/audit-logs" class="flyout-item" [class.active]="isActive('/monitoring/audit-logs')">
             <span class="nav-icon icon-violet"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
             <span class="nav-label">{{ 'NAV.AUDIT_LOGS' | translate }}</span>
+          </a>
+          <a routerLink="/monitoring/inactivity" class="flyout-item" [class.active]="isActive('/monitoring/inactivity')">
+            <span class="nav-icon icon-rose"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+            <span class="nav-label">Cảnh Báo POS Inactive</span>
           </a>
           <a routerLink="/reports/inventory" class="flyout-item" [class.active]="isActive('/reports/inventory')">
             <span class="nav-icon icon-emerald"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>

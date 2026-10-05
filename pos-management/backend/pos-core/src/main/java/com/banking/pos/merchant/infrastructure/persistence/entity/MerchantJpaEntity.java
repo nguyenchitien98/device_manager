@@ -54,6 +54,37 @@ public class MerchantJpaEntity {
     @Column(name = "fee_policy_id")
     private UUID feePolicyId;
 
+    @Column(name = "legal_rep_name", length = 255)
+    private String legalRepName;
+
+    @Column(name = "legal_rep_id_card", length = 20)
+    private String legalRepIdCard;
+
+    @Column(name = "business_license_no", length = 50)
+    private String businessLicenseNo;
+
+    @Column(name = "bank_account_no", length = 30)
+    private String bankAccountNo;
+
+    @Column(name = "bank_account_name", length = 255)
+    private String bankAccountName;
+
+    @Column(name = "bank_code", length = 20)
+    private String bankCode;
+
+    @Column(name = "risk_level", length = 20)
+    @Builder.Default
+    private String riskLevel = "LOW";
+
+    @Column(name = "sales_owner_id")
+    private UUID salesOwnerId;
+
+    @Column(name = "contract_no", length = 50)
+    private String contractNo;
+
+    @Column(name = "contract_sign_date")
+    private java.time.LocalDate contractSignDate;
+
     @Column(nullable = false, length = 20)
     @Builder.Default
     private String status = "ACTIVE";

@@ -1,0 +1,68 @@
+<div class="page-container p-4">
+  <div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="page-title fw-bold text-primary mb-1">Cảnh Báo POS "Chết" & Giám Sát Doanh Số</h2>
+      <p class="text-muted mb-0">Tự động phát hiện và cảnh báo các máy POS không phát sinh giao dịch > 30 ngày để tối ưu chi phí tài sản</p>
+    </div>
+  </div>
+
+  <div class="card p-3 mb-4 border-0 shadow-sm">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <pos-select
+          selectId="select-inactivity-status"
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus"
+          (ngModelChange)="loadData()">
+        </pos-select>
+      </div>
+    </div>
+  </div>
+
+  <pos-table
+    [columns]="columns"
+    [data]="inactivityService.alerts()"
+    [loading]="inactivityService.loading()">
+    <ng-template #cellTemplate let-row let-col="column">
+      <ng-container [ngSwitch]="col.field">
+        <span *ngSwitchCase="'daysInactive'" class="badge bg-danger p-2 fs-6">
+          {{ row.daysInactive }} ngày
+        </span>
+        <span *ngSwitchCase="'status'">
+          <pos-badge [variant]="row.status === 'NEW' ? 'warning' : row.status === 'RECALLED' ? 'danger' : 'success'">
+            {{ row.status }}
+          </pos-badge>
+        </span>
+        <span *ngSwitchCase="'lastTxAt'">
+          {{ row.lastTxAt ? (row.lastTxAt | date:'dd/MM/yyyy HH:mm') : 'Chưa có GD' }}
+        </span>
+        <span *ngSwitchCase="'createdAt'">
+          {{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}
+        </span>
+        <span *ngSwitchCase="'actions'">
+          @if (row.status === 'NEW' || row.status === 'NOTIFIED') {
+            <pos-button
+              [btnId]="'btn-recall-' + row.id"
+              variant="danger"
+              size="sm"
+              (click)="triggerRecall(row.id)">
+              Tạo Thu Hồi
+            </pos-button>
+          } @else {
+            <span class="text-muted fs-7">Đã xử lý</span>
+          }
+        </span>
+        <span *ngSwitchDefault>{{ row[col.field] }}</span>
+      </ng-container>
+    </ng-template>
+  </pos-table>
+
+  <div class="mt-3">
+    <pos-pagination
+      [totalItems]="inactivityService.totalAlerts()"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage() + 1"
+      (pageChange)="onPageChange($event - 1)">
+    </pos-pagination>
+  </div>
+</div>

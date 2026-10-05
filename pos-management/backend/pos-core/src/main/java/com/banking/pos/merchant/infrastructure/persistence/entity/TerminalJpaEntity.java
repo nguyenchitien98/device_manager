@@ -33,6 +33,33 @@ public class TerminalJpaEntity {
     @Column(name = "installation_address", columnDefinition = "TEXT")
     private String installationAddress;
 
+    @Column(name = "terminal_type", nullable = false, length = 30)
+    @Builder.Default
+    private String terminalType = "COUNTER";
+
+    @Column(nullable = false, length = 3)
+    @Builder.Default
+    private String currency = "VND";
+
+    @Column(name = "max_amount_per_tx", nullable = false, precision = 15, scale = 2)
+    @Builder.Default
+    private java.math.BigDecimal maxAmountPerTx = new java.math.BigDecimal("50000000.00");
+
+    @Column(name = "allow_contactless", nullable = false)
+    @Builder.Default
+    private Boolean allowContactless = true;
+
+    @Column(name = "allow_qr", nullable = false)
+    @Builder.Default
+    private Boolean allowQr = true;
+
+    @Column(name = "settlement_cycle", nullable = false, length = 20)
+    @Builder.Default
+    private String settlementCycle = "T+1";
+
+    @Column(name = "last_transaction_at")
+    private Instant lastTransactionAt;
+
     @Column(nullable = false, length = 20)
     @Builder.Default
     private String status = "UNASSIGNED";

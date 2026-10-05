@@ -52,6 +52,28 @@ public class AssignmentJpaEntity {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String note;
 
+    @Column(name = "installation_address", columnDefinition = "TEXT")
+    private String installationAddress;
+
+    @Column(precision = 10, scale = 8)
+    private java.math.BigDecimal latitude;
+
+    @Column(precision = 10, scale = 8)
+    private java.math.BigDecimal longitude;
+
+    @Column(name = "technician_user_id")
+    private UUID technicianUserId;
+
+    @Column(name = "handover_doc_no", length = 50)
+    private String handoverDocNo;
+
+    @Column(name = "handover_doc_url", length = 500)
+    private String handoverDocUrl;
+
+    @Column(name = "monthly_rental_fee", nullable = false, precision = 15, scale = 2)
+    @Builder.Default
+    private java.math.BigDecimal monthlyRentalFee = java.math.BigDecimal.ZERO;
+
     @Version
     @Column(nullable = false)
     @Builder.Default

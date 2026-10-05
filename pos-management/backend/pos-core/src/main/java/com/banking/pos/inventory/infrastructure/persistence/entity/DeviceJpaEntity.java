@@ -49,6 +49,28 @@ public class DeviceJpaEntity {
     @Column(name = "sim_number", length = 50)
     private String simNumber;
 
+    @Column(name = "sim_card_no", length = 30)
+    private String simCardNo;
+
+    @Column(name = "sim_phone_no", length = 20)
+    private String simPhoneNo;
+
+    @Column(name = "telco", length = 20)
+    private String telco;
+
+    @Column(name = "sam_card_serial", length = 50)
+    private String samCardSerial;
+
+    @Column(name = "pci_pts_expiry_date")
+    private java.time.LocalDate pciPtsExpiryDate;
+
+    @Column(name = "key_injected_status", nullable = false, length = 20)
+    @Builder.Default
+    private String keyInjectedStatus = "NOT_INJECTED";
+
+    @Column(name = "key_injected_at")
+    private Instant keyInjectedAt;
+
     @Column(name = "firmware_version", length = 50)
     private String firmwareVersion;
 

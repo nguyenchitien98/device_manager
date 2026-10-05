@@ -1,0 +1,132 @@
+<div class="page-container p-4">
+  <div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="page-title fw-bold text-primary mb-1">Quản Lý SIM 4G POS & SAM Card</h2>
+      <p class="text-muted mb-0">Quản lý kho SIM Data 4G, cước phí hàng tháng và thẻ SAM bảo mật thiết bị POS</p>
+    </div>
+    <div class="d-flex gap-2">
+      <pos-button
+        btnId="btn-import-sim"
+        variant="primary"
+        icon="add"
+        (click)="openCreateModal()">
+        Nhập SIM Mới
+      </pos-button>
+    </div>
+  </div>
+
+  <div class="card p-3 mb-4 border-0 shadow-sm">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <pos-input
+          inputId="input-search-sim"
+          placeholder="Tìm theo số seri SIM, số điện thoại..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="loadData()"
+          icon="search">
+        </pos-input>
+      </div>
+      <div class="col-md-3">
+        <pos-select
+          selectId="select-telco"
+          [options]="telcoOptions"
+          [(ngModel)]="selectedTelco"
+          (ngModelChange)="loadData()">
+        </pos-select>
+      </div>
+      <div class="col-md-3">
+        <pos-select
+          selectId="select-sim-status"
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus"
+          (ngModelChange)="loadData()">
+        </pos-select>
+      </div>
+    </div>
+  </div>
+
+  <pos-table
+    [columns]="columns"
+    [data]="telecomService.simCards()"
+    [loading]="telecomService.loading()">
+    <ng-template #cellTemplate let-row let-col="column">
+      <ng-container [ngSwitch]="col.field">
+        <span *ngSwitchCase="'status'">
+          <pos-badge [variant]="row.status === 'INSTOCK' ? 'success' : row.status === 'ASSIGNED' ? 'primary' : 'warning'">
+            {{ row.status }}
+          </pos-badge>
+        </span>
+        <span *ngSwitchCase="'monthlyFee'">
+          <span class="fw-semibold text-success">{{ row.monthlyFee | number }} VNĐ</span>
+        </span>
+        <span *ngSwitchCase="'createdAt'">
+          {{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}
+        </span>
+        <span *ngSwitchDefault>{{ row[col.field] }}</span>
+      </ng-container>
+    </ng-template>
+  </pos-table>
+
+  <div class="mt-3">
+    <pos-pagination
+      [totalItems]="telecomService.totalSims()"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage() + 1"
+      (pageChange)="onPageChange($event - 1)">
+    </pos-pagination>
+  </div>
+</div>
+
+<pos-modal
+  [isOpen]="isCreateModalOpen()"
+  title="Nhập Kho SIM 4G Mới"
+  (closeModal)="isCreateModalOpen.set(false)">
+  <div class="modal-body p-3">
+    <div class="mb-3">
+      <pos-input
+        inputId="input-new-sim-serial"
+        label="Số Seri SIM (*)"
+        placeholder="Ví dụ: 89840400000123456"
+        [(ngModel)]="newSimSerial">
+      </pos-input>
+    </div>
+    <div class="mb-3">
+      <pos-input
+        inputId="input-new-phone-number"
+        label="Số Điện Thoại SIM (*)"
+        placeholder="Ví dụ: 0988123456"
+        [(ngModel)]="newPhoneNumber">
+      </pos-input>
+    </div>
+    <div class="mb-3">
+      <pos-select
+        selectId="select-new-telco"
+        label="Nhà Mạng (*)"
+        [options]="telcoOptions.slice(1)"
+        [(ngModel)]="newTelco">
+      </pos-select>
+    </div>
+    <div class="mb-3">
+      <pos-input
+        inputId="input-new-monthly-fee"
+        label="Cước Phí Hàng Tháng (VNĐ)"
+        type="number"
+        [(ngModel)]="newMonthlyFee">
+      </pos-input>
+    </div>
+  </div>
+  <div class="modal-footer d-flex justify-content-end gap-2 p-3 border-top">
+    <pos-button
+      btnId="btn-cancel-create-sim"
+      variant="secondary"
+      (click)="isCreateModalOpen.set(false)">
+      Hủy Bỏ
+    </pos-button>
+    <pos-button
+      btnId="btn-save-create-sim"
+      variant="primary"
+      (click)="saveSimCard()">
+      Lưu Bản Ghi
+    </pos-button>
+  </div>
+</pos-modal>

@@ -1,0 +1,122 @@
+<div class="page-container p-4">
+  <div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="page-title fw-bold text-primary mb-1">Quản Lý Sự Cố & Kỹ Thuật Viên Địa Bàn (Field Service CRM)</h2>
+      <p class="text-muted mb-0">Tiếp nhận yêu cầu hỗ trợ hỏng hóc từ Merchant, phân công Kỹ thuật viên đi bàn giao & sửa chữa tại chỗ</p>
+    </div>
+    <div class="d-flex gap-2">
+      <pos-button
+        btnId="btn-create-ticket"
+        variant="primary"
+        icon="add"
+        (click)="openCreateModal()">
+        Tạo Ticket Báo Hỏng
+      </pos-button>
+    </div>
+  </div>
+
+  <div class="card p-3 mb-4 border-0 shadow-sm">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <pos-select
+          selectId="select-ticket-status"
+          [options]="statusOptions"
+          [(ngModel)]="selectedStatus"
+          (ngModelChange)="loadData()">
+        </pos-select>
+      </div>
+    </div>
+  </div>
+
+  <pos-table
+    [columns]="columns"
+    [data]="ticketService.tickets()"
+    [loading]="ticketService.loading()">
+    <ng-template #cellTemplate let-row let-col="column">
+      <ng-container [ngSwitch]="col.field">
+        <span *ngSwitchCase="'priority'">
+          <pos-badge [variant]="row.priority === 'URGENT' ? 'danger' : row.priority === 'HIGH' ? 'warning' : 'info'">
+            {{ row.priority }}
+          </pos-badge>
+        </span>
+        <span *ngSwitchCase="'status'">
+          <pos-badge [variant]="row.status === 'OPEN' ? 'warning' : row.status === 'RESOLVED' ? 'success' : 'primary'">
+            {{ row.status }}
+          </pos-badge>
+        </span>
+        <span *ngSwitchCase="'createdAt'">
+          {{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}
+        </span>
+        <span *ngSwitchCase="'actions'">
+          @if (row.status !== 'RESOLVED' && row.status !== 'CLOSED') {
+            <pos-button
+              [btnId]="'btn-resolve-' + row.id"
+              variant="success"
+              size="sm"
+              (click)="resolveTicket(row.id)">
+              Hoàn Tất
+            </pos-button>
+          } @else {
+            <span class="text-muted fs-7">Đã Xử Lý</span>
+          }
+        </span>
+        <span *ngSwitchDefault>{{ row[col.field] }}</span>
+      </ng-container>
+    </ng-template>
+  </pos-table>
+
+  <div class="mt-3">
+    <pos-pagination
+      [totalItems]="ticketService.totalTickets()"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage() + 1"
+      (pageChange)="onPageChange($event - 1)">
+    </pos-pagination>
+  </div>
+</div>
+
+<pos-modal
+  [isOpen]="isCreateModalOpen()"
+  title="Tạo Ticket Báo Hỏng Thiết Bị POS"
+  (closeModal)="isCreateModalOpen.set(false)">
+  <div class="modal-body p-3">
+    <div class="mb-3">
+      <pos-select
+        selectId="select-new-issue-type"
+        label="Loại Sự Cố (*)"
+        [options]="issueTypeOptions"
+        [(ngModel)]="newIssueType">
+      </pos-select>
+    </div>
+    <div class="mb-3">
+      <pos-select
+        selectId="select-new-priority"
+        label="Mức Độ Ưu Tiên (*)"
+        [options]="priorityOptions"
+        [(ngModel)]="newPriority">
+      </pos-select>
+    </div>
+    <div class="mb-3">
+      <pos-input
+        inputId="input-new-ticket-desc"
+        label="Mô Tả Sự Cố Cho Kỹ Thuật Viên (*)"
+        placeholder="Mô tả chi tiết tình trạng hỏng hóc tại ĐVCNT..."
+        [(ngModel)]="newDescription">
+      </pos-input>
+    </div>
+  </div>
+  <div class="modal-footer d-flex justify-content-end gap-2 p-3 border-top">
+    <pos-button
+      btnId="btn-cancel-create-ticket"
+      variant="secondary"
+      (click)="isCreateModalOpen.set(false)">
+      Hủy Bỏ
+    </pos-button>
+    <pos-button
+      btnId="btn-save-create-ticket"
+      variant="primary"
+      (click)="saveTicket()">
+      Gửi Yêu Cầu
+    </pos-button>
+  </div>
+</pos-modal>

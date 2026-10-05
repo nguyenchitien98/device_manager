@@ -53,6 +53,12 @@ export const routes: Routes = [
         title: 'Quản Lý Nhà Cung Cấp — POS Management',
       },
       {
+        path: 'security/key-injections',
+        loadComponent: () =>
+          import('./features/security/key-injection-list/key-injection-list.component').then(m => m.KeyInjectionListComponent),
+        title: 'Phòng Nạp Khóa HSM PCI DSS — POS Management',
+      },
+      {
         path: 'catalog/mcc',
         loadComponent: () =>
           import('./features/catalog/mcc/mcc-list.component').then(m => m.MccListPageComponent),
@@ -63,6 +69,18 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/catalog/fee-policy/fee-policy-list.component').then(m => m.FeePolicyListPageComponent),
         title: 'Quản Lý Chính Sách Phí — POS Management',
+      },
+      {
+        path: 'finance/rental-fees',
+        loadComponent: () =>
+          import('./features/finance/rental-fee-policy-list/rental-fee-policy-list.component').then(m => m.RentalFeePolicyListComponent),
+        title: 'Tính Phí Thuê Máy & Phạt Doanh Số — POS Management',
+      },
+      {
+        path: 'crm/tickets',
+        loadComponent: () =>
+          import('./features/crm/ticket-list/ticket-list.component').then(m => m.TicketListComponent),
+        title: 'Hỗ Trợ Kỹ Thuật CRM — POS Management',
       },
       {
         path: 'organization/business-units',
@@ -81,6 +99,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/inventory/purchase-order/purchase-order-list.component').then(m => m.PurchaseOrderListPageComponent),
         title: 'Đơn Hàng Mua POS (PO) — POS Management',
+      },
+      {
+        path: 'telecom/sims',
+        loadComponent: () =>
+          import('./features/telecom/sim-list/sim-list.component').then(m => m.SimListComponent),
+        title: 'Quản Lý SIM 4G & SAM — POS Management',
       },
 
       // Module 2: Merchant & TID
@@ -219,6 +243,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/monitoring/audit-log-list/audit-log-list.component').then(m => m.AuditLogListPageComponent),
         title: 'Nhật Ký Tác Động Hệ Thống — POS Management',
+      },
+      {
+        path: 'monitoring/inactivity',
+        loadComponent: () =>
+          import('./features/monitoring/inactivity-alert-list/inactivity-alert-list.component').then(m => m.InactivityAlertListComponent),
+        title: 'Cảnh Báo POS Inactive — POS Management',
       },
       {
         path: 'reports/inventory',
