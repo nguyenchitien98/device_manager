@@ -11,7 +11,19 @@
 }
 
 /* Card Containers */
-.search-zone-card, .list-zone-card, .pos-card {
+.search-zone-card, .filter-panel-card, .pos-card {
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.05));
+  overflow: visible !important; /* CRITICAL: Allows pos-select & pos-dropdown menus to float over without clipping */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+}
+
+.table-card, .list-zone-card {
   background: var(--bg-card, #ffffff);
   border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 12px;
@@ -19,12 +31,51 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 
-  /* Seamless Table inside List Zone Card */
+  /* Seamless Table inside Card Containers */
   .pos-table-wrap {
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+  }
+
+  .pos-pagination {
+    border-top: 1px solid var(--border-color, #e5e7eb) !important;
+    border-bottom: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-radius: 0 !important;
+    background-color: var(--bg-card, #ffffff);
+  }
+}
+
+/* Dynamic Breadcrumb Bar */
+.breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #64748b);
+  margin-bottom: 0.25rem;
+
+  .crumb-link {
+    color: var(--text-secondary, #64748b);
+    transition: color 0.15s ease;
+    &:hover {
+      color: #00b050;
+    }
+  }
+
+  .crumb-separator {
+    color: var(--text-muted, #94a3b8);
+    font-weight: 500;
+  }
+
+  .crumb-current {
+    font-weight: 600;
+    color: var(--text-primary, #0f172a);
   }
 }
 
@@ -112,22 +163,29 @@
   padding: 16px 28px 24px 28px;
 }
 
-/* Filter Grid Layout */
+/* Filter Grid Layout (Standard 4 Items Per Row VPBank) */
 .filter-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px 24px;
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px 20px;
   align-items: flex-end;
   width: 100%;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Filter Action Bar (Bottom-Right) */
 .filter-actions-right,
 .filter-actions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 12px !important;
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px dashed var(--border-color, #e2e8f0);
