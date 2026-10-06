@@ -1,0 +1,202 @@
+<div class="device-lookup-container">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-bar">
+    <span class="crumb-link">Quản lý thiết bị</span>
+    <span class="crumb-separator">&gt;</span>
+    <span class="crumb-link">Quản lý thiết bị</span>
+    <span class="crumb-separator">&gt;</span>
+    <span class="crumb-current">Tra cứu thiết bị</span>
+  </div>
+
+  <!-- Mode Switch Tabs -->
+  <div class="page-title-row">
+    <div class="mode-tabs-container">
+      <button
+        id="btn-mode-serial"
+        class="mode-tab-btn"
+        [class.active]="activeMode() === 'serial'"
+        (click)="onModeChange('serial')"
+      >
+        <i class="bi bi-qr-code-scan me-1.5"></i>Quản lý theo serial
+      </button>
+      <button
+        id="btn-mode-quantity"
+        class="mode-tab-btn"
+        [class.active]="activeMode() === 'quantity'"
+        (click)="onModeChange('quantity')"
+      >
+        <i class="bi bi-stack me-1.5"></i>Quản lý theo số lượng
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter Panel Card: ĐIỀU KIỆN TRA CỨU (4 ITEMS / DÒNG x 2 DÒNG = 8 ITEMS) -->
+  <div class="filter-panel-card shadow-sm">
+    <div class="filter-panel-header font-semibold text-sm mb-3 text-slate-700 dark:text-slate-200">
+      Điều kiện tra cứu
+    </div>
+
+    <div class="filter-grid">
+      <!-- Dòng 1 (4 items) -->
+      <pos-input
+        inputId="input-serial"
+        label="Serial / IMEI"
+        placeholder="Nhập serial hoặc IMEI"
+        [ngModel]="serialFilter()"
+        (ngModelChange)="serialFilter.set($event)"
+      ></pos-input>
+
+      <pos-select
+        selectId="select-category"
+        label="Danh mục thiết bị"
+        placeholder="Chọn danh mục..."
+        [options]="categoryOptions"
+        [ngModel]="categoryFilter()"
+        (ngModelChange)="categoryFilter.set($event)"
+        [clearable]="true"
+      ></pos-select>
+
+      <pos-select
+        selectId="select-device-type"
+        label="Loại thiết bị"
+        placeholder="Chọn loại thiết bị..."
+        [options]="deviceTypeOptions"
+        [ngModel]="deviceTypeFilter()"
+        (ngModelChange)="deviceTypeFilter.set($event)"
+        [clearable]="true"
+      ></pos-select>
+
+      <pos-select
+        selectId="select-model"
+        label="Model thiết bị"
+        placeholder="Chọn model..."
+        [options]="modelOptions"
+        [ngModel]="modelFilter()"
+        (ngModelChange)="modelFilter.set($event)"
+        [clearable]="true"
+      ></pos-select>
+
+      <!-- Dòng 2 (4 items) -->
+      <pos-select
+        selectId="select-status"
+        label="Trạng thái"
+        placeholder="Tất cả trạng thái"
+        [options]="statusOptions"
+        [ngModel]="statusFilter()"
+        (ngModelChange)="statusFilter.set($event)"
+        [clearable]="true"
+      ></pos-select>
+
+      <pos-select
+        selectId="select-warehouse"
+        label="Kho hiện tại"
+        placeholder="Chọn kho..."
+        [options]="warehouseOptions"
+        [ngModel]="warehouseFilter()"
+        (ngModelChange)="warehouseFilter.set($event)"
+        [clearable]="true"
+      ></pos-select>
+
+      <pos-select
+        selectId="select-condition"
+        label="Tình trạng thiết bị"
+        placeholder="Tất cả tình trạng"
+        [options]="conditionOptions"
+        [ngModel]="conditionFilter()"
+        (ngModelChange)="conditionFilter.set($event)"
+        [clearable]="true"
+      ></pos-select>
+
+      <pos-input
+        inputId="input-po"
+        label="Mã Purchase Order"
+        placeholder="Nhập mã Purchase Order"
+        [ngModel]="poCodeFilter()"
+        (ngModelChange)="poCodeFilter.set($event)"
+      ></pos-input>
+    </div>
+
+    <!-- Bottom Actions Right Aligned -->
+    <div class="filter-actions">
+      <pos-button
+        btnId="btn-reset-filter"
+        variant="secondary"
+        icon="bi bi-arrow-counterclockwise"
+        (click)="onResetFilter()"
+      >
+        Xóa bỏ
+      </pos-button>
+      <pos-button
+        btnId="btn-search-filter"
+        variant="primary"
+        icon="bi bi-search"
+        (click)="onSearch()"
+      >
+        Tìm kiếm
+      </pos-button>
+    </div>
+  </div>
+
+  <!-- Status Cards Bar -->
+  <pos-status-bar
+    [items]="statusCards()"
+    [selectedStatus]="statusFilter()"
+    (statusSelect)="onStatusCardSelect($event)"
+  ></pos-status-bar>
+
+  <!-- Data Table & Pagination Card Container -->
+  <div class="table-card shadow-sm">
+    <pos-table
+      tableTitle="Danh sách thiết bị quản lý theo serial"
+      [columns]="tableColumns"
+      [data]="devices()"
+      [loading]="loading()"
+      [enableColumnSelector]="true"
+    >
+      <ng-template #cellTemplate let-row let-col="column">
+        @switch (col.field) {
+          @case ('actions') {
+            <div class="d-flex justify-content-center">
+              <button
+                type="button"
+                class="circle-icon-btn shadow-sm"
+                title="Xem chi tiết"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          }
+          @case ('stt') {
+            <span class="text-slate-500 font-medium">{{ row.stt }}</span>
+          }
+          @case ('serialNumber') {
+            <span class="font-mono font-bold text-slate-800 dark:text-white">{{ row.serialNumber }}</span>
+          }
+          @case ('status') {
+            <pos-badge [variant]="getStatusBadgeVariant(row.status)">
+              {{ getStatusLabel(row.status) }}
+            </pos-badge>
+          }
+          @case ('condition') {
+            <span class="text-success font-semibold">Tốt</span>
+          }
+          @case ('poCode') {
+            <span class="po-link-code font-mono font-semibold">{{ row.poCode }}</span>
+          }
+          @default {
+            {{ row[col.field] }}
+          }
+        }
+      </ng-template>
+    </pos-table>
+
+    <pos-pagination
+      [totalItems]="devices().length"
+      [pageSize]="pageSize()"
+      [currentPage]="currentPage() + 1"
+    ></pos-pagination>
+  </div>
+</div>

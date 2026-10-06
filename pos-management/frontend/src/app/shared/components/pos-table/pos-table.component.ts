@@ -1,6 +1,6 @@
 import {
   ChangeDetectionStrategy, Component, ContentChild, TemplateRef,
-  Input, Output, EventEmitter
+  Input, Output, EventEmitter, signal, computed, ElementRef, HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PosSkeletonComponent } from '../pos-skeleton/pos-skeleton.component';
@@ -12,37 +12,9 @@ export interface TableColumn {
   width?: string;
   sortable?: boolean;
   align?: 'left' | 'center' | 'right';
+  hidden?: boolean;
 }
 
-/**
- * PosTableComponent — Bảng dữ liệu dùng chung toàn hệ thống POS.
- *
- * ## Sử dụng:
- * ```html
- * <pos-table
- *   [columns]="[
- *     { field: 'code', header: 'Mã Merchant', width: '140px' },
- *     { field: 'name', header: 'Tên Merchant' },
- *     { field: 'status', header: 'Trạng thái', width: '130px' },
- *     { field: 'actions', header: 'Thao tác', width: '100px', align: 'center' }
- *   ]"
- *   [data]="merchants"
- *   [loading]="loading"
- * >
- *   <ng-template #cellTemplate let-row let-col="column">
- *     @if (col.field === 'status') {
- *       <pos-badge [variant]="row.status === 'ACTIVE' ? 'success' : 'danger'">
- *         {{ row.status }}
- *       </pos-badge>
- *     } @else if (col.field === 'actions') {
- *       <pos-dropdown [items]="rowActions" (itemClick)="onAction(row, $event)" />
- *     } @else {
- *       {{ row[col.field] }}
- *     }
- *   </ng-template>
- * </pos-table>
- * ```
- */
 @Component({
   selector: 'pos-table',
   standalone: true,
@@ -50,11 +22,56 @@ export interface TableColumn {
   imports: [CommonModule, PosSkeletonComponent, EmptyStateComponent],
   template: `
     <div class="pos-table-wrap">
+      @if (tableTitle || enableColumnSelector) {
+        <div class="table-header-bar d-flex justify-content-between align-items-center mb-3">
+          <div class="table-title font-bold text-slate-800 dark:text-white text-base">
+            {{ tableTitle }}
+          </div>
+
+          @if (enableColumnSelector) {
+            <div class="column-selector-wrap position-relative">
+              <button
+                type="button"
+                class="column-selector-btn d-flex align-items-center gap-2 shadow-sm"
+                (click)="toggleSelectorOpen()"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #00b050;">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>{{ visibleColumns().length }} items selected</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #64748b;">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+
+              @if (isSelectorOpen()) {
+                <div class="column-selector-dropdown shadow-lg">
+                  <div class="dropdown-header font-semibold text-xs text-muted mb-2 border-bottom pb-1">
+                    Hiển thị / Ẩn cột dữ liệu:
+                  </div>
+                  @for (col of columns; track col.field) {
+                    <label class="column-checkbox-item d-flex align-items-center gap-2 py-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        [checked]="!hiddenFields().has(col.field)"
+                        (change)="toggleColumn(col.field)"
+                      />
+                      <span class="text-xs font-medium text-slate-700 dark:text-slate-300">{{ col.header }}</span>
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
       <div class="pos-table-container">
         <table class="pos-table">
           <thead>
             <tr>
-              @for (col of columns; track col.field) {
+              @for (col of visibleColumns(); track col.field) {
                 <th
                   [style.width]="col.width || 'auto'"
                   [class.text-center]="col.align === 'center'"
@@ -75,13 +92,13 @@ export interface TableColumn {
           <tbody>
             @if (loading) {
               <tr>
-                <td [attr.colspan]="columns.length" class="p-0">
+                <td [attr.colspan]="visibleColumns().length" class="p-0">
                   <pos-skeleton type="table-row" [rows]="skeletonRows" />
                 </td>
               </tr>
             } @else if (!data || data.length === 0) {
               <tr>
-                <td [attr.colspan]="columns.length" class="empty-cell">
+                <td [attr.colspan]="visibleColumns().length" class="empty-cell">
                   <app-empty-state
                     [title]="emptyTitle"
                     [message]="emptyMessage"
@@ -92,7 +109,7 @@ export interface TableColumn {
             } @else {
               @for (row of data; track $index) {
                 <tr>
-                  @for (col of columns; track col.field) {
+                  @for (col of visibleColumns(); track col.field) {
                     <td
                       [class.text-center]="col.align === 'center'"
                       [class.text-right]="col.align === 'right'"
@@ -125,10 +142,45 @@ export class PosTableComponent<T = any> {
   @Input() emptyMessage = 'Không có bản ghi nào phù hợp với bộ lọc.';
   @Input() sortField = '';
   @Input() sortOrder: 'asc' | 'desc' = 'asc';
+  @Input() tableTitle = '';
+  @Input() enableColumnSelector = true;
 
   @Output() sortChange = new EventEmitter<{ field: string; order: 'asc' | 'desc' }>();
 
   @ContentChild('cellTemplate') cellTemplate?: TemplateRef<{ $implicit: T; column: TableColumn; index: number }>;
+
+  isSelectorOpen = signal(false);
+  hiddenFields = signal<Set<string>>(new Set());
+
+  constructor(private elementRef: ElementRef) {}
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.isSelectorOpen.set(false);
+    }
+  }
+
+  visibleColumns = computed(() => {
+    const hidden = this.hiddenFields();
+    return this.columns.filter(c => !hidden.has(c.field));
+  });
+
+  toggleSelectorOpen(): void {
+    this.isSelectorOpen.update(v => !v);
+  }
+
+  toggleColumn(field: string): void {
+    this.hiddenFields.update(set => {
+      const next = new Set(set);
+      if (next.has(field)) {
+        next.delete(field);
+      } else {
+        next.add(field);
+      }
+      return next;
+    });
+  }
 
   onSort(field: string): void {
     const order = this.sortField === field && this.sortOrder === 'asc' ? 'desc' : 'asc';

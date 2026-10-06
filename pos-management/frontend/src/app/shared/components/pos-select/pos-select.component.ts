@@ -145,7 +145,7 @@ export class PosSelectComponent implements ControlValueAccessor {
   @Input() selectId = '';
   @Input() placeholder = 'Chọn...';
   @Input() required = false;
-  @Input() clearable = false;
+  @Input() clearable = true;
   @Input() searchable = false;
   @Input() error = '';
   @Input() hint = '';

@@ -1,0 +1,111 @@
+.pos-status-bar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.status-card {
+  flex: 1 1 120px;
+  min-width: 120px;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--card-accent, #94a3b8);
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  &.active {
+    border-color: var(--card-accent, #00b050);
+    box-shadow: 0 0 0 2px rgba(0, 176, 80, 0.15);
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.35rem;
+  }
+
+  .card-label-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .card-icon {
+    font-size: 0.875rem;
+    color: var(--card-accent, #64748b);
+  }
+
+  .card-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
+    white-space: nowrap;
+  }
+
+  .card-count {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary, #0f172a);
+    line-height: 1.2;
+  }
+}
+
+// Color Variants
+.card-variant-slate {
+  --card-accent: #64748b;
+}
+
+.card-variant-emerald {
+  --card-accent: #00b050; // VPBank Green
+  .card-count { color: #008744; }
+}
+
+.card-variant-blue {
+  --card-accent: #2563eb;
+  .card-count { color: #1d4ed8; }
+}
+
+.card-variant-cyan {
+  --card-accent: #06b6d4;
+  .card-count { color: #0891b2; }
+}
+
+.card-variant-amber {
+  --card-accent: #f59e0b;
+  .card-count { color: #d97706; }
+}
+
+.card-variant-violet {
+  --card-accent: #8b5cf6;
+  .card-count { color: #7c3aed; }
+}
+
+.card-variant-yellow {
+  --card-accent: #eab308;
+  .card-count { color: #ca8a04; }
+}
+
+.card-variant-rose {
+  --card-accent: #ef4444;
+  .card-count { color: #dc2626; }
+}

@@ -159,6 +159,12 @@ export const routes: Routes = [
         title: 'Tạo Phiếu Xuất Kho — POS Management',
       },
       {
+        path: 'inventory/device-lookup',
+        loadComponent: () =>
+          import('./features/inventory/device-lookup/device-lookup.component').then(m => m.DeviceLookupComponent),
+        title: 'Tra Cứu Thiết Bị POS VPBank Standard — POS Management',
+      },
+      {
         path: 'inventory/stock',
         loadComponent: () =>
           import('./features/inventory/stock-list/stock-list.component').then(m => m.StockListPageComponent),

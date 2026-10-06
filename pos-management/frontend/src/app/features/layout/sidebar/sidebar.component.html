@@ -219,6 +219,10 @@
             <span class="nav-icon icon-orange"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V12M7 17l5-5 5 5"/><path d="M20 10V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v5"/></svg></span>
             <span class="nav-label">{{ 'NAV.EXPORTS' | translate }}</span>
           </a>
+          <a routerLink="/inventory/device-lookup" class="nav-item" [class.active]="isActive('/inventory/device-lookup')" title="Tra Cứu Thiết Bị VPBank Standard">
+            <span class="nav-icon icon-emerald"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+            <span class="nav-label">Tra Cứu Thiết Bị (VPBank)</span>
+          </a>
           <a routerLink="/inventory/stock" class="nav-item" [class.active]="isActive('/inventory/stock')" [title]="'NAV.STOCK' | translate">
             <span class="nav-icon icon-amber"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
             <span class="nav-label">{{ 'NAV.STOCK' | translate }}</span>
